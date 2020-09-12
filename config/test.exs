@@ -20,3 +20,10 @@ config :penguin_memories, PenguinMemoriesWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :warn
+
+config :penguin_memories, PenguinMemories.Accounts.Guardian,
+  issuer: "penguin_memories",
+  secret_key: "/q7S9SP028A/BbWqkiisc5qZXbBWQFg8+GSTkflTAfRw/K9jCzJKWpSWvWUEoUU4"
+
+config :penguin_memories, PenguinMemoriesWeb.Endpoint,
+  secret_key_base: "oOWDT+7p6JENufDeyMQFLqDMsj1bkVfQT4Navmr5qYem9crHED4jAMr0Stf4aRNt"
