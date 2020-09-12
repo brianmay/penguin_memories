@@ -10,15 +10,18 @@ defmodule PenguinMemories.AccountsTest do
       is_admin: true,
       password: "some password",
       password_confirmation: "some password",
-      username: "some username"
+      username: "some username",
+      name: "some name"
     }
     @update_attrs %{
       is_admin: false,
-      username: "some updated username"
+      username: "some updated username",
+      name: "some updated name"
     }
     @invalid_attrs %{
       is_admin: nil,
-      username: nil
+      username: nil,
+      name: nil
     }
     @password_attrs %{
       password: "some other password",
@@ -52,6 +55,7 @@ defmodule PenguinMemories.AccountsTest do
       assert {:ok, %User{} = user} = Accounts.create_user(@valid_attrs)
       assert user.is_admin == true
       assert user.username == "some username"
+      assert user.name == "some name"
       assert {:ok, user} == Argon2.check_pass(user, "some password", hash_key: :password_hash)
     end
 
@@ -64,6 +68,7 @@ defmodule PenguinMemories.AccountsTest do
       assert {:ok, %User{} = user} = Accounts.update_user(user, @update_attrs)
       assert user.is_admin == false
       assert user.username == "some updated username"
+      assert user.name == "some updated name"
       assert {:ok, user} == Argon2.check_pass(user, "some password", hash_key: :password_hash)
     end
 

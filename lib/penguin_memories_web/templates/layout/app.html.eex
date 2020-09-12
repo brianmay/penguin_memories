@@ -6,28 +6,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>PenguinMemories · Phoenix Framework</title>
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>"/>
-    <script defer type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
+    <script type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </head>
   <body>
-    <header>
-      <section class="container">
-        <nav role="navigation">
-          <ul>
-            <li><a href="https://hexdocs.pm/phoenix/overview.html">Get Started</a></li>
-            <%= if function_exported?(Routes, :live_dashboard_path, 2) do %>
-              <li><%= link "LiveDashboard", to: Routes.live_dashboard_path(@conn, :home) %></li>
-            <% end %>
-          </ul>
-        </nav>
-        <a href="https://phoenixframework.org/" class="phx-logo">
-          <img src="<%= Routes.static_path(@conn, "/images/phoenix.png") %>" alt="Phoenix Framework Logo"/>
-        </a>
-      </section>
-    </header>
-    <main role="main" class="container">
-      <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
-      <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
-      <%= @inner_content %>
-    </main>
+      <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+          <%= link("Robotica", to: Routes.page_path(@conn, :index), class: "navbar-brand") %>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+              <ul class="navbar-nav mr-auto">
+                  <%= if PenguinMemories.Auth.user_signed_in?(@conn) do %>
+                      <li class="nav-item dropdown">
+                          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+                              <%= PenguinMemories.Auth.current_user(@conn).name %>
+                          </a>
+                          <div class="dropdown-menu">
+                              <%= link "Logout", to: Routes.session_path(@conn, :logout), method: :post, class: "dropdown-item"%>
+                          </div>
+                      </li>
+                  <% else %>
+                      <li class="nav-item <%= active_class(@active, "login") %>">
+                          <%= link("Login", to: Routes.session_path(@conn, :login), class: "nav-link") %>
+                      </li>
+                  <% end %>
+
+              </ul>
+          </div>
+      </nav>
+
+      <main role="main" class="container">
+          <%= Enum.map(get_flash(@conn), fn {flash_key, flash_message} -> %>
+              <p class="alert alert-<%= flash_key %>"><%= flash_message %></p>
+          <% end) %>
+          <%= @inner_content %>
+      </main>
+      <%= csrf_meta_tag() %>
   </body>
 </html>

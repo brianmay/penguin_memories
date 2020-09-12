@@ -8,6 +8,7 @@ defmodule PenguinMemories.Accounts.User do
     field :password_confirmation, :string, virtual: true
     field :password_hash, :string
     field :username, :string
+    field :name, :string
 
     timestamps()
   end
@@ -15,8 +16,8 @@ defmodule PenguinMemories.Accounts.User do
   @doc false
   def create_changeset(user, attrs) do
     user
-    |> cast(attrs, [:username, :is_admin, :password, :password_confirmation])
-    |> validate_required([:username, :password, :password_confirmation])
+    |> cast(attrs, [:username, :name, :is_admin, :password, :password_confirmation])
+    |> validate_required([:username, :name, :password, :password_confirmation])
     |> validate_length(:password, min: 8)
     |> validate_confirmation(:password)
     |> put_password_hash
@@ -27,8 +28,8 @@ defmodule PenguinMemories.Accounts.User do
   @doc false
   def update_changeset(user, attrs) do
     user
-    |> cast(attrs, [:username, :is_admin])
-    |> validate_required([:username])
+    |> cast(attrs, [:username, :name, :is_admin])
+    |> validate_required([:username, :name])
   end
 
   @doc false
