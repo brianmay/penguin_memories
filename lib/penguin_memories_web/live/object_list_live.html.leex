@@ -1,0 +1,14 @@
+<h2>List of things</h2>
+<div class="photo_list">
+    <%= for icon <- @icons do %>
+        <div class="photo_item">
+            <img
+                src="<%= icon.url %>"
+                alt="<%= icon.title %>"
+                width="<%= icon.width %>"
+                height="<%= icon.height %>"
+            >
+            <p class="title"><%= icon.title %></p>
+        </div>
+    <% end %>
+</div>

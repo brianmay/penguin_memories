@@ -36,6 +36,7 @@ defmodule PenguinMemoriesWeb.Router do
     live "/login", SessionLive, :login
     post "/login", SessionController, :login
     post "/logout", SessionController, :logout
+    live "/:type/", ObjectListLive, :index
   end
 
   scope "/", PenguinMemoriesWeb do

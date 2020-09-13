@@ -59,3 +59,53 @@
   text-decoration: none;
   cursor: pointer;
 }
+
+/* PHOTO LIST */
+.photo_item {
+    border: 1px solid #dddddd;
+    .title {
+        font-weight: bold;
+    }
+    .desc {
+        text-align: left;
+    }
+    .desc ul {
+        text-align: left;
+    }
+    .desc ol {
+        text-align: left;
+    }
+    a {
+        color: #333;
+        text-decoration: none;
+    }
+    &:HOVER {
+        border: 1px solid #000;
+    }
+}
+
+.photo_list {
+    .removed {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
+    .regenerate {
+        background: #CCE;
+        color: #333;
+    }
+    .selecting {
+        background: #FECA40;
+    }
+    .selected {
+        background: #F39814;
+    }
+    .photo_item {
+        display: inline-block;
+        vertical-align: top;
+        height: 170px;
+        margin: 10px;
+        padding-top: 10px;
+        text-align: center;
+        width: 140px;
+    }
+}

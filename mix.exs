@@ -10,7 +10,9 @@ defmodule PenguinMemories.MixProject do
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      elixirc_options: [warnings_as_errors: true],
+      dialyzer: [plt_add_deps: :transitive]
     ]
   end
 
@@ -49,6 +51,7 @@ defmodule PenguinMemories.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:guardian, "~> 2.1"},
       {:argon2_elixir, "~> 2.3"},
+      {:dialyxir, "~> 0.5.0", only: [:dev], runtime: false},
     ]
   end
 
