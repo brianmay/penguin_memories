@@ -12,3 +12,15 @@
         </div>
     <% end %>
 </div>
+
+<%= if @before_key do %>
+    <%= live_patch to: Routes.object_list_path(@socket, :index, @type) <> "?" <> URI.encode_query(%{"before" => @before_key}), class: "btn btn-secondary" do %>
+        &lt
+    <% end %>
+<% end %>
+<%= if @after_key do %>
+    <%= live_patch to: Routes.object_list_path(@socket, :index, @type) <> "?" <> URI.encode_query(%{"after" => @after_key}), class: "btn btn-secondary" do %>
+        &gt
+    <% end %>
+<% end %>
+Total count: '<%= @total_count %>'

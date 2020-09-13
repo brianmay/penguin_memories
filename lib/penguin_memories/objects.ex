@@ -10,7 +10,7 @@ defmodule PenguinMemories.Objects do
     defstruct [:url, :title, :width, :height]
   end
 
-  @callback get_icons() :: list(Icon.t)
+  @callback get_icons(String.t()|nil, String.t()|nil) :: {list(Icon.t), String.t()|nil, String.t()|nil, integer}
 
   def get_for_type(type) do
     case type do
