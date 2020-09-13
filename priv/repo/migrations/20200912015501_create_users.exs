@@ -3,9 +3,9 @@ defmodule PenguinMemories.Repo.Migrations.CreateUsers do
 
   def change do
     create table(:users) do
-      add :username, :string
-      add :name, :string
-      add :password_hash, :string
+      add :username, :string, null: false
+      add :name, :string, null: false
+      add :password_hash, :string, null: false
       add :is_admin, :boolean, default: false, null: false
 
       timestamps()

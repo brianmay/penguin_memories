@@ -129,8 +129,21 @@ defmodule PenguinMemories.Accounts do
       %Ecto.Changeset{source: %User{}}
 
   """
-  def change_password(%User{} = user) do
-    User.password_changeset(user, %{})
+  def change_password(%User{} = user, attrs \\ %{}) do
+    User.password_changeset(user, attrs)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for logging in
+
+  ## Examples
+
+      iex> login_user(user)
+      %Ecto.Changeset{source: %User{}}
+
+  """
+  def login_user(%User{} = user, attrs \\ %{}) do
+    User.login_changeset(user, attrs)
   end
 
   @doc """
@@ -151,7 +164,7 @@ defmodule PenguinMemories.Accounts do
         {:error, :invalid_credentials}
 
       user ->
-        if Argon2.verify_pass(plain_text_password, user.password) do
+        if Argon2.verify_pass(plain_text_password, user.password_hash) do
           {:ok, user}
         else
           {:error, :invalid_credentials}

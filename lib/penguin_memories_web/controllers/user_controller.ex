@@ -4,14 +4,18 @@ defmodule PenguinMemoriesWeb.UserController do
   alias PenguinMemories.Accounts
   alias PenguinMemories.Accounts.User
 
+  def params(conn, params \\ []) do
+    params ++ [active: "users", flash: get_flash(conn)]
+  end
+
   def index(conn, _params) do
     users = Accounts.list_users()
-    render(conn, "index.html", users: users, active: "user")
+    render(conn, "index.html", params(conn, [users: users]))
   end
 
   def new(conn, _params) do
     changeset = Accounts.change_user(%User{})
-    render(conn, "new.html", changeset: changeset, active: "user")
+    render(conn, "new.html", params(conn, changeset: changeset))
   end
 
   def create(conn, %{"user" => user_params}) do
@@ -22,19 +26,19 @@ defmodule PenguinMemoriesWeb.UserController do
         |> redirect(to: Routes.user_path(conn, :show, user))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "new.html", changeset: changeset, active: "user")
+        render(conn, "new.html", params(conn, changeset: changeset))
     end
   end
 
   def show(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
-    render(conn, "show.html", user: user, active: "user")
+    render(conn, "show.html", params(conn, user: user))
   end
 
   def edit(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
     changeset = Accounts.change_user(user)
-    render(conn, "edit.html", user: user, changeset: changeset, active: "user")
+    render(conn, "edit.html", params(conn, user: user, changeset: changeset))
   end
 
   def update(conn, %{"id" => id, "user" => user_params}) do
@@ -47,14 +51,14 @@ defmodule PenguinMemoriesWeb.UserController do
         |> redirect(to: Routes.user_path(conn, :show, user))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "edit.html", user: user, changeset: changeset, active: "user")
+        render(conn, "edit.html", params(conn, user: user, changeset: changeset))
     end
   end
 
   def password_edit(conn, %{"id" => id}) do
     user = Accounts.get_user!(id)
     changeset = Accounts.change_password(user)
-    render(conn, "password.html", user: user, changeset: changeset, active: "user")
+    render(conn, "password.html", params(conn, user: user, changeset: changeset))
   end
 
   def password_update(conn, %{"id" => id, "user" => user_params}) do
@@ -67,7 +71,7 @@ defmodule PenguinMemoriesWeb.UserController do
         |> redirect(to: Routes.user_path(conn, :show, user))
 
       {:error, %Ecto.Changeset{} = changeset} ->
-        render(conn, "password.html", user: user, changeset: changeset, active: "user")
+        render(conn, "password.html", params(conn, user: user, changeset: changeset))
     end
   end
 

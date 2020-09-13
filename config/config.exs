@@ -21,7 +21,7 @@ config :penguin_memories, PenguinMemoriesWeb.Endpoint,
   secret_key_base: System.get_env("SECRET_KEY_BASE"),
   render_errors: [view: PenguinMemoriesWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: PenguinMemories.PubSub,
-  live_view: [signing_salt: "TjHD3iSQ"]
+  live_view: [signing_salt: System.get_env("SIGNING_SALT")]
 
 # Configures Elixir's Logger
 config :logger, :console,

@@ -12,7 +12,8 @@ config :penguin_memories, PenguinMemories.Repo,
 config :penguin_memories, PenguinMemoriesWeb.Endpoint,
   http: [:inet6, port: port],
   url: [host: System.get_env("HOST"), port: port],
-  secret_key_base: System.get_env("SECRET_KEY_BASE")
+  secret_key_base: System.get_env("SECRET_KEY_BASE"),
+  live_view: [signing_salt: System.get_env("SIGNING_SALT")]
 
 config :penguin_memories, PenguinMemories.Accounts.Guardian,
   issuer: "penguin_memories",

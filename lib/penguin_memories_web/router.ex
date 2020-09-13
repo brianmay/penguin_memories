@@ -4,9 +4,11 @@ defmodule PenguinMemoriesWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
-    plug :fetch_flash
+    plug :fetch_live_flash
+    plug :put_root_layout, {PenguinMemoriesWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :put_layout, {PenguinMemoriesWeb.LayoutView, :live}
   end
 
   pipeline :auth do
@@ -30,8 +32,8 @@ defmodule PenguinMemoriesWeb.Router do
   scope "/", PenguinMemoriesWeb do
     pipe_through [:browser, :auth]
 
-    get "/", PageController, :index
-    get "/login", SessionController, :new
+    live "/", PageLive, :index
+    live "/login", SessionLive, :login
     post "/login", SessionController, :login
     post "/logout", SessionController, :logout
   end

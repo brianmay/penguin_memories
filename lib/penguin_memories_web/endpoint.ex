@@ -7,7 +7,7 @@ defmodule PenguinMemoriesWeb.Endpoint do
   @session_options [
     store: :cookie,
     key: "_penguin_memories_key",
-    signing_salt: "GPApdwYr"
+    signing_salt: "VERjS0kD"
   ]
 
   socket "/socket", PenguinMemoriesWeb.UserSocket,

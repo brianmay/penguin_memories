@@ -33,6 +33,13 @@ defmodule PenguinMemories.Accounts.User do
   end
 
   @doc false
+  def login_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:username, :password])
+    |> validate_required([:username, :password])
+  end
+
+  @doc false
   def password_changeset(user, attrs) do
     user
     |> cast(attrs, [:password, :password_confirmation])

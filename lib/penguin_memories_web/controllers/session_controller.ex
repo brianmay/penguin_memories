@@ -1,19 +1,8 @@
 defmodule PenguinMemoriesWeb.SessionController do
   use PenguinMemoriesWeb, :controller
 
-  alias PenguinMemories.{Accounts, Accounts.User, Accounts.Guardian}
+  alias PenguinMemories.{Accounts, Accounts.Guardian}
   alias PenguinMemoriesWeb.Router.Helpers, as: Routes
-
-  def new(conn, _) do
-    changeset = Accounts.change_user(%User{})
-    maybe_user = Guardian.Plug.current_resource(conn)
-
-    if maybe_user do
-      redirect(conn, to: Routes.page_path(conn, :index))
-    else
-      render(conn, "new.html", changeset: changeset, action: Routes.session_path(conn, :login), active: "login")
-    end
-  end
 
   def login(conn, %{"user" => %{"username" => username, "password" => password}}) do
     Accounts.authenticate_user(username, password)
@@ -23,7 +12,7 @@ defmodule PenguinMemoriesWeb.SessionController do
   def logout(conn, _) do
     conn
     |> Guardian.Plug.sign_out()
-    |> redirect(to: Routes.session_path(conn, :new))
+    |> redirect(to: Routes.session_path(conn, :login))
   end
 
   defp login_reply({:ok, user}, conn) do
@@ -36,6 +25,6 @@ defmodule PenguinMemoriesWeb.SessionController do
   defp login_reply({:error, reason}, conn) do
     conn
     |> put_flash(:danger, to_string(reason))
-    |> new(%{})
+    |> redirect(to: Routes.session_path(conn, :login))
   end
 end
