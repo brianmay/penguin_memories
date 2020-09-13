@@ -42,32 +42,19 @@ defmodule PenguinMemoriesWeb.Router do
     pipe_through [:browser, :auth, :ensure_auth]
   end
 
+  import Phoenix.LiveDashboard.Router
+
   scope "/", PenguinMemoriesWeb do
     pipe_through [:browser, :auth, :ensure_admin]
 
     resources "/users", UserController
     get "/users/:id/password", UserController, :password_edit
     put "/users/:id/password", UserController, :password_update
+    live_dashboard "/dashboard", metrics: PenguinMemoriesWeb.Telemetry
   end
 
   # Other scopes may use custom stacks.
   # scope "/api", PenguinMemoriesWeb do
   #   pipe_through :api
   # end
-
-  # Enables LiveDashboard only for development
-  #
-  # If you want to use the LiveDashboard in production, you should put
-  # it behind authentication and allow only admins to access it.
-  # If your application does not have an admins-only section yet,
-  # you can use Plug.BasicAuth to set up some basic authentication
-  # as long as you are also using SSL (which you should anyway).
-  if Mix.env() in [:dev, :test] do
-    import Phoenix.LiveDashboard.Router
-
-    scope "/" do
-      pipe_through :browser
-      live_dashboard "/dashboard", metrics: PenguinMemoriesWeb.Telemetry
-    end
-  end
 end
