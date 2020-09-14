@@ -2,12 +2,14 @@
 <div class="photo_list">
     <%= for icon <- @icons do %>
         <div class="photo_item">
-            <img
-                src="<%= icon.url %>"
-                alt="<%= icon.title %>"
-                width="<%= icon.width %>"
-                height="<%= icon.height %>"
-            >
+            <%= if icon.url do %>
+                <img
+                    src="<%= icon.url %>"
+                    alt="<%= icon.title %>"
+                    width="<%= icon.width %>"
+                    height="<%= icon.height %>"
+                >
+            <% end %>
             <p class="title"><%= icon.title %></p>
         </div>
     <% end %>

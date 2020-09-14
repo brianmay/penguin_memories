@@ -14,8 +14,6 @@ defmodule PenguinMemories.Photos.File do
     field :size_key, :string
     field :width, :integer
     belongs_to :photo, Photo
-
-    timestamps()
   end
 
   @doc false
