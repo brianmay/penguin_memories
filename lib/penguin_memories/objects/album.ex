@@ -9,6 +9,12 @@ defmodule PenguinMemories.Objects.Album do
   @behaviour Objects
 
   @impl Objects
+  @spec get_plural_title() :: String.t()
+  def get_plural_title do
+    "albums"
+  end
+
+  @impl Objects
   @spec get_icons(String.t()|nil, String.t()|nil) :: {list(Objects.Icon.t), String.t()|nil, String.t()|nil, integer}
   def get_icons(before_key, after_key) do
 

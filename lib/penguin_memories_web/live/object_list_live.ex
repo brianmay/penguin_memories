@@ -29,7 +29,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {icons, before_key, after_key, total_count} = type.get_icons(requested_before_key, requested_after_key)
 
     assigns = [
-      type: params["type"],
+      type: type,
+      type_name: params["type"],
       active: params["type"],
       icons: icons,
       requested_before_key: params["before"],

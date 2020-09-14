@@ -1,4 +1,4 @@
-<h2>List of things</h2>
+<h2>List of <%= @type.get_plural_title() %></h2>
 <div class="photo_list">
     <%= for icon <- @icons do %>
         <div class="photo_item">
@@ -16,12 +16,12 @@
 </div>
 
 <%= if @before_key do %>
-    <%= live_patch to: Routes.object_list_path(@socket, :index, @type) <> "?" <> URI.encode_query(%{"before" => @before_key}), class: "btn btn-secondary" do %>
+    <%= live_patch to: Routes.object_list_path(@socket, :index, @type_name) <> "?" <> URI.encode_query(%{"before" => @before_key}), class: "btn btn-secondary" do %>
         &lt
     <% end %>
 <% end %>
 <%= if @after_key do %>
-    <%= live_patch to: Routes.object_list_path(@socket, :index, @type) <> "?" <> URI.encode_query(%{"after" => @after_key}), class: "btn btn-secondary" do %>
+    <%= live_patch to: Routes.object_list_path(@socket, :index, @type_name) <> "?" <> URI.encode_query(%{"after" => @after_key}), class: "btn btn-secondary" do %>
         &gt
     <% end %>
 <% end %>
