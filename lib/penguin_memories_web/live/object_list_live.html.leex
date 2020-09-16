@@ -15,13 +15,13 @@
     <% end %>
 </div>
 
-<%= if @before_key do %>
-    <%= live_patch to: Routes.object_list_path(@socket, :index, @type_name) <> "?" <> URI.encode_query(%{"before" => @before_key}), class: "btn btn-secondary" do %>
+<%= if @before_url do %>
+    <%= live_patch to: @before_url, class: "btn btn-secondary" do %>
         &lt
     <% end %>
 <% end %>
-<%= if @after_key do %>
-    <%= live_patch to: Routes.object_list_path(@socket, :index, @type_name) <> "?" <> URI.encode_query(%{"after" => @after_key}), class: "btn btn-secondary" do %>
+<%= if @after_url do %>
+    <%= live_patch to: @after_url, class: "btn btn-secondary" do %>
         &gt
     <% end %>
 <% end %>
