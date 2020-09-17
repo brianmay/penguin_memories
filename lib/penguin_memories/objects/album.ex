@@ -14,7 +14,7 @@ defmodule PenguinMemories.Objects.Album do
     "albums"
   end
 
-  @spec query_objects(%{required(String.t()) => String.t()}, MapSet.t()|nil) :: Query.t()
+  @spec query_objects(%{required(String.t()) => String.t()}, MapSet.t()|nil) :: Ecto.Query.t()
   defp query_objects(filter_spec, nil) do
     query = from o in Album
 
@@ -24,11 +24,10 @@ defmodule PenguinMemories.Objects.Album do
     end
   end
 
-  @spec query_objects(%{required(String.t()) => String.t()}, MapSet.t()|nil) :: Query.t()
-  defp query_objects(_, id_mapset) do
-    from o in Album,
-      where: o.id in ^id_mapset
-  end
+  # defp query_objects(_, id_mapset) do
+  #   from o in Album,
+  #     where: o.id in ^id_mapset
+  # end
 
   @impl Objects
   @spec get_icons(%{required(String.t()) => String.t()}, String.t()|nil, String.t()|nil) :: {list(Objects.Icon.t), String.t()|nil, String.t()|nil, integer}
@@ -52,12 +51,12 @@ defmodule PenguinMemories.Objects.Album do
       limit: 10
     )
 
-    icons = Enum.map( entries, fn album ->
+    icons = Enum.map(entries, fn album ->
       url = if album.dir do
           "https://photos.linuxpenguins.xyz/images/#{album.dir}/#{album.name}"
         end
-      %Objects.Icon{url: url, title: album.title, height: album.height, width: album.width} end
-    )
+      %Objects.Icon{id: album.id, url: url, title: album.title, height: album.height, width: album.width}
+    end)
 
     {icons, metadata.before, metadata.after, metadata.total_count}
   end

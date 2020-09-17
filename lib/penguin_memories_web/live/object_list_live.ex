@@ -15,6 +15,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       after_url: nil,
       total_count: 0,
       search_spec: %{},
+      selected_ids: MapSet.new(),
+      last_clicked_id: nil,
     ]
 
     {:ok, assign(socket, assigns)}
@@ -27,7 +29,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
               query -> URI.decode_query(query)
             end
     query = Map.merge(query, merge)
-    query = Map.drop(query, delete)
+    query = Map.drop(query,
+      delete)
     query = URI.encode_query(query)
     %URI{uri | query: query}
   end
@@ -84,5 +87,97 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     ]
 
     {:noreply, assign(socket, assigns)}
+  end
+
+
+  defp toggle(mapset, id) do
+    cond do
+      MapSet.member?(mapset, id) ->
+        MapSet.delete(mapset, id)
+      true ->
+        MapSet.put(mapset, id)
+    end
+  end
+
+  defp set(mapset, id, state) do
+    current = MapSet.member?(mapset, id)
+    cond do
+      not state and current ->
+        MapSet.delete(mapset, id)
+      state and not current  ->
+        MapSet.put(mapset, id)
+      true -> mapset
+    end
+  end
+
+  defp toggle_range(mapset, icons, last_clicked_id, clicked_id) do
+    new_state = MapSet.member?(mapset, last_clicked_id)
+
+    {state, new_mapset} = Enum.reduce(icons, {0, mapset}, fn
+      icon, {0, mapset} ->
+        cond do
+          icon.id == last_clicked_id ->
+            {1, set(mapset, icon.id, new_state)}
+          icon.id == clicked_id ->
+            {1, set(mapset, icon.id, new_state)}
+          true -> {0, mapset}
+        end
+      icon, {1, mapset} ->
+        cond do
+          icon.id == last_clicked_id ->
+            {2, set(mapset, icon.id, new_state)}
+          icon.id == clicked_id ->
+            {2, set(mapset, icon.id, new_state)}
+          true -> {1, set(mapset, icon.id, new_state)}
+        end
+      _, {2, mapset} ->
+        {2, mapset}
+    end)
+
+    case state do
+      0 -> mapset
+      1 -> mapset
+      2 -> new_mapset
+    end
+  end
+
+  @impl true
+  def handle_event("select", params, socket) do
+    %{"id" => id, "ctrlKey" => ctrlKey, "shiftKey" => shiftKey} = params
+    {clicked_id, ""} = Integer.parse(id)
+
+    selected_ids = cond do
+      ctrlKey ->
+        toggle(socket.assigns.selected_ids, clicked_id)
+
+      shiftKey ->
+        toggle_range(socket.assigns.selected_ids, socket.assigns.icons, socket.assigns.last_clicked_id, clicked_id)
+
+      true ->
+        MapSet.new([clicked_id])
+    end
+
+    assigns = [
+      selected_ids: selected_ids,
+      last_clicked_id: clicked_id,
+    ]
+
+    {:noreply, assign(socket, assigns)}
+  end
+
+  defp icon_style(icon, selected_ids, last_clicked_id) do
+    result = []
+
+    result = cond do
+      last_clicked_id == icon.id -> ["last_clicked" | result]
+      true -> result
+    end
+
+    result = cond do
+      MapSet.member?(selected_ids, icon.id) -> ["selected" | result]
+      true -> result
+    end
+
+    Enum.join(result, " ")
   end
 end

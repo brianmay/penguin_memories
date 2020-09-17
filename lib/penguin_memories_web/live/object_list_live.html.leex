@@ -1,7 +1,10 @@
 <h2>List of <%= @type.get_plural_title() %></h2>
+<div class="photo_details">
+  <%= inspect @selected_ids %>
+</div>
 <div class="photo_list">
     <%= for icon <- @icons do %>
-        <div class="photo_item">
+        <div class="photo_item <%= icon_style(icon, @selected_ids, @last_clicked_id) %>" phx-click="select" phx-value-id="<%= icon.id %>">
             <%= if icon.url do %>
                 <img
                     src="<%= icon.url %>"

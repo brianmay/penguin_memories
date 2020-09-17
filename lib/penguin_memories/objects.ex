@@ -1,13 +1,14 @@
 defmodule PenguinMemories.Objects do
   defmodule Icon do
     @type t :: %__MODULE__{
+      id: integer,
       url: String.t(),
       title: String.t(),
       width: integer,
       height: integer,
     }
-    @enforce_keys [:url, :title, :width, :height]
-    defstruct [:url, :title, :width, :height]
+    @enforce_keys [:id, :url, :title, :width, :height]
+    defstruct [:id, :url, :title, :width, :height]
   end
 
   @callback get_plural_title() :: String.t()

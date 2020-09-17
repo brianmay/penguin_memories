@@ -85,6 +85,8 @@
 }
 
 .photo_list {
+    user-select: none;
+
     .removed {
         text-decoration: line-through;
         opacity: 0.5;
@@ -92,6 +94,10 @@
     .regenerate {
         background: #CCE;
         color: #333;
+    }
+    .last_clicked {
+        border-style: dashed;
+        border-width: 2px;
     }
     .selecting {
         background: #FECA40;
