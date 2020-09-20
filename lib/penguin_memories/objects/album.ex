@@ -144,7 +144,7 @@ defmodule PenguinMemories.Objects.Album do
             id: :description,
             title: "Description",
             display: result.o.description,
-            type: :string,
+            type: :markdown,
           },
           %Objects.Field{
             id: :cover_photo_id,

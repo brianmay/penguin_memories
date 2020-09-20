@@ -100,4 +100,12 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
+  @spec input_field(Phoenix.HTML.Form.t(), atom(), atom(), keyword()) :: any()
+  def input_field(form, type, field, _opts \\ []) do
+    case type do
+        :markdown -> textarea_input_field(form, field, opts)
+        _ -> text_input_field(form, field, opts)
+      end
+  end
+
 end

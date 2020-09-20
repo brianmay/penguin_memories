@@ -32,6 +32,21 @@ defmodule PenguinMemoriesWeb.FormHelpers do
     end
   end
 
+  defmacro textarea_input_field(form, field, _opts \\ []) do
+    quote do
+      field_class = field_class(unquote(form), unquote(field), "form-control")
+      feedback_for = get_feedback_for(unquote(form), unquote(field))
+
+      content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
+        [
+          label(unquote(form), unquote(field), class: "control-label"),
+          textarea(unquote(form), unquote(field), class: field_class),
+          error_tag(unquote(form), unquote(field))
+        ]
+      end
+    end
+  end
+
   defmacro number_input_field(form, field, _opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")

@@ -37,7 +37,7 @@
     <%= if @edit do %>
         <%= form_for @changeset, "save", [as: :object, phx_change: :validate, phx_target: @myself], fn f -> %>
             <%= for field <- @selected_fields do %>
-                <%= text_input_field f, field.id %>
+                <%= input_field f, field.type, field.id %>
             <% end %>
             <div>
                 <span><input type="button" class="btn btn-primary" phx-click="save" value="Save" phx-target="<%= @myself %>"></span>
