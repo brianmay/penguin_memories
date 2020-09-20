@@ -25,6 +25,9 @@
     <%= if @show_selected do %>
         <div class="btn btn-secondary" phx-click="show-all">Show All</div>
     <% end %>
+    <%= if num_selected > 0 do %>
+        <div class="btn btn-secondary" phx-click="select-none">Unselect All</div>
+    <% end %>
 </div>
 
 <div class="photo_list">

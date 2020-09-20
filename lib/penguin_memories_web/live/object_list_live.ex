@@ -177,18 +177,26 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @impl true
   def handle_event("select", params, socket) do
-    %{"id" => id, "ctrlKey" => ctrlKey, "shiftKey" => shiftKey} = params
+    %{"id" => id, "ctrlKey" => ctrlKey, "shiftKey" => shiftKey, "altKey" => altKey} = params
     {clicked_id, ""} = Integer.parse(id)
 
-    selected_ids = cond do
+    {selected_ids, socket} = cond do
       ctrlKey ->
-        toggle(socket.assigns.selected_ids, clicked_id)
+        s = toggle(socket.assigns.selected_ids, clicked_id)
+        {s, socket}
 
       shiftKey ->
-        toggle_range(socket.assigns.selected_ids, socket.assigns.icons, socket.assigns.last_clicked_id, clicked_id)
+        s = toggle_range(socket.assigns.selected_ids, socket.assigns.icons, socket.assigns.last_clicked_id, clicked_id)
+        {s, socket}
+
+      altKey ->
+        type_name = socket.assigns.type.get_type_name()
+        url = Routes.object_list_path(socket, :index, type_name, id)
+        socket = push_patch(socket, to: url)
+        {socket.assigns.selected_ids, socket}
 
       true ->
-        MapSet.new([clicked_id])
+        {MapSet.new([clicked_id]), socket}
     end
 
     assigns = [
@@ -202,6 +210,11 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   @impl true
   def handle_event("show-selected", _params, socket) do
     {:noreply, assign(socket, show_selected: true) |> reload() }
+  end
+
+  @impl true
+  def handle_event("select-none", _params, socket) do
+    {:noreply, assign(socket, selected_ids: MapSet.new()) |> reload() }
   end
 
   @impl true
