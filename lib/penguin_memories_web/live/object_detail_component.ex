@@ -22,10 +22,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
         {nil, fields, icons, length(icons) >= limit}
     end
 
-    num_found = length(icons)
-
     assigns = [
-      num_selected: num_found,
+      num_selected: num_selected,
       selected_object: selected_object,
       selected_fields: selected_fields,
       selected_ids: params.selected_ids,

@@ -1,5 +1,7 @@
 <h2>List of <%= @type.get_plural_title() %></h2>
 
+<% num_selected = num_selected(@selected_ids) %>
+
 <div class="parents">
     <%= for icon <- @parents do %>
         <%=
@@ -10,7 +12,11 @@
     <% end %>
 </div>
 
+<%= if num_selected > 0 do %>
 <%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, selected_ids: @selected_ids, type: @type) %>
+<% else %>
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, selected_ids: MapSet.new([@parent_id]), type: @type) %>
+<% end %>
 
 <div class="buttons">
     <%= if not @show_selected do %>

@@ -11,6 +11,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       icons: [],
       requested_before_key: nil,
       requested_after_key: nil,
+      parent_id: nil,
       before_url: nil,
       after_url: nil,
       total_count: 0,
@@ -51,11 +52,6 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       true -> nil
     end
 
-    selected_ids = case parent_id do
-                     nil -> MapSet.new()
-                     parent_id -> MapSet.new([parent_id])
-                   end
-
     params = case parent_id do
                nil -> params
                _ -> Map.put(params, "parent_id", parent_id)
@@ -67,8 +63,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       parsed_uri: parsed_uri,
       requested_before_key: requested_before_key,
       requested_after_key: requested_after_key,
+      parent_id: parent_id,
       search_spec: params,
-      selected_ids: selected_ids,
       last_clicked_id: nil,
       show_selected: false,
     ]
@@ -87,7 +83,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     requested_after_key = socket.assigns.requested_after_key
     search_spec = socket.assigns.search_spec
 
-    parents = case search_spec["parent_id"] do
+    parents = case socket.assigns.parent_id do
                 nil -> []
                 parent_id -> type.get_parents(parent_id)
               end
@@ -146,7 +142,11 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     end
   end
 
-  defp toggle_range(mapset, icons, last_clicked_id, clicked_id) do
+  defp num_selected(mapset) do
+    MapSet.size(mapset)
+  end
+
+ defp toggle_range(mapset, icons, last_clicked_id, clicked_id) do
     new_state = MapSet.member?(mapset, last_clicked_id)
 
     {state, new_mapset} = Enum.reduce(icons, {0, mapset}, fn

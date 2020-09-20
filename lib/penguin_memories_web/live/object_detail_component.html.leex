@@ -1,8 +1,6 @@
 <% type_name = @type.get_type_name() %>
 
 <div class="photo_detail">
-    <p><%= @num_selected %> object(s) selected</p>
-
     <%= if @icons do %>
         <div class="photo_list">
             <%= for icon <- @icons do %>
