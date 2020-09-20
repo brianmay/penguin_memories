@@ -4,23 +4,12 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   alias PenguinMemories.Objects
 
   @impl true
-  def mount(params, _session, socket) do
+  def mount(_params, _session, socket) do
     assigns = [
-      type: params["type"],
-      active: params["type"],
-      icons: [],
-      requested_before_key: nil,
-      requested_after_key: nil,
-      parent_id: nil,
-      before_url: nil,
-      after_url: nil,
-      total_count: 0,
-      search_spec: %{},
       selected_ids: MapSet.new(),
-      last_clicked_id: nil,
-      show_selected: false,
     ]
 
+    PenguinMemoriesWeb.Endpoint.subscribe("refresh")
     {:ok, assign(socket, assigns)}
   end
 
@@ -235,4 +224,12 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
     result
   end
+
+  @impl true
+  def handle_info(value, socket) do
+    IO.inspect(value)
+    socket = reload(socket)
+    {:noreply, socket}
+  end
+
 end

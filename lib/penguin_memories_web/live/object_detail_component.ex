@@ -1,6 +1,18 @@
 defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   use PenguinMemoriesWeb, :live_component
 
+  alias PenguinMemories.Repo
+
+  @impl true
+  def mount(socket) do
+    assigns = [
+      edit: false,
+      changeset: nil,
+    ]
+
+    {:ok, assign(socket, assigns)}
+  end
+
   @impl true
   def update(params, socket) do
     type = params.type
@@ -29,9 +41,60 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       selected_ids: params.selected_ids,
       more_icons: more_icons,
       icons: icons,
-      type: type
+      type: type,
+      edit: false
     ]
-    socket = assign(socket, assigns)
+    socket = socket
+    |> assign(assigns)
     {:ok, socket}
   end
+
+  @impl true
+  def handle_event("edit", _params, socket) do
+    type = socket.assigns.type
+    assigns = [
+      edit: true,
+      changeset: type.changeset(socket.assigns.selected_object, %{})
+    ]
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @impl true
+  def handle_event("save", _params, socket) do
+    {edit, changeset} = case Repo.update(socket.assigns.changeset) do
+                          {:error, changeset} ->     
+                            {true, changeset}
+                          {:ok, _} ->
+                            PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+                            {false, nil}
+                        end
+    assigns = [
+      edit: edit,
+      changeset: changeset
+    ]
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @impl true
+  def handle_event("cancel", _params, socket) do
+    assigns = [
+      edit: false,
+      changeset: nil
+    ]
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @impl true
+  def handle_event("validate", %{"object" => params}, socket) do
+    type = socket.assigns.type
+
+    changeset = type.changeset(socket.assigns.selected_object, params)
+    changeset = %{changeset | action: :update}
+
+    assigns = [
+      changeset: changeset
+    ]
+    {:noreply, assign(socket, assigns)}
+  end
+
 end

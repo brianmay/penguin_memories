@@ -13,9 +13,9 @@
 </div>
 
 <%= if num_selected > 0 do %>
-<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, selected_ids: @selected_ids, type: @type) %>
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, selected_ids: @selected_ids, type: @type, id: :detail) %>
 <% else %>
-<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, selected_ids: MapSet.new([@parent_id]), type: @type) %>
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, selected_ids: MapSet.new([@parent_id]), type: @type, id: :selected) %>
 <% end %>
 
 <div class="buttons">

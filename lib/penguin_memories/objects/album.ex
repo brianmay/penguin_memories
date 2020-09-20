@@ -41,12 +41,15 @@ defmodule PenguinMemories.Objects.Album do
     url = if result.dir do
       "https://photos.linuxpenguins.xyz/images/#{result.dir}/#{result.name}"
     end
+    subtitle = if result.sort_name != "" and result.sort_order != "" do
+      "#{result.sort_name}: #{result.sort_order}"
+    end
     %Objects.Icon{
       id: result.id,
       action: nil,
       url: url,
       title: result.title,
-      subtitle: "111",
+      subtitle: subtitle,
       height: result.height,
       width: result.width
     }
@@ -61,18 +64,6 @@ defmodule PenguinMemories.Objects.Album do
         title: "Title",
         display: nil,
         type: :string,
-      },
-      %Objects.Field{
-        id: :description,
-        title: "Description",
-        display: nil,
-        type: :string,
-      },
-      %Objects.Field{
-        id: :cover_photo,
-        title: "Cover Photo",
-        display: nil,
-        type: :photo,
       },
       %Objects.Field{
         id: :sort_name,
@@ -114,7 +105,7 @@ defmodule PenguinMemories.Objects.Album do
       join: o in Album, on: o.id == ob.ascendant_id,
       left_join: p in Photo, on: p.id == o.cover_photo_id,
       left_join: f in subquery(file_query), on: f.photo_id == p.id,
-      select: %{id: o.id, title: o.title, dir: f.dir, name: f.name, height: f.height, width: f.width},
+      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width},
       order_by: [desc: ob.position]
 
     icons = Enum.map(Repo.all(query), fn result ->
@@ -136,7 +127,7 @@ defmodule PenguinMemories.Objects.Album do
       where: o.id == ^id,
       left_join: p in Photo, on: p.id == o.cover_photo_id,
       left_join: f in subquery(file_query), on: f.photo_id == p.id,
-      select: %{o: o, id: o.id, title: o.title, cp_title: p.title, dir: f.dir, name: f.name, height: f.height, width: f.width}
+      select: %{o: o, id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, cp_title: p.title, dir: f.dir, name: f.name, height: f.height, width: f.width}
 
     case Repo.one(query) do
       nil -> nil
@@ -156,7 +147,7 @@ defmodule PenguinMemories.Objects.Album do
             type: :string,
           },
           %Objects.Field{
-            id: :cover_photo,
+            id: :cover_photo_id,
             title: "Cover Photo",
             display: "#{result.cp_title} (#{result.o.cover_photo_id})",
             type: :photo,
@@ -244,6 +235,16 @@ defmodule PenguinMemories.Objects.Album do
     end)
 
     icons
+  end
+
+  @impl Objects
+  @spec changeset(map()|nil, map()) :: Ecto.Changeset.t()
+  def changeset(album, attrs) do
+    album = case album do
+              nil -> %Album{}
+              album -> album
+            end
+    Album.changeset(album, attrs)
   end
 
 end

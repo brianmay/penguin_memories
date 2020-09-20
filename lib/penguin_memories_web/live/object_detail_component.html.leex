@@ -21,7 +21,7 @@
         </div>
     <% end %>
 
-    <%= if @selected_fields do %>
+    <%= if @num_selected == 1 and not @edit do %>
         <table class="photo_table table table-hover">
             <tbody>
                 <%= for field <- @selected_fields do %>
@@ -34,18 +34,34 @@
         </table>
     <% end %>
 
-    <%= cond do %>
-    <% @num_selected == 0 -> %>
-    <% @num_selected == 1 -> %>
-        <% icon = hd(@icons) %>
-        <div class="buttons">
-            <%= live_patch to: Routes.object_list_path(@socket, :index, type_name, icon.id), class: "btn btn-secondary" do %>
-                Goto Album
+    <%= if @edit do %>
+        <%= form_for @changeset, "save", [as: :object, phx_change: :validate, phx_target: @myself], fn f -> %>
+            <%= for field <- @selected_fields do %>
+                <%= text_input_field f, field.id %>
             <% end %>
-            <div class="btn btn-secondary">Goto Photos</div>
-            <div class="btn btn-secondary">Edit</div>
-        </div>
-    <% @num_selected > 1 -> %>
-        <div class="btn btn-secondary">Bulk Update</div>
+            <div>
+                <span><input type="button" class="btn btn-primary" phx-click="save" value="Save" phx-target="<%= @myself %>"></span>
+                <span><input type="button" class="btn btn-danger" phx-click="cancel" value="Cancel" phx-target="<%= @myself %>"></span>
+            </div>
+        <% end %>
     <% end %>
+
+    <div class="buttons">
+        <%= cond do %>
+            <% @num_selected == 0 -> %> <!-- No photos selected -->
+            <% @num_selected == 1 -> %>
+                <% icon = hd(@icons) %>
+                <%= if not @edit do %>
+                    <%= live_patch to: Routes.object_list_path(@socket, :index, type_name, icon.id), class: "btn btn-secondary" do %>
+                        Goto Album
+                    <% end %>
+                    <div class="btn btn-secondary">Goto Photos</div>
+                    <div class="btn btn-secondary" phx-click="edit" phx-target="<%= @myself %>">Edit</div>
+                <% end %>
+            <% @num_selected > 1 -> %>
+                <%= if not @edit do %>
+                    <div class="btn btn-secondary">Bulk Update</div>
+                <% end %>
+        <% end %>
+    </div>
 </div>

@@ -121,12 +121,15 @@
 
 .photo_detail {
     border: 1px solid #dddddd;
-
-    .photo_list {
-        display: inline-block;
-    }
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
 
     .photo_table {
+        width: 400px;
+    }
+
+    form {
         display: inline-block;
         width: 400px;
     }
