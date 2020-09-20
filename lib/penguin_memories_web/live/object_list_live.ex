@@ -36,8 +36,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     parsed_uri = URI.parse(uri)
 
     parent_id = cond do
-      (id = params["id"]) != nil -> id
-      (id = params["parent_id"]) != nil -> id
+      (id = params["id"]) != nil -> to_int(id)
+      (id = params["parent_id"]) != nil -> to_int(id)
       true -> nil
     end
 
@@ -177,8 +177,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @impl true
   def handle_event("select", params, socket) do
-    %{"id" => id, "ctrlKey" => ctrlKey, "shiftKey" => shiftKey, "altKey" => altKey} = params
-    {clicked_id, ""} = Integer.parse(id)
+    %{"id" => clicked_id, "ctrlKey" => ctrlKey, "shiftKey" => shiftKey, "altKey" => altKey} = params
+    clicked_id = to_int(clicked_id)
 
     {selected_ids, socket} = cond do
       ctrlKey ->
@@ -191,7 +191,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
       altKey ->
         type_name = socket.assigns.type.get_type_name()
-        url = Routes.object_list_path(socket, :index, type_name, id)
+        url = Routes.object_list_path(socket, :index, type_name, clicked_id)
         socket = push_patch(socket, to: url)
         {socket.assigns.selected_ids, socket}
 
@@ -245,4 +245,9 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {:noreply, socket}
   end
 
+  @spec to_int(String.t()) :: integer
+  def to_int(int) do
+    {int, ""} = Integer.parse(int)
+    int
+  end
 end
