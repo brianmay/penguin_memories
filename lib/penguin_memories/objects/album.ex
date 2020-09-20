@@ -56,7 +56,7 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec get_bulk_update_fields() :: list(Field.t())
+  @spec get_bulk_update_fields() :: list(Objects.Field.t())
   def get_bulk_update_fields do
     [
       %Objects.Field{
@@ -93,7 +93,7 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec get_parents(integer) :: {list(Objects.Icon.t())}
+  @spec get_parents(integer) :: list(Objects.Icon.t())
   def get_parents(id) do
     file_query = from f in File,
       where: f.size_key == "thumb" and f.is_video == false,

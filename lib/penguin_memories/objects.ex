@@ -27,10 +27,10 @@ defmodule PenguinMemories.Objects do
   @callback get_type_name() :: String.t()
   @callback get_plural_title() :: String.t()
   @callback get_bulk_update_fields() :: list(Field.t())
-  @callback get_parents(integer) :: {list(Objects.Icon.t())}
+  @callback get_parents(integer) :: list(Icon.t())
   @callback get_details(integer) :: {map(), Icon.t(), list(Field.t())} | nil
   @callback get_page_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, String.t()|nil, String.t()|nil) :: {list(Icon.t), String.t()|nil, String.t()|nil, integer}
-  @callback get_icons(MapSet.t()|nil, integer()) :: list(Objects.Icon.t())
+  @callback get_icons(MapSet.t()|nil, integer()) :: list(Icon.t())
   @callback changeset(map()|nil, map()) :: Ecto.Changeset.t()
 
   def get_for_type(type) do
