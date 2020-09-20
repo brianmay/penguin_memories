@@ -64,13 +64,13 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   @impl true
   def handle_event("save", _params, socket) do
     {edit, changeset} = case Repo.update(socket.assigns.changeset) do
-                          {:error, changeset} ->     
+                          {:error, changeset} ->
                             {true, changeset}
                           {:ok, _} ->
                             PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
                             {false, nil}
                         end
-    changeset = %{changeset | action: :update}
+
     assigns = [
       edit: edit,
       changeset: changeset
