@@ -2,6 +2,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   use PenguinMemoriesWeb, :live_component
 
   alias PenguinMemories.Repo
+  alias PenguinMemories.Objects
 
   @impl true
   def mount(socket) do
@@ -14,39 +15,60 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
+  def update(%{status: "refresh"}, socket) do
+    socket = reload(socket)
+    {:ok, socket}
+  end
+
+  @impl true
   def update(params, socket) do
     type = params.type
-    num_selected = MapSet.size(params.selected_ids)
+    selected_ids = params.selected_ids
+    num_selected = MapSet.size(selected_ids)
+
+    assigns = [
+      type: type,
+      num_selected: num_selected,
+      selected_ids: selected_ids,
+      edit: false
+    ]
+
+    socket = socket
+    |> assign(assigns)
+    |> reload()
+
+    {:ok, socket}
+  end
+
+  def reload(socket) do
+    type = socket.assigns.type
+    num_selected = socket.assigns.num_selected
+    selected_ids = socket.assigns.selected_ids
 
     {selected_object, selected_fields, icons, more_icons} = cond do
       num_selected == 0 ->
         {nil, nil, [], false}
       num_selected == 1 ->
-        [id] = MapSet.to_list(params.selected_ids)
+        [id] = MapSet.to_list(selected_ids)
         case type.get_details(id) do
           nil -> {nil, nil, [], true}
           {object, icon, fields} -> {object, fields, [icon], false}
         end
       true ->
         limit = 5
-        icons = type.get_icons(params.selected_ids, limit)
+        icons = type.get_icons(selected_ids, limit)
         fields = type.get_bulk_update_fields()
         {nil, fields, icons, length(icons) >= limit}
     end
 
     assigns = [
-      num_selected: num_selected,
       selected_object: selected_object,
       selected_fields: selected_fields,
-      selected_ids: params.selected_ids,
       more_icons: more_icons,
       icons: icons,
-      type: type,
-      edit: false
     ]
-    socket = socket
-    |> assign(assigns)
-    {:ok, socket}
+
+    assign(socket, assigns)
   end
 
   @impl true
@@ -100,11 +122,27 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  @spec input_field(Phoenix.HTML.Form.t(), atom(), atom(), keyword()) :: any()
-  def input_field(form, type, field, _opts \\ []) do
-    case type do
-        :markdown -> textarea_input_field(form, field, opts)
-        _ -> text_input_field(form, field, opts)
+  @spec output_field(Objects.Field.t(), keyword()) :: any()
+  def output_field(field, _opts \\ []) do
+    case field.type do
+      :markdown ->
+        case Earmark.as_html(field.display) do
+          {:ok, html_doc, _} -> Phoenix.HTML.raw(html_doc)
+          {:error, _, errors} ->
+            result = ["</ul>"]
+            result = Enum.reduce(errors, result, fn {_, _, text}, acc -> ["<li>", text, "</li>" | acc] end)
+            result = ["<ul class='alert alert-danger'>" | result]
+            Phoenix.HTML.raw(result)
+        end
+      _ -> field.display
+    end
+  end
+
+  @spec input_field(Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
+  def input_field(form, field, _opts \\ []) do
+    case field.type do
+        :markdown -> textarea_input_field(form, field.id, opts)
+        _ -> text_input_field(form, field.id, opts)
       end
   end
 

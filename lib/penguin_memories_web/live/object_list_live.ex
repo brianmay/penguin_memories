@@ -239,9 +239,9 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   end
 
   @impl true
-  def handle_info(value, socket) do
-    IO.inspect(value)
+  def handle_info(%{topic: "refresh"}, socket) do
     socket = reload(socket)
+    send_update(PenguinMemoriesWeb.ObjectDetailComponent, id: :detail, status: "refresh")
     {:noreply, socket}
   end
 
