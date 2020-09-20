@@ -1,0 +1,12 @@
+<div class="<%= icon_classes(@classes, @icon) %>" phx-click="<%= @event %>" phx-value-id="<%= @icon.id %>">
+  <%= if @icon.url do %>
+  <img
+    src="<%= @icon.url %>"
+    alt="<%= @icon.title %>"
+    width="<%= @icon.width %>"
+    height="<%= @icon.height %>"
+    >
+  <% end %>
+  <div class="title"><%= @icon.title %></div>
+  <div class="subtitle"><%= @icon.subtitle %></div>
+</div>

@@ -17,6 +17,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       search_spec: %{},
       selected_ids: MapSet.new(),
       last_clicked_id: nil,
+      show_selected: false,
     ]
 
     {:ok, assign(socket, assigns)}
@@ -39,7 +40,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   def handle_params(params, uri, socket) do
     requested_before_key = params["before"]
     requested_after_key = params["after"]
-    type_name = params["type"]
+
+    type = Objects.get_for_type(params["type"])
 
     parsed_uri = URI.parse(uri)
 
@@ -49,13 +51,53 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       true -> nil
     end
 
+    selected_ids = case parent_id do
+                     nil -> MapSet.new()
+                     parent_id -> MapSet.new([parent_id])
+                   end
+
     params = case parent_id do
                nil -> params
                _ -> Map.put(params, "parent_id", parent_id)
              end
 
-    type = Objects.get_for_type(type_name)
-    {icons, before_key, after_key, total_count} = type.get_icons(params, requested_before_key, requested_after_key)
+    assigns = [
+      type: type,
+      active: type.get_type_name(),
+      parsed_uri: parsed_uri,
+      requested_before_key: requested_before_key,
+      requested_after_key: requested_after_key,
+      search_spec: params,
+      selected_ids: selected_ids,
+      last_clicked_id: nil,
+      show_selected: false,
+    ]
+
+    socket = socket
+    |> assign(assigns)
+    |> reload()
+
+    {:noreply, socket}
+  end
+
+  def reload(socket) do
+    type = socket.assigns.type
+    parsed_uri = socket.assigns.parsed_uri
+    requested_before_key = socket.assigns.requested_before_key
+    requested_after_key = socket.assigns.requested_after_key
+    search_spec = socket.assigns.search_spec
+
+    parents = case search_spec["parent_id"] do
+                nil -> []
+                parent_id -> type.get_parents(parent_id)
+              end
+
+    show_ids = case socket.assigns.show_selected do
+                 false -> nil
+                 true -> socket.assigns.selected_ids
+               end
+
+    {icons, before_key, after_key, total_count} = type.get_page_icons(search_spec, show_ids, requested_before_key, requested_after_key)
 
     before_url = case before_key do
                    nil -> nil
@@ -74,21 +116,15 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
                 end
 
     assigns = [
-      type: type,
-      type_name: type_name,
-      active: type_name,
       icons: icons,
-      requested_before_key: requested_before_key,
-      requested_after_key: requested_after_key,
       before_url: before_url,
       after_url: after_url,
       total_count: total_count,
-      search_spec: nil,
+      parents: parents,
     ]
 
-    {:noreply, assign(socket, assigns)}
+    assign(socket, assigns)
   end
-
 
   defp toggle(mapset, id) do
     cond do
@@ -142,6 +178,15 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   end
 
   @impl true
+  def handle_event("parent", params, socket) do
+    %{"id" => id} = params
+    type_name = socket.assigns.type.get_type_name()
+    url = Routes.object_list_path(socket, :index, type_name, id)
+    socket = push_patch(socket, to: url)
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("select", params, socket) do
     %{"id" => id, "ctrlKey" => ctrlKey, "shiftKey" => shiftKey} = params
     {clicked_id, ""} = Integer.parse(id)
@@ -165,7 +210,17 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {:noreply, assign(socket, assigns)}
   end
 
-  defp icon_style(icon, selected_ids, last_clicked_id) do
+  @impl true
+  def handle_event("show-selected", _params, socket) do
+    {:noreply, assign(socket, show_selected: true) |> reload() }
+  end
+
+  @impl true
+  def handle_event("show-all", _params, socket) do
+    {:noreply, assign(socket, show_selected: false) |> reload() }
+  end
+
+  defp icon_classes(icon, selected_ids, last_clicked_id) do
     result = []
 
     result = cond do
@@ -178,6 +233,6 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       true -> result
     end
 
-    Enum.join(result, " ")
+    result
   end
 end

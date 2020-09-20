@@ -485,4 +485,100 @@ defmodule PenguinMemories.Photos do
   def change_file(%File{} = file, attrs \\ %{}) do
     File.changeset(file, attrs)
   end
+
+  alias PenguinMemories.Photos.AlbumAscendant
+
+  @doc """
+  Returns the list of album_ascendant.
+
+  ## Examples
+
+      iex> list_album_ascendant()
+      [%AlbumAscendant{}, ...]
+
+  """
+  def list_album_ascendant do
+    Repo.all(AlbumAscendant)
+  end
+
+  @doc """
+  Gets a single album_ascendant.
+
+  Raises `Ecto.NoResultsError` if the Album ascendant does not exist.
+
+  ## Examples
+
+      iex> get_album_ascendant!(123)
+      %AlbumAscendant{}
+
+      iex> get_album_ascendant!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_album_ascendant!(id), do: Repo.get!(AlbumAscendant, id)
+
+  @doc """
+  Creates a album_ascendant.
+
+  ## Examples
+
+      iex> create_album_ascendant(%{field: value})
+      {:ok, %AlbumAscendant{}}
+
+      iex> create_album_ascendant(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_album_ascendant(attrs \\ %{}) do
+    %AlbumAscendant{}
+    |> AlbumAscendant.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a album_ascendant.
+
+  ## Examples
+
+      iex> update_album_ascendant(album_ascendant, %{field: new_value})
+      {:ok, %AlbumAscendant{}}
+
+      iex> update_album_ascendant(album_ascendant, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_album_ascendant(%AlbumAscendant{} = album_ascendant, attrs) do
+    album_ascendant
+    |> AlbumAscendant.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a album_ascendant.
+
+  ## Examples
+
+      iex> delete_album_ascendant(album_ascendant)
+      {:ok, %AlbumAscendant{}}
+
+      iex> delete_album_ascendant(album_ascendant)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_album_ascendant(%AlbumAscendant{} = album_ascendant) do
+    Repo.delete(album_ascendant)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking album_ascendant changes.
+
+  ## Examples
+
+      iex> change_album_ascendant(album_ascendant)
+      %Ecto.Changeset{data: %AlbumAscendant{}}
+
+  """
+  def change_album_ascendant(%AlbumAscendant{} = album_ascendant, attrs \\ %{}) do
+    AlbumAscendant.changeset(album_ascendant, attrs)
+  end
 end

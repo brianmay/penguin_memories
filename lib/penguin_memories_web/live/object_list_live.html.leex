@@ -1,20 +1,33 @@
 <h2>List of <%= @type.get_plural_title() %></h2>
-<div class="photo_details">
-  <%= inspect @selected_ids %>
+
+<div class="parents">
+    <%= for icon <- @parents do %>
+        <%=
+        Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
+        icon: icon, classes: [], event: "parent"
+        %>
+        <div class="arrow">🠆</div>
+    <% end %>
 </div>
+
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, selected_ids: @selected_ids, type: @type) %>
+
+<div class="buttons">
+    <%= if not @show_selected do %>
+        <div class="btn btn-secondary" phx-click="show-selected">Show Selected</div>
+    <% end %>
+    <%= if @show_selected do %>
+        <div class="btn btn-secondary" phx-click="show-all">Show All</div>
+    <% end %>
+</div>
+
 <div class="photo_list">
     <%= for icon <- @icons do %>
-        <div class="photo_item <%= icon_style(icon, @selected_ids, @last_clicked_id) %>" phx-click="select" phx-value-id="<%= icon.id %>">
-            <%= if icon.url do %>
-                <img
-                    src="<%= icon.url %>"
-                    alt="<%= icon.title %>"
-                    width="<%= icon.width %>"
-                    height="<%= icon.height %>"
-                >
-            <% end %>
-            <p class="title"><%= icon.title %></p>
-        </div>
+        <%=
+        Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
+        icon: icon, classes: icon_classes(icon, @selected_ids, @last_clicked_id),
+        event: "select"
+        %>
     <% end %>
 </div>
 

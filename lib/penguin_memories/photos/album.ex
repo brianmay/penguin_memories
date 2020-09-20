@@ -13,6 +13,8 @@ defmodule PenguinMemories.Photos.Album do
     belongs_to :parent, PenguinMemories.Photos.Album
     has_many :children, PenguinMemories.Photos.Album, foreign_key: :parent_id
     belongs_to :cover_photo, Photo
+    has_many :ascendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :descendant_id
+    has_many :descendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :ascendant_id
   end
 
   @doc false

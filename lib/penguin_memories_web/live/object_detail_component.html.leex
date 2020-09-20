@@ -1,0 +1,53 @@
+<% type_name = @type.get_type_name() %>
+
+<div class="photo_detail">
+    <p><%= @num_selected %> object(s) selected</p>
+
+    <%= if @icons do %>
+        <div class="photo_list">
+            <%= for icon <- @icons do %>
+                <%= if icon.url do %>
+                    <img
+                        src="<%= icon.url %>"
+                        alt="<%= icon.title %>"
+                        width="<%= icon.width %>"
+                        height="<%= icon.height %>"
+                    >
+                <% else %>
+                    No image
+                <% end %>
+            <% end %>
+            <%= if @more_icons do %>
+                ...
+            <% end %>
+        </div>
+    <% end %>
+
+    <%= if @selected_fields do %>
+        <table class="photo_table table table-hover">
+            <tbody>
+                <%= for field <- @selected_fields do %>
+                    <tr>
+                        <th><%= field.title %></th>
+                        <td><%= field.display %></td>
+                    </tr>
+                <% end %>
+            </tbody>
+        </table>
+    <% end %>
+
+    <%= cond do %>
+    <% @num_selected == 0 -> %>
+    <% @num_selected == 1 -> %>
+        <% icon = hd(@icons) %>
+        <div class="buttons">
+            <%= live_patch to: Routes.object_list_path(@socket, :index, type_name, icon.id), class: "btn btn-secondary" do %>
+                Goto Album
+            <% end %>
+            <div class="btn btn-secondary">Goto Photos</div>
+            <div class="btn btn-secondary">Edit</div>
+        </div>
+    <% @num_selected > 1 -> %>
+        <div class="btn btn-secondary">Bulk Update</div>
+    <% end %>
+</div>
