@@ -10,10 +10,17 @@ defmodule PenguinMemoriesWeb.FormHelpers do
     end
   end
 
+  def get_feedback_for(form, field) do
+    case form.source.action do
+      :update -> nil
+        _ -> input_id(form, field)
+    end
+  end
+
   defmacro text_input_field(form, field, _opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")
-      feedback_for = input_id(unquote(form), unquote(field))
+      feedback_for = get_feedback_for(unquote(form), unquote(field))
 
       content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
         [
@@ -28,7 +35,7 @@ defmodule PenguinMemoriesWeb.FormHelpers do
   defmacro number_input_field(form, field, _opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")
-      feedback_for = input_id(unquote(form), unquote(field))
+      feedback_for = get_feedback_for(unquote(form), unquote(field))
 
       content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
         [
@@ -43,7 +50,7 @@ defmodule PenguinMemoriesWeb.FormHelpers do
   defmacro select_field(form, field, options, _opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")
-      feedback_for = input_id(unquote(form), unquote(field))
+      feedback_for = get_feedback_for(unquote(form), unquote(field))
 
       content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
         [
@@ -58,7 +65,7 @@ defmodule PenguinMemoriesWeb.FormHelpers do
   defmacro password_input_field(form, field, _opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")
-      feedback_for = input_id(unquote(form), unquote(field))
+      feedback_for = get_feedback_for(unquote(form), unquote(field))
 
       content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
         [
@@ -73,7 +80,7 @@ defmodule PenguinMemoriesWeb.FormHelpers do
   defmacro checkbox_field(form, field, _opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-check-input")
-      feedback_for = input_id(unquote(form), unquote(field))
+      feedback_for = get_feedback_for(unquote(form), unquote(field))
 
       content_tag :div, class: "form-group form-check", phx_feedback_for: feedback_for do
         [

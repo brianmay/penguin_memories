@@ -52,9 +52,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   @impl true
   def handle_event("edit", _params, socket) do
     type = socket.assigns.type
+    changeset = type.changeset(socket.assigns.selected_object, %{})
+    changeset = %{changeset | action: :update}
     assigns = [
       edit: true,
-      changeset: type.changeset(socket.assigns.selected_object, %{})
+      changeset: changeset
     ]
     {:noreply, assign(socket, assigns)}
   end
@@ -68,6 +70,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
                             PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
                             {false, nil}
                         end
+    changeset = %{changeset | action: :update}
     assigns = [
       edit: edit,
       changeset: changeset
