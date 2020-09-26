@@ -52,6 +52,7 @@ defmodule PenguinMemories.MixProject do
       {:guardian, "~> 2.1"},
       {:argon2_elixir, "~> 2.3"},
       {:dialyxir, "~> 0.5.0", only: [:dev], runtime: false},
+      {:mox, "~> 0.5", only: :test},
       {:paginator, "~> 1.0.1"},
       {:earmark, "~> 1.4.10" }
     ]

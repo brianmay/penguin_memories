@@ -56,6 +56,58 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
+  @spec get_parent_ids(integer) :: list(integer())
+  def get_parent_ids(id) do
+    query = from o in Album,
+      where: o.id == ^id,
+      select: o.parent_id
+
+    case Repo.one!(query) do
+      nil -> []
+      id -> [id]
+    end
+  end
+
+  @impl Objects
+  @spec get_child_ids(integer) :: list(integer())
+  def get_child_ids(id) do
+    query = from o in Album,
+      where: o.parent_id == ^id,
+      select: o.id
+
+    Repo.all(query)
+  end
+
+  @impl Objects
+  @spec get_index(integer) :: list(MapSet.t())
+  def get_index(id) do
+    query = from oa in AlbumAscendant,
+      where: oa.descendant_id == ^id,
+      select: {oa.ascendant_id, oa.position}
+
+    Enum.reduce(query.all(), MapSet.new(), fn result, mapset ->
+      MapSet.put(mapset, result)
+    end)
+  end
+
+  @impl Objects
+  @spec create_index(integer, {integer, integer}) :: :ok
+  def create_index(id, index) do
+    {referenced_id, position} = index
+    Repo.insert!(%AlbumAscendant{ascendant_id: referenced_id, descendant_id: id, position: position})
+  end
+
+  @impl Objects
+  @spec delete_index(integer, {integer, integer}) :: :ok
+  def delete_index(id, index) do
+    {referenced_id, _position} = index
+    Repo.delete_all(
+      from oa in AlbumAscendant,
+      where: oa.ascendant_id == ^referenced_id and oa.descendant_id == ^id
+    )
+  end
+
+  @impl Objects
   @spec get_bulk_update_fields() :: list(Objects.Field.t())
   def get_bulk_update_fields do
     [
