@@ -221,7 +221,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @impl true
   def handle_event("select-none", _params, socket) do
-    {:noreply, assign(socket, selected_ids: MapSet.new()) |> reload() }
+    {:noreply, assign(socket, show_selected: false, selected_ids: MapSet.new()) |> reload() }
   end
 
   @impl true
