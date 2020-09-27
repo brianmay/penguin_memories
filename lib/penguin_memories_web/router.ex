@@ -30,17 +30,6 @@ defmodule PenguinMemoriesWeb.Router do
   end
 
   scope "/", PenguinMemoriesWeb do
-    pipe_through [:browser, :auth]
-
-    live "/", PageLive, :index
-    live "/login", SessionLive, :login
-    post "/login", SessionController, :login
-    post "/logout", SessionController, :logout
-    live "/:type/", ObjectListLive, :index
-    live "/:type/:id/", ObjectListLive, :index
-  end
-
-  scope "/", PenguinMemoriesWeb do
     pipe_through [:browser, :auth, :ensure_auth]
   end
 
@@ -53,6 +42,17 @@ defmodule PenguinMemoriesWeb.Router do
     get "/users/:id/password", UserController, :password_edit
     put "/users/:id/password", UserController, :password_update
     live_dashboard "/dashboard", metrics: PenguinMemoriesWeb.Telemetry
+  end
+
+  scope "/", PenguinMemoriesWeb do
+    pipe_through [:browser, :auth]
+
+    live "/", PageLive, :index
+    live "/login", SessionLive, :login
+    post "/login", SessionController, :login
+    post "/logout", SessionController, :logout
+    live "/:type/", ObjectListLive, :index
+    live "/:type/:id/", ObjectListLive, :index
   end
 
   # Other scopes may use custom stacks.
