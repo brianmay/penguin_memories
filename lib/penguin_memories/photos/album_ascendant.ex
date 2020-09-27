@@ -6,8 +6,6 @@ defmodule PenguinMemories.Photos.AlbumAscendant do
     field :position, :integer
     belongs_to :ascendant, PenguinMemories.Photos.Album
     belongs_to :descendant, PenguinMemories.Photos.Album
-
-    timestamps()
   end
 
   @doc false

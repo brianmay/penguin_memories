@@ -1,7 +1,6 @@
 defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   use PenguinMemoriesWeb, :live_component
 
-  alias PenguinMemories.Repo
   alias PenguinMemories.Objects
 
   @impl true
@@ -9,6 +8,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     assigns = [
       edit: false,
       changeset: nil,
+      error: nil,
     ]
 
     {:ok, assign(socket, assigns)}
@@ -30,6 +30,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       type: type,
       num_selected: num_selected,
       selected_ids: selected_ids,
+      error: nil,
       edit: false
     ]
 
@@ -85,17 +86,14 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @impl true
   def handle_event("save", _params, socket) do
-    {edit, changeset} = case Repo.update(socket.assigns.changeset) do
-                          {:error, changeset} ->
-                            {true, changeset}
-                          {:ok, _} ->
-                            PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
-                            {false, nil}
-                        end
+    type = socket.assigns.type
+
+    {edit, changeset, error} = type.update(socket.assigns.changeset)
 
     assigns = [
       edit: edit,
-      changeset: changeset
+      changeset: changeset,
+      error: error
     ]
     {:noreply, assign(socket, assigns)}
   end
@@ -123,7 +121,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec output_field(Objects.Field.t(), keyword()) :: any()
-  def output_field(field, _opts \\ []) do
+  def output_field(field, _opts \\ [])
+  def output_field(%{display: nil}, _opts), do: ""
+  def output_field(field, _opts) do
     case field.type do
       :markdown ->
         case Earmark.as_html(field.display) do

@@ -7,6 +7,9 @@ defmodule PenguinMemories.Objects.Album do
   alias PenguinMemories.Photos.AlbumAscendant
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.File
+  alias Ecto.Changeset
+  alias Ecto.Multi
+
   @behaviour Objects
 
   @impl Objects
@@ -85,7 +88,7 @@ defmodule PenguinMemories.Objects.Album do
       where: oa.descendant_id == ^id,
       select: {oa.ascendant_id, oa.position}
 
-    Enum.reduce(query.all(), MapSet.new(), fn result, mapset ->
+    Enum.reduce(Repo.all(query), MapSet.new(), fn result, mapset ->
       MapSet.put(mapset, result)
     end)
   end
@@ -95,6 +98,7 @@ defmodule PenguinMemories.Objects.Album do
   def create_index(id, index) do
     {referenced_id, position} = index
     Repo.insert!(%AlbumAscendant{ascendant_id: referenced_id, descendant_id: id, position: position})
+    :ok
   end
 
   @impl Objects
@@ -105,6 +109,7 @@ defmodule PenguinMemories.Objects.Album do
       from oa in AlbumAscendant,
       where: oa.ascendant_id == ^referenced_id and oa.descendant_id == ^id
     )
+    :ok
   end
 
   @impl Objects
@@ -116,6 +121,12 @@ defmodule PenguinMemories.Objects.Album do
         title: "Title",
         display: nil,
         type: :string,
+      },
+      %Objects.Field{
+        id: :parent_id,
+        title: "Parent ID",
+        display: nil,
+        type: :album,
       },
       %Objects.Field{
         id: :sort_name,
@@ -191,6 +202,12 @@ defmodule PenguinMemories.Objects.Album do
             title: "Title",
             display: result.o.title,
             type: :string,
+          },
+          %Objects.Field{
+            id: :parent_id,
+            title: "Parent ID",
+            display: result.o.parent_id,
+            type: :album,
           },
           %Objects.Field{
             id: :description,
@@ -299,4 +316,30 @@ defmodule PenguinMemories.Objects.Album do
     Album.changeset(album, attrs)
   end
 
+  @impl Objects
+  @spec update(Changeset.t) :: {true, Changeset.t(), String.t()} | {false, nil, nil}
+  def update(%Changeset{data: %Album{}} = changeset) do
+    result = Multi.new()
+    |> Multi.insert_or_update(:update, changeset)
+    |> Multi.run(:index, fn _, obj ->
+      case Changeset.fetch_change(changeset, :parent_id) do
+        :error ->
+          {:ok, nil}
+        {:ok, _value} ->
+          Objects.fix_index_tree(obj.update.id, __MODULE__)
+          {:ok, nil}
+      end
+    end)
+    |> Repo.transaction()
+
+    case result do
+      {:ok, _} ->
+        PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+        {false, nil, nil}
+      {:error, :update, changeset, _} ->
+        {true, changeset, "The update failed"}
+      {:error, :index, error, _} ->
+        {true, changeset, "Error #{inspect error} while indexing"}
+    end
+  end
 end

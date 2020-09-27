@@ -1,4 +1,6 @@
 defmodule PenguinMemories.Objects do
+  alias Ecto.Changeset
+
   defmodule Icon do
     @type t :: %__MODULE__{
       id: integer,
@@ -37,7 +39,10 @@ defmodule PenguinMemories.Objects do
   @callback get_details(integer) :: {map(), Icon.t(), list(Field.t())} | nil
   @callback get_page_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, String.t()|nil, String.t()|nil) :: {list(Icon.t), String.t()|nil, String.t()|nil, integer}
   @callback get_icons(MapSet.t()|nil, integer()) :: list(Icon.t())
+
   @callback changeset(map()|nil, map()) :: Ecto.Changeset.t()
+  @callback update(Changeset.t) :: {true, Changeset.t(), String.t()} | {false, nil, nil}
+
 
   def get_for_type(type) do
     case type do

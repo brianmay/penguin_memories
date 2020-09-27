@@ -36,6 +36,12 @@
 
     <%= if @edit do %>
         <%= form_for @changeset, "save", [as: :object, phx_change: :validate, phx_target: @myself], fn f -> %>
+            <%= if @error do %>
+                <div class='alert alert-danger'>
+                    <%= @error %>
+                </div>
+            <% end %>
+
             <%= for field <- @selected_fields do %>
                 <%= input_field f, field %>
             <% end %>
