@@ -43,6 +43,8 @@ defmodule PenguinMemories.Objects do
   @callback create_child_changeset(map(), map()) :: Ecto.Changeset.t()
   @callback update_changeset(map(), map()) :: Ecto.Changeset.t()
   @callback update(Changeset.t()) :: {:error, Changeset.t(), String.t()} | {:ok, map()}
+  @callback can_delete?(integer) :: {:no, String.t()} | :yes
+  @callback delete(map()) :: :ok | {:error, String.t()}
 
 
   def get_for_type(type) do

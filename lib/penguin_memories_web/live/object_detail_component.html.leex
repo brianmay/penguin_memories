@@ -1,78 +1,81 @@
 <% type_name = @type.get_type_name() %>
 
-<div class="photo_detail">
-    <%= if @num_selected == 1 and is_nil(@selected_object) do %>
-        <div class="alert alert-danger">Selected object not found</div>
-    <% end %>
-
-    <%= if @icons do %>
-        <div class="photo_list">
-            <%= for icon <- @icons do %>
-                <%= if icon.url do %>
-                    <img
-                        src="<%= icon.url %>"
-                        alt="<%= icon.title %>"
-                        width="<%= icon.width %>"
-                        height="<%= icon.height %>"
-                    >
-                <% else %>
-                    No image
-                <% end %>
-            <% end %>
-            <%= if @more_icons do %>
-                ...
-            <% end %>
+<div>
+    <%= if @error do %>
+        <div class='alert alert-danger'>
+            <%= @error %>
         </div>
     <% end %>
 
-    <%= if @num_selected == 1 and not is_nil(@selected_object) and not @edit do %>
-        <table class="photo_table table table-hover">
-            <tbody>
-                <%= for field <- @selected_fields do %>
-                    <tr>
-                        <th><%= field.title %></th>
-                        <td><%= output_field(field) %></td>
-                    </tr>
+    <div class="photo_detail">
+        <%= if @num_selected == 1 and is_nil(@selected_object) do %>
+            <div class="alert alert-danger">Selected object not found</div>
+        <% end %>
+
+        <%= if @icons do %>
+            <div class="photo_list">
+                <%= for icon <- @icons do %>
+                    <%= if icon.url do %>
+                        <img
+                            src="<%= icon.url %>"
+                            alt="<%= icon.title %>"
+                            width="<%= icon.width %>"
+                            height="<%= icon.height %>"
+                        >
+                    <% else %>
+                        No image
+                    <% end %>
                 <% end %>
-            </tbody>
-        </table>
-    <% end %>
-
-    <%= if @edit do %>
-        <%= form_for @changeset, "save", [as: :object, phx_change: :validate, phx_target: @myself], fn f -> %>
-            <%= if @error do %>
-                <div class='alert alert-danger'>
-                    <%= @error %>
-                </div>
-            <% end %>
-
-            <%= for field <- @selected_fields do %>
-                <%= input_field f, field %>
-            <% end %>
-            <div>
-                <span><input type="button" class="btn btn-primary" phx-click="save" value="Save" phx-target="<%= @myself %>"></span>
-                <span><input type="button" class="btn btn-danger" phx-click="cancel" value="Cancel" phx-target="<%= @myself %>"></span>
+                <%= if @more_icons do %>
+                    ...
+                <% end %>
             </div>
         <% end %>
-    <% end %>
 
-    <div class="buttons">
-        <%= cond do %>
-            <% is_nil(@selected_object) or @num_selected == 0 -> %> <!-- No photos selected -->
-            <% @num_selected == 1 -> %>
-                <% icon = hd(@icons) %>
-                <%= if not @edit do %>
-                    <%= live_patch to: Routes.object_list_path(@socket, :index, type_name, icon.id), class: "btn btn-secondary" do %>
-                        Goto Album
+        <%= if @num_selected == 1 and not is_nil(@selected_object) and not @edit do %>
+            <table class="photo_table table table-hover">
+                <tbody>
+                    <%= for field <- @selected_fields do %>
+                        <tr>
+                            <th><%= field.title %></th>
+                            <td><%= output_field(field) %></td>
+                        </tr>
                     <% end %>
-                    <div class="btn btn-secondary">Goto Photos</div>
-                    <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
-                    <div class="btn btn-secondary" phx-click="edit" phx-target="<%= @myself %>">Edit</div>
-                <% end %>
-            <% @num_selected > 1 -> %>
-                <%= if not @edit do %>
-                    <div class="btn btn-secondary">Bulk Update</div>
-                <% end %>
+                </tbody>
+            </table>
         <% end %>
+
+        <%= if @edit do %>
+            <%= form_for @changeset, "save", [as: :object, phx_change: :validate, phx_target: @myself], fn f -> %>
+                <%= for field <- @selected_fields do %>
+                    <%= input_field f, field %>
+                <% end %>
+                <div>
+                    <span><input type="button" class="btn btn-primary" phx-click="save" value="Save" phx-target="<%= @myself %>"></span>
+                    <span><input type="button" class="btn btn-danger" phx-click="cancel" value="Cancel" phx-target="<%= @myself %>"></span>
+                </div>
+            <% end %>
+        <% end %>
+
+        <div class="buttons">
+            <%= cond do %>
+                <% is_nil(@selected_object) or @num_selected == 0 -> %> <!-- No photos selected -->
+                <% @num_selected == 1 -> %>
+                    <% icon = hd(@icons) %>
+                    <%= if not @edit do %>
+                        <%= live_patch to: Routes.object_list_path(@socket, :index, type_name, icon.id), class: "btn btn-secondary" do %>
+                            Goto Album
+                        <% end %>
+                        <div class="btn btn-secondary">Goto Photos</div>
+                        <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
+                        <div class="btn btn-secondary" phx-click="edit" phx-target="<%= @myself %>">Edit</div>
+                        <div class="btn btn-secondary" phx-click="delete" phx-target="<%= @myself %>">Delete</div>
+                    <% end %>
+                <% @num_selected > 1 -> %>
+                    <%= if not @edit do %>
+                        <div class="btn btn-secondary">Bulk Update</div>
+                    <% end %>
+            <% end %>
+        </div>
     </div>
 </div>

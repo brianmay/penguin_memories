@@ -100,6 +100,33 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
+  def handle_event("delete", _params, socket) do
+    type = socket.assigns.type
+    {socket, assigns} = case type.delete(socket.assigns.selected_object) do
+                          {:error, error} ->
+                            assigns = [
+                              error: error
+                            ]
+                            {socket, assigns}
+                          :ok ->
+                            PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+                            type_name = socket.assigns.type.get_type_name()
+                            url = case socket.assigns.selected_object.parent_id do
+                                    nil ->
+                                      Routes.object_list_path(socket, :index, type_name)
+                                    parent_id ->
+                                      Routes.object_list_path(socket, :index, type_name, parent_id)
+                                  end
+                            socket = push_patch(socket, to: url)
+                            assigns = [
+                              error: nil
+                            ]
+                            {socket, assigns}
+                      end
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @impl true
   def handle_event("save", _params, socket) do
     type = socket.assigns.type
 

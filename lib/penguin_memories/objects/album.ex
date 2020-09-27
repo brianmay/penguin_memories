@@ -344,4 +344,44 @@ defmodule PenguinMemories.Objects.Album do
         {:error, changeset, "Error #{inspect error} while indexing"}
     end
   end
+
+  @impl Objects
+  @spec can_delete?(integer) :: {:no, String.t()} | :yes
+  def can_delete?(id) do
+    cond do
+      length(get_child_ids(id)) > 0 ->
+        {:no, "Cannot delete object with child"}
+      true ->
+        :yes
+    end
+  end
+
+  @spec do_delete(map()) :: :ok | {:error, String.t()}
+  def do_delete(object) do
+    result = Multi.new()
+    |> Multi.delete_all(:index1, from(obj in AlbumAscendant, where: obj.ascendant_id == ^object.id))
+    |> Multi.delete_all(:index2, from(obj in AlbumAscendant, where: obj.descendant_id == ^object.id))
+    |> Multi.run(:object, fn _,_ -> Repo.delete(object) end)
+    |> Repo.transaction()
+
+    case result do
+      {:ok, _} -> :ok
+      {:error, :index1, _, _} ->
+        {:error, "Cannot index 1"}
+      {:error, :index2, _, _} ->
+        {:error, "Cannot index 2"}
+      {:error, :object, _, _} ->
+        {:error, "Cannot album"}
+    end
+  end
+
+  @impl Objects
+  @spec delete(map()) :: :ok | {:error, String.t()}
+  def delete(object) do
+    case can_delete?(object.id) do
+      :yes -> do_delete(object)
+      {:no, error} -> {:error, error}
+    end
+  end
+
 end
