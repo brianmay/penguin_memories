@@ -73,8 +73,15 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     search_spec = socket.assigns.search_spec
 
     parents = case socket.assigns.parent_id do
-                nil -> []
-                parent_id -> type.get_parents(parent_id)
+                nil ->
+                  []
+                parent_id ->
+                  type.get_parents(parent_id)
+                  |> Enum.group_by(fn {_icon, position} -> position end)
+                  |> Enum.map(fn {position, list} ->
+                    {position, Enum.map(list, fn {icon, _} -> icon end)}
+                  end)
+                  |> Enum.sort_by(fn {position, _} -> -position end)
               end
 
     show_ids = case socket.assigns.show_selected do

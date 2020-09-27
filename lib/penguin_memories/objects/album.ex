@@ -156,7 +156,7 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec get_parents(integer) :: list(Objects.Icon.t())
+  @spec get_parents(integer) :: list({Objects.Icon.t(), integer})
   def get_parents(id) do
     file_query = from f in File,
       where: f.size_key == "thumb" and f.is_video == false,
@@ -168,11 +168,11 @@ defmodule PenguinMemories.Objects.Album do
       join: o in Album, on: o.id == ob.ascendant_id,
       left_join: p in Photo, on: p.id == o.cover_photo_id,
       left_join: f in subquery(file_query), on: f.photo_id == p.id,
-      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width},
+      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width, position: ob.position},
       order_by: [desc: ob.position]
 
     icons = Enum.map(Repo.all(query), fn result ->
-      get_icon_from_result(result)
+      {get_icon_from_result(result), result.position}
     end)
 
     icons

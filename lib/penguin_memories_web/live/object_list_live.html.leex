@@ -4,11 +4,13 @@
 
 <%= if length(@parents) > 0 do %>
     <div class="parents">
-        <%= for icon <- @parents do %>
-            <%=
-            Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
-            icon: icon, classes: [], event: "parent"
-            %>
+        <%= for {_position, icons} <- @parents do %>
+            <%=  for icon <- icons do %>
+                <%=
+                Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
+                icon: icon, classes: [], event: "parent"
+                %>
+            <% end %>
             <div class="arrow">🠆</div>
         <% end %>
     </div>
