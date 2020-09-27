@@ -53,7 +53,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       num_selected == 1 ->
         [id] = MapSet.to_list(selected_ids)
         case type.get_details(id) do
-          nil -> {nil, nil, [], true}
+          nil -> {nil, nil, [], false}
           {object, icon, fields} -> {object, fields, [icon], false}
         end
       true ->

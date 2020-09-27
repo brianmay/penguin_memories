@@ -1,6 +1,10 @@
 <% type_name = @type.get_type_name() %>
 
 <div class="photo_detail">
+    <%= if @num_selected == 1 and is_nil(@selected_object) do %>
+        <div class="alert alert-danger">Selected object not found</div>
+    <% end %>
+
     <%= if @icons do %>
         <div class="photo_list">
             <%= for icon <- @icons do %>
@@ -21,7 +25,7 @@
         </div>
     <% end %>
 
-    <%= if @num_selected == 1 and not @edit do %>
+    <%= if @num_selected == 1 and not is_nil(@selected_object) and not @edit do %>
         <table class="photo_table table table-hover">
             <tbody>
                 <%= for field <- @selected_fields do %>
@@ -54,7 +58,7 @@
 
     <div class="buttons">
         <%= cond do %>
-            <% @num_selected == 0 -> %> <!-- No photos selected -->
+            <% is_nil(@selected_object) or @num_selected == 0 -> %> <!-- No photos selected -->
             <% @num_selected == 1 -> %>
                 <% icon = hd(@icons) %>
                 <%= if not @edit do %>
