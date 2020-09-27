@@ -1,5 +1,7 @@
 defmodule PenguinMemories.Objects.Album do
   import Ecto.Query
+  alias Ecto.Changeset
+  alias Ecto.Multi
 
   alias PenguinMemories.Repo
   alias PenguinMemories.Objects
@@ -7,8 +9,6 @@ defmodule PenguinMemories.Objects.Album do
   alias PenguinMemories.Photos.AlbumAscendant
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.File
-  alias Ecto.Changeset
-  alias Ecto.Multi
 
   @behaviour Objects
 
@@ -320,28 +320,11 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec update(Changeset.t()) :: {:error, Changeset.t(), String.t()} | {:ok, map()}
-  def update(%Changeset{data: %Album{}} = changeset) do
-    result = Multi.new()
-    |> Multi.insert_or_update(:update, changeset)
-    |> Multi.run(:index, fn _, obj ->
-      case Changeset.fetch_change(changeset, :parent_id) do
-        :error ->
-          {:ok, nil}
-        {:ok, _value} ->
-          Objects.fix_index_tree(obj.update.id, __MODULE__)
-          {:ok, nil}
-      end
-    end)
-    |> Repo.transaction()
-
-    case result do
-      {:ok, data} ->
-        {:ok, data.update}
-      {:error, :update, changeset, _} ->
-        {:error, changeset, "The update failed"}
-      {:error, :index, error, _} ->
-        {:error, changeset, "Error #{inspect error} while indexing"}
+  @spec has_parent_changed?(Changeset.t()) :: boolean
+  def has_parent_changed?(%Changeset{data: %Album{}} = changeset) do
+    case Changeset.fetch_change(changeset, :parent_id) do
+      :error -> false
+      {:ok, _value} -> true
     end
   end
 

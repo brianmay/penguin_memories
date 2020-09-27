@@ -1,5 +1,8 @@
 defmodule PenguinMemories.Objects do
   alias Ecto.Changeset
+  alias Ecto.Multi
+
+  alias PenguinMemories.Repo
 
   defmodule Icon do
     @type t :: %__MODULE__{
@@ -42,21 +45,25 @@ defmodule PenguinMemories.Objects do
 
   @callback create_child_changeset(map(), map()) :: Ecto.Changeset.t()
   @callback update_changeset(map(), map()) :: Ecto.Changeset.t()
-  @callback update(Changeset.t()) :: {:error, Changeset.t(), String.t()} | {:ok, map()}
+  @callback has_parent_changed?(Changeset.t()) :: boolean
   @callback can_delete?(integer) :: {:no, String.t()} | :yes
   @callback delete(map()) :: :ok | {:error, String.t()}
 
 
+  @spec get_for_type(String.t()) :: module()
   def get_for_type(type) do
     case type do
       "album" -> PenguinMemories.Objects.Album
     end
   end
 
+  @type seen_type :: MapSet.t()
+  @type cache_type :: %{required(integer) => MapSet.t()}
+
   @spec generate_index(
-    integer, integer, module(), MapSet.t(),
-    %{required(integer) => String.t()}
-  ) :: {MapSet.t(), %{required(integer) => String.t()}, MapSet.t()}
+    integer, integer, module(), seen_type,
+    cache_type
+  ) :: {seen_type, cache_type, MapSet.t()}
   def generate_index(id, position, type, seen, cache) do
     cond  do
       Map.has_key?(cache, id) ->
@@ -95,6 +102,7 @@ defmodule PenguinMemories.Objects do
     end
   end
 
+  @spec fix_index(integer, module, cache_type) :: cache_type
   def fix_index(id, type, cache) do
     {_, cache, new_index} = generate_index(id, 0, type, MapSet.new(), cache)
     old_index = type.get_index(id)
@@ -112,6 +120,7 @@ defmodule PenguinMemories.Objects do
     cache
   end
 
+  @spec fix_index_parents(integer, module, seen_type, cache_type) :: {seen_type, cache_type}
   def fix_index_parents(id, type, seen, cache) do
     cond do
       MapSet.member?(seen, id) ->
@@ -126,6 +135,7 @@ defmodule PenguinMemories.Objects do
     end
   end
 
+  @spec fix_index_children(integer, module, seen_type, cache_type) :: {seen_type, cache_type}
   def fix_index_children(id, type, seen, cache) do
     cond do
       MapSet.member?(seen, id) ->
@@ -140,6 +150,7 @@ defmodule PenguinMemories.Objects do
     end
   end
 
+  @spec fix_index_tree(integer, module()) :: :ok
   def fix_index_tree(id, type) do
     cache = %{}
     {_, cache} = fix_index_parents(id, type, MapSet.new(), cache)
@@ -154,7 +165,30 @@ defmodule PenguinMemories.Objects do
       child, {seen, cache} -> fix_index_children(child, type, seen, cache)
     end)
 
-    {:ok, nil}
+    :ok
+  end
+
+  @spec update(Changeset.t(), module()) :: {:error, Changeset.t(), String.t()} | {:ok, map()}
+  def update(changeset, type) do
+    result = Multi.new()
+    |> Multi.insert_or_update(:update, changeset)
+    |> Multi.run(:index, fn _, obj ->
+      case type.has_parent_changed?(changeset) do
+        false -> nil
+        true -> :ok = fix_index_tree(obj.update.id, type)
+      end
+      {:ok, nil}
+    end)
+    |> Repo.transaction()
+
+    case result do
+      {:ok, data} ->
+        {:ok, data.update}
+      {:error, :update, changeset, _} ->
+        {:error, changeset, "The update failed"}
+      {:error, :index, error, _} ->
+        {:error, changeset, "Error #{inspect error} while indexing"}
+    end
   end
 
 end

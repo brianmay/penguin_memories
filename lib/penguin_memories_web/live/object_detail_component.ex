@@ -111,12 +111,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
                           :ok ->
                             PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
                             type_name = socket.assigns.type.get_type_name()
-                            url = case socket.assigns.selected_object.parent_id do
-                                    nil ->
-                                      Routes.object_list_path(socket, :index, type_name)
-                                    parent_id ->
-                                      Routes.object_list_path(socket, :index, type_name, parent_id)
-                                  end
+                            url = Routes.object_list_path(socket, :index, type_name)
                             socket = push_patch(socket, to: url)
                             assigns = [
                               error: nil
@@ -130,7 +125,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   def handle_event("save", _params, socket) do
     type = socket.assigns.type
 
-    {socket, assigns} = case type.update(socket.assigns.changeset) do
+    {socket, assigns} = case Objects.update(socket.assigns.changeset, type) do
                 {:error, changeset, error} ->
                             assigns = [
                               edit: true,

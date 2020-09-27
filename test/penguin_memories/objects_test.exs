@@ -24,8 +24,6 @@ defmodule PenguinMemories.ObjectsTest do
   alias PenguinMemories.Objects
   import Mox
 
-  alias Ecto.Multi
-
   setup_all do
     Mox.defmock(PenguinMemories.ObjectsMock, for: PenguinMemories.Objects)
     :ok
@@ -234,11 +232,7 @@ defmodule PenguinMemories.ObjectsTest do
         :ok
       end)
 
-      result = Multi.new()
-      |> Multi.run(:index, fn _, _ -> Objects.fix_index_tree(1, PenguinMemories.ObjectsMock) end)
-      |> Repo.transaction()
-
-      {:ok, _} = result
+      :ok = Objects.fix_index_tree(1, PenguinMemories.ObjectsMock)
 
       assert GenServer.call(delete_table, :get)  == %{
         1 => MapSet.new([{1, 1}])
@@ -281,11 +275,7 @@ defmodule PenguinMemories.ObjectsTest do
         :ok
       end)
 
-      result = Multi.new()
-      |> Multi.run(:index, fn _, _ -> Objects.fix_index_tree(3, PenguinMemories.ObjectsMock) end)
-      |> Repo.transaction()
-
-      {:ok, _} = result
+      :ok = Objects.fix_index_tree(3, PenguinMemories.ObjectsMock)
 
       assert GenServer.call(delete_table, :get)  == %{
         1 => MapSet.new([{1, 98}]),
@@ -331,11 +321,7 @@ defmodule PenguinMemories.ObjectsTest do
         :ok
       end)
 
-      result = Multi.new()
-      |> Multi.run(:index, fn _, _ -> Objects.fix_index_tree(3, PenguinMemories.ObjectsMock) end)
-      |> Repo.transaction()
-
-      {:ok, _} = result
+      :ok = Objects.fix_index_tree(3, PenguinMemories.ObjectsMock)
 
       assert GenServer.call(delete_table, :get)  == %{
         1 => MapSet.new([{1, 98}]),
@@ -381,11 +367,7 @@ defmodule PenguinMemories.ObjectsTest do
         :ok
       end)
 
-      result = Multi.new()
-      |> Multi.run(:index, fn _, _ -> Objects.fix_index_tree(3, PenguinMemories.ObjectsMock) end)
-      |> Repo.transaction()
-
-      {:ok, _} = result
+      :ok = Objects.fix_index_tree(3, PenguinMemories.ObjectsMock)
 
       assert GenServer.call(delete_table, :get)  == %{
         1 => MapSet.new([{1, 98}]),
@@ -431,11 +413,7 @@ defmodule PenguinMemories.ObjectsTest do
         :ok
       end)
 
-      result = Multi.new()
-      |> Multi.run(:index, fn _, _ -> Objects.fix_index_tree(3, PenguinMemories.ObjectsMock) end)
-      |> Repo.transaction()
-
-      {:ok, _} = result
+      :ok = Objects.fix_index_tree(3, PenguinMemories.ObjectsMock)
 
       assert GenServer.call(delete_table, :get)  == %{
         1 => MapSet.new([{1, 98}]),
