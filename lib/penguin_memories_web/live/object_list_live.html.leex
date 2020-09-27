@@ -2,15 +2,17 @@
 
 <% num_selected = num_selected(@selected_ids) %>
 
-<div class="parents">
-    <%= for icon <- @parents do %>
-        <%=
-        Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
-        icon: icon, classes: [], event: "parent"
-        %>
-        <div class="arrow">🠆</div>
-    <% end %>
-</div>
+<%= if length(@parents) > 0 do %>
+    <div class="parents">
+        <%= for icon <- @parents do %>
+            <%=
+            Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
+            icon: icon, classes: [], event: "parent"
+            %>
+            <div class="arrow">🠆</div>
+        <% end %>
+    </div>
+<% end %>
 
 <%
 selected_ids = cond do
