@@ -307,12 +307,15 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec changeset(map()|nil, map()) :: Ecto.Changeset.t()
-  def changeset(album, attrs) do
-    album = case album do
-              nil -> %Album{}
-              album -> album
-            end
+  @spec create_child_changeset(map(), map()) :: Ecto.Changeset.t()
+  def create_child_changeset(album, attrs) do
+    Album.changeset(%Album{}, attrs)
+    |> Changeset.put_change(:parent_id, album.id)
+  end
+
+  @impl Objects
+  @spec update_changeset(map(), map()) :: Ecto.Changeset.t()
+  def update_changeset(album, attrs) do
     Album.changeset(album, attrs)
   end
 

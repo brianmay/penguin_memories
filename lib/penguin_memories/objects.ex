@@ -40,7 +40,8 @@ defmodule PenguinMemories.Objects do
   @callback get_page_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, String.t()|nil, String.t()|nil) :: {list(Icon.t), String.t()|nil, String.t()|nil, integer}
   @callback get_icons(MapSet.t()|nil, integer()) :: list(Icon.t())
 
-  @callback changeset(map()|nil, map()) :: Ecto.Changeset.t()
+  @callback create_child_changeset(map(), map()) :: Ecto.Changeset.t()
+  @callback update_changeset(map(), map()) :: Ecto.Changeset.t()
   @callback update(Changeset.t) :: {true, Changeset.t(), String.t()} | {false, nil, nil}
 
 

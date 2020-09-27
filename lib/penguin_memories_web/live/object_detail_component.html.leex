@@ -62,6 +62,7 @@
                         Goto Album
                     <% end %>
                     <div class="btn btn-secondary">Goto Photos</div>
+                    <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
                     <div class="btn btn-secondary" phx-click="edit" phx-target="<%= @myself %>">Edit</div>
                 <% end %>
             <% @num_selected > 1 -> %>
