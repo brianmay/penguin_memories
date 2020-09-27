@@ -320,7 +320,7 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec update(Changeset.t) :: {true, Changeset.t(), String.t()} | {false, nil, nil}
+  @spec update(Changeset.t()) :: {:error, Changeset.t(), String.t()} | {:ok, map()}
   def update(%Changeset{data: %Album{}} = changeset) do
     result = Multi.new()
     |> Multi.insert_or_update(:update, changeset)
@@ -336,13 +336,12 @@ defmodule PenguinMemories.Objects.Album do
     |> Repo.transaction()
 
     case result do
-      {:ok, _} ->
-        PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
-        {false, nil, nil}
+      {:ok, data} ->
+        {:ok, data.update}
       {:error, :update, changeset, _} ->
-        {true, changeset, "The update failed"}
+        {:error, changeset, "The update failed"}
       {:error, :index, error, _} ->
-        {true, changeset, "Error #{inspect error} while indexing"}
+        {:error, changeset, "Error #{inspect error} while indexing"}
     end
   end
 end
