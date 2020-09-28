@@ -1,4 +1,7 @@
 defmodule PenguinMemoriesWeb.ObjectDetailComponent do
+  @moduledoc """
+  Live component to display/edit details of a component.
+  """
   use PenguinMemoriesWeb, :live_component
 
   alias PenguinMemories.Objects

@@ -1,9 +1,14 @@
 defmodule PenguinMemoriesWeb.ObjectListLive do
+  @moduledoc """
+  Live view to display list of objects
+  """
   use PenguinMemoriesWeb, :live_view
 
+  alias Elixir.Phoenix.LiveView.Socket
   alias PenguinMemories.Objects
 
   @impl true
+  @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(_params, _session, socket) do
     assigns = [
       selected_ids: MapSet.new(),
@@ -76,7 +81,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
                 nil ->
                   []
                 parent_id ->
-                  type.get_parents(parent_id)
+                  parent_id
+                  |> type.get_parents()
                   |> Enum.group_by(fn {_icon, position} -> position end)
                   |> Enum.map(fn {position, list} ->
                     {position, Enum.map(list, fn {icon, _} -> icon end)}
@@ -184,19 +190,19 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @impl true
   def handle_event("select", params, socket) do
-    %{"id" => clicked_id, "ctrlKey" => ctrlKey, "shiftKey" => shiftKey, "altKey" => altKey} = params
+    %{"id" => clicked_id, "ctrlKey" => ctrl_key, "shiftKey" => shift_key, "altKey" => alt_key} = params
     clicked_id = to_int(clicked_id)
 
     {selected_ids, socket} = cond do
-      ctrlKey ->
+      ctrl_key ->
         s = toggle(socket.assigns.selected_ids, clicked_id)
         {s, socket}
 
-      shiftKey ->
+      shift_key ->
         s = toggle_range(socket.assigns.selected_ids, socket.assigns.icons, socket.assigns.last_clicked_id, clicked_id)
         {s, socket}
 
-      altKey ->
+      alt_key ->
         type_name = socket.assigns.type.get_type_name()
         url = Routes.object_list_path(socket, :index, type_name, clicked_id)
         socket = push_patch(socket, to: url)
@@ -216,17 +222,17 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @impl true
   def handle_event("show-selected", _params, socket) do
-    {:noreply, assign(socket, show_selected: true) |> reload() }
+    {:noreply, socket |> assign(show_selected: true) |> reload() }
   end
 
   @impl true
   def handle_event("select-none", _params, socket) do
-    {:noreply, assign(socket, show_selected: false, selected_ids: MapSet.new()) |> reload() }
+    {:noreply, socket |> assign(show_selected: false, selected_ids: MapSet.new()) |> reload() }
   end
 
   @impl true
   def handle_event("show-all", _params, socket) do
-    {:noreply, assign(socket, show_selected: false) |> reload() }
+    {:noreply, socket |> assign(show_selected: false) |> reload() }
   end
 
   defp icon_classes(icon, selected_ids, last_clicked_id) do

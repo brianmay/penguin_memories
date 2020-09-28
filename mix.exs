@@ -51,6 +51,8 @@ defmodule PenguinMemories.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:guardian, "~> 2.1"},
       {:argon2_elixir, "~> 2.3"},
+      {:credo, "~> 0.5", only: [:dev, :test]},
+      {:dogma, "~> 0.1", only: [:dev]},
       {:dialyxir, "~> 0.5.0", only: [:dev], runtime: false},
       {:mox, "~> 0.5", only: :test},
       {:paginator, "~> 1.0.1"},

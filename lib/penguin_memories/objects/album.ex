@@ -1,4 +1,7 @@
 defmodule PenguinMemories.Objects.Album do
+  @moduledoc """
+  Album specific functions.
+  """
   import Ecto.Query
   alias Ecto.Changeset
   alias Ecto.Multi
@@ -309,7 +312,8 @@ defmodule PenguinMemories.Objects.Album do
   @impl Objects
   @spec create_child_changeset(map(), map()) :: Ecto.Changeset.t()
   def create_child_changeset(album, attrs) do
-    Album.changeset(%Album{}, attrs)
+    %Album{}
+    |> Album.changeset(attrs)
     |> Changeset.put_change(:parent_id, album.id)
   end
 
@@ -344,7 +348,7 @@ defmodule PenguinMemories.Objects.Album do
     result = Multi.new()
     |> Multi.delete_all(:index1, from(obj in AlbumAscendant, where: obj.ascendant_id == ^object.id))
     |> Multi.delete_all(:index2, from(obj in AlbumAscendant, where: obj.descendant_id == ^object.id))
-    |> Multi.run(:object, fn _,_ -> Repo.delete(object) end)
+    |> Multi.run(:object, fn _, _ -> Repo.delete(object) end)
     |> Repo.transaction()
 
     case result do

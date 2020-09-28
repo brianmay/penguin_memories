@@ -1,10 +1,16 @@
 defmodule PenguinMemories.Objects do
+  @moduledoc """
+  Generic methods that apply to all object types
+  """
   alias Ecto.Changeset
   alias Ecto.Multi
 
   alias PenguinMemories.Repo
 
   defmodule Icon do
+    @moduledoc """
+    All the attributes required to display an icon.
+    """
     @type t :: %__MODULE__{
       id: integer,
       action: String.t(),
@@ -19,6 +25,9 @@ defmodule PenguinMemories.Objects do
   end
 
   defmodule Field do
+    @moduledoc """
+    A field specification that can be displayed or edited.
+    """
     @type t :: %__MODULE__{
       id: atom,
       title: String.t(),
@@ -38,7 +47,7 @@ defmodule PenguinMemories.Objects do
   @callback get_type_name() :: String.t()
   @callback get_plural_title() :: String.t()
   @callback get_bulk_update_fields() :: list(Field.t())
-  @callback get_parents(integer) :: list({Objects.Icon.t(), integer})
+  @callback get_parents(integer) :: list({Icon.t(), integer})
   @callback get_details(integer) :: {map(), Icon.t(), list(Field.t())} | nil
   @callback get_page_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, String.t()|nil, String.t()|nil) :: {list(Icon.t), String.t()|nil, String.t()|nil, integer}
   @callback get_icons(MapSet.t()|nil, integer()) :: list(Icon.t())
@@ -71,7 +80,7 @@ defmodule PenguinMemories.Objects do
 
         index = MapSet.new()
         index = Enum.reduce(cache_item, index, fn
-          {a, b}, index -> MapSet.put(index, {a, b+position})
+          {a, b}, index -> MapSet.put(index, {a, b + position})
         end)
 
         {seen, cache, index}
@@ -94,7 +103,7 @@ defmodule PenguinMemories.Objects do
         end)
 
         cache_item = Enum.reduce(index, MapSet.new(), fn
-          {a, b}, cache_item -> MapSet.put(cache_item, {a, b-position})
+          {a, b}, cache_item -> MapSet.put(cache_item, {a, b - position})
         end)
         cache = Map.put(cache, id, cache_item)
 
