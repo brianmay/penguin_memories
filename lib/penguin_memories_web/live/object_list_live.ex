@@ -6,13 +6,22 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   alias Elixir.Phoenix.LiveView.Socket
   alias PenguinMemories.Objects
+  alias PenguinMemories.Auth
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, _session, socket) do
+  def mount(_params, session, socket) do
     assigns = [
       selected_ids: MapSet.new(),
     ]
+
+    assigns = case Auth.load_user(session) do
+                {:ok, user} -> [{:user, user} | assigns]
+                {:error, error} -> [{:error, "There was an error logging the user in: #{inspect error}"} | assigns]
+                :not_logged_in -> assigns
+              end
+              |> Keyword.put_new(:error, nil)
+              |> Keyword.put_new(:user, nil)
 
     PenguinMemoriesWeb.Endpoint.subscribe("refresh")
     {:ok, assign(socket, assigns)}

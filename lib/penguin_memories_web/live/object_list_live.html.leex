@@ -1,3 +1,9 @@
+<%= if @error do %>
+    <div class='alert alert-danger'>
+        <%= @error %>
+    </div>
+<% end %>
+
 <h2>List of <%= @type.get_plural_title() %></h2>
 
 <% num_selected = num_selected(@selected_ids) %>
@@ -24,7 +30,7 @@ true -> MapSet.new()
 end
 %>
 
-<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, selected_ids: selected_ids, type: @type, id: :detail) %>
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: selected_ids, type: @type, id: :detail) %>
 
 <div class="buttons">
     <%= if not @show_selected do %>

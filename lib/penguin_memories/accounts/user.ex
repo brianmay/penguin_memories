@@ -2,6 +2,17 @@ defmodule PenguinMemories.Accounts.User do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @type t :: %__MODULE__{
+    is_admin: boolean,
+    password: String.t(),
+    password_confirmation: String.t(),
+    password_hash: binary(),
+    username: String.t(),
+    name: String.t(),
+    inserted_at: DateTime.t(),
+    updated_at: DateTime.t()
+  }
+
   schema "users" do
     field :is_admin, :boolean, default: false
     field :password, :string, virtual: true

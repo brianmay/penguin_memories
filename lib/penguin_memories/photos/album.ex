@@ -3,6 +3,7 @@ defmodule PenguinMemories.Photos.Album do
   import Ecto.Changeset
 
   alias PenguinMemories.Photos.Photo
+
   schema "spud_album" do
     field :description, :string
     field :revised, :utc_datetime

@@ -59,20 +59,22 @@
 
         <div class="buttons">
             <%= cond do %>
-                <% is_nil(@selected_object) or @num_selected == 0 -> %> <!-- No photos selected -->
-                <% @num_selected == 1 -> %>
+                <% @num_selected == 0 -> %> <!-- No photos selected -->
+                <% not is_nil(@selected_object) and @num_selected == 1 -> %>
                     <% icon = hd(@icons) %>
                     <%= if not @edit do %>
                         <%= live_patch to: Routes.object_list_path(@socket, :index, type_name, icon.id), class: "btn btn-secondary" do %>
                             Goto Album
                         <% end %>
                         <div class="btn btn-secondary">Goto Photos</div>
-                        <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
-                        <div class="btn btn-secondary" phx-click="edit" phx-target="<%= @myself %>">Edit</div>
-                        <div class="btn btn-secondary" phx-click="delete" phx-target="<%= @myself %>">Delete</div>
+                        <%= if Auth.can_edit(@user) do %>
+                            <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
+                            <div class="btn btn-secondary" phx-click="edit" phx-target="<%= @myself %>">Edit</div>
+                            <div class="btn btn-secondary" phx-click="delete" phx-target="<%= @myself %>">Delete</div>
+                        <% end %>
                     <% end %>
                 <% @num_selected > 1 -> %>
-                    <%= if not @edit do %>
+                    <%= if not @edit and Auth.can_edit(@user) do %>
                         <div class="btn btn-secondary">Bulk Update</div>
                     <% end %>
             <% end %>

@@ -4,7 +4,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   """
   use PenguinMemoriesWeb, :live_component
 
+  alias Phoenix.LiveView.Socket
   alias PenguinMemories.Objects
+  alias PenguinMemories.Auth
 
   @impl true
   def mount(socket) do
@@ -13,6 +15,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       changeset: nil,
       error: nil,
       selected_object: nil,
+      user: nil
     ]
 
     {:ok, assign(socket, assigns)}
@@ -35,7 +38,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       num_selected: num_selected,
       selected_ids: selected_ids,
       error: nil,
-      edit: false
+      edit: false,
+      user: params.user
     ]
 
     socket = socket
@@ -78,6 +82,92 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @impl true
   def handle_event("create", _params, socket) do
+    if Auth.can_edit(socket.assigns.user) do
+      handle_create(socket)
+    else
+      {:noreply, assign(socket, :error, "Permission denied")}
+    end
+  end
+
+  @impl true
+  def handle_event("edit", _params, socket) do
+    if Auth.can_edit(socket.assigns.user) do
+      handle_edit(socket)
+    else
+      {:noreply, assign(socket, :error, "Permission denied")}
+    end
+  end
+
+  @impl true
+  def handle_event("delete", _params, socket) do
+    if Auth.can_edit(socket.assigns.user) do
+      handle_delete(socket)
+    else
+      {:noreply, assign(socket, :error, "Permission denied")}
+    end
+  end
+
+  @impl true
+  def handle_event("save", _params, socket) do
+    if Auth.can_edit(socket.assigns.user) do
+      handle_save(socket)
+    else
+      {:noreply, assign(socket, :error, "Permission denied")}
+    end
+  end
+
+  @impl true
+  def handle_event("cancel", _params, socket) do
+    assigns = [
+      edit: false,
+      changeset: nil,
+      error: nil
+    ]
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @impl true
+  def handle_event("validate", %{"object" => params}, socket) do
+
+    type = socket.assigns.type
+
+    changeset = type.update_changeset(socket.assigns.selected_object, params)
+    changeset = %{changeset | action: socket.assigns.changeset.action}
+
+    assigns = [
+      changeset: changeset
+    ]
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @spec output_field(Objects.Field.t(), keyword()) :: any()
+  defp output_field(field, _opts \\ [])
+  defp output_field(%{display: nil}, _opts), do: ""
+  defp output_field(field, _opts) do
+    case field.type do
+      :markdown ->
+        case Earmark.as_html(field.display) do
+          {:ok, html_doc, _} -> Phoenix.HTML.raw(html_doc)
+          {:error, _, errors} ->
+            result = ["</ul>"]
+            result = Enum.reduce(errors, result, fn {_, _, text}, acc -> ["<li>", text, "</li>" | acc] end)
+            result = ["<ul class='alert alert-danger'>" | result]
+            Phoenix.HTML.raw(result)
+        end
+      _ -> field.display
+    end
+  end
+
+  @spec input_field(Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
+  defp input_field(form, field, _opts \\ []) do
+    case field.type do
+        :markdown -> textarea_input_field(form, field.id, opts)
+        _ -> text_input_field(form, field.id, opts)
+      end
+  end
+
+  @spec handle_create(Socket.t()) :: {:noreply, Socket.t()}
+  defp handle_create(socket) do
     type = socket.assigns.type
     changeset = type.create_child_changeset(socket.assigns.selected_object, %{})
     changeset = %{changeset | action: :insert}
@@ -89,8 +179,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  @impl true
-  def handle_event("edit", _params, socket) do
+  defp handle_edit(socket) do
     type = socket.assigns.type
     changeset = type.update_changeset(socket.assigns.selected_object, %{})
     changeset = %{changeset | action: :update}
@@ -102,8 +191,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  @impl true
-  def handle_event("delete", _params, socket) do
+  defp handle_delete(socket) do
     type = socket.assigns.type
     {socket, assigns} = case type.delete(socket.assigns.selected_object) do
                           {:error, error} ->
@@ -124,8 +212,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  @impl true
-  def handle_event("save", _params, socket) do
+  defp handle_save(socket) do
     type = socket.assigns.type
 
     {socket, assigns} = case Objects.update(socket.assigns.changeset, type) do
@@ -156,56 +243,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
               end
 
     {:noreply, assign(socket, assigns)}
-  end
-
-  @impl true
-  def handle_event("cancel", _params, socket) do
-    assigns = [
-      edit: false,
-      changeset: nil,
-      error: nil
-    ]
-    {:noreply, assign(socket, assigns)}
-  end
-
-  @impl true
-  def handle_event("validate", %{"object" => params}, socket) do
-
-    type = socket.assigns.type
-
-    changeset = type.update_changeset(socket.assigns.selected_object, params)
-    changeset = %{changeset | action: socket.assigns.changeset.action}
-
-    assigns = [
-      changeset: changeset
-    ]
-    {:noreply, assign(socket, assigns)}
-  end
-
-  @spec output_field(Objects.Field.t(), keyword()) :: any()
-  def output_field(field, _opts \\ [])
-  def output_field(%{display: nil}, _opts), do: ""
-  def output_field(field, _opts) do
-    case field.type do
-      :markdown ->
-        case Earmark.as_html(field.display) do
-          {:ok, html_doc, _} -> Phoenix.HTML.raw(html_doc)
-          {:error, _, errors} ->
-            result = ["</ul>"]
-            result = Enum.reduce(errors, result, fn {_, _, text}, acc -> ["<li>", text, "</li>" | acc] end)
-            result = ["<ul class='alert alert-danger'>" | result]
-            Phoenix.HTML.raw(result)
-        end
-      _ -> field.display
-    end
-  end
-
-  @spec input_field(Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
-  def input_field(form, field, _opts \\ []) do
-    case field.type do
-        :markdown -> textarea_input_field(form, field.id, opts)
-        _ -> text_input_field(form, field.id, opts)
-      end
   end
 
 end
