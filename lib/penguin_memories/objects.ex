@@ -46,14 +46,15 @@ defmodule PenguinMemories.Objects do
 
   @callback get_type_name() :: String.t()
   @callback get_plural_title() :: String.t()
-  @callback get_bulk_update_fields() :: list(Field.t())
+  @callback get_update_fields() :: list(Field.t())
   @callback get_parents(integer) :: list({Icon.t(), integer})
   @callback get_details(integer) :: {map(), Icon.t(), list(Field.t())} | nil
   @callback get_page_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, String.t()|nil, String.t()|nil) :: {list(Icon.t), String.t()|nil, String.t()|nil, integer}
   @callback get_icons(MapSet.t()|nil, integer()) :: list(Icon.t())
 
-  @callback create_child_changeset(map(), map()) :: Ecto.Changeset.t()
-  @callback update_changeset(map(), map()) :: Ecto.Changeset.t()
+  @callback get_create_child_changeset(map(), map()) :: Ecto.Changeset.t()
+  @callback get_edit_changeset(map(), map()) :: Ecto.Changeset.t()
+  @callback get_update_changeset(map()) :: Ecto.Changeset.t()
   @callback has_parent_changed?(Changeset.t()) :: boolean
   @callback can_delete?(integer) :: {:no, String.t()} | :yes
   @callback delete(map()) :: :ok | {:error, String.t()}
@@ -177,8 +178,8 @@ defmodule PenguinMemories.Objects do
     :ok
   end
 
-  @spec update(Changeset.t(), module()) :: {:error, Changeset.t(), String.t()} | {:ok, map()}
-  def update(changeset, type) do
+  @spec apply_edit_changeset(Changeset.t(), module()) :: {:error, Changeset.t(), String.t()} | {:ok, map()}
+  def apply_edit_changeset(changeset, type) do
     result = Multi.new()
     |> Multi.insert_or_update(:update, changeset)
     |> Multi.run(:index, fn _, obj ->

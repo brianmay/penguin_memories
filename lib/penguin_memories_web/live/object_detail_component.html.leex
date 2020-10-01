@@ -32,7 +32,7 @@
             </div>
         <% end %>
 
-        <%= if @num_selected == 1 and not is_nil(@selected_object) and not @edit do %>
+        <%= if @num_selected == 1 and not is_nil(@selected_object) and @edit == nil do %>
             <table class="photo_table table table-hover">
                 <tbody>
                     <%= for field <- @selected_fields do %>
@@ -45,7 +45,19 @@
             </table>
         <% end %>
 
-        <%= if @edit do %>
+        <%= if @edit == :edit do %>
+            <%= form_for @changeset, "save", [as: :object, phx_change: :validate, phx_target: @myself], fn f -> %>
+                <%= for field <- @selected_fields do %>
+                    <%= input_field f, field %>
+                <% end %>
+                <div>
+                    <span><input type="button" class="btn btn-primary" phx-click="save" value="Save" phx-target="<%= @myself %>"></span>
+                    <span><input type="button" class="btn btn-danger" phx-click="cancel" value="Cancel" phx-target="<%= @myself %>"></span>
+                </div>
+            <% end %>
+        <% end %>
+
+        <%= if @edit == :update do %>
             <%= form_for @changeset, "save", [as: :object, phx_change: :validate, phx_target: @myself], fn f -> %>
                 <%= for field <- @selected_fields do %>
                     <%= input_field f, field %>
@@ -62,7 +74,7 @@
                 <% @num_selected == 0 -> %> <!-- No photos selected -->
                 <% not is_nil(@selected_object) and @num_selected == 1 -> %>
                     <% icon = hd(@icons) %>
-                    <%= if not @edit do %>
+                    <%= if @edit == nil do %>
                         <%= live_patch to: Routes.object_list_path(@socket, :index, type_name, icon.id), class: "btn btn-secondary" do %>
                             Goto Album
                         <% end %>
@@ -74,8 +86,8 @@
                         <% end %>
                     <% end %>
                 <% @num_selected > 1 -> %>
-                    <%= if not @edit and Auth.can_edit(@user) do %>
-                        <div class="btn btn-secondary">Bulk Update</div>
+                    <%= if @edit == nil and Auth.can_edit(@user) do %>
+                        <div class="btn btn-secondary" phx-click="update" phx-target="<%= @myself %>">Bulk Update</div>
                     <% end %>
             <% end %>
         </div>

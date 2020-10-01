@@ -11,7 +11,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   @impl true
   def mount(socket) do
     assigns = [
-      edit: false,
+      edit: nil,
+      edit_object: nil,
+      action: nil,
       changeset: nil,
       error: nil,
       selected_object: nil,
@@ -38,7 +40,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       num_selected: num_selected,
       selected_ids: selected_ids,
       error: nil,
-      edit: false,
+      edit: nil,
+      edit_object: nil,
+      action: nil,
       user: params.user
     ]
 
@@ -66,7 +70,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       true ->
         limit = 5
         icons = type.get_icons(selected_ids, limit)
-        fields = type.get_bulk_update_fields()
+        fields = type.get_update_fields()
         {nil, fields, icons, length(icons) >= limit}
     end
 
@@ -99,9 +103,27 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
+  def handle_event("update", _params, socket) do
+    if Auth.can_edit(socket.assigns.user) do
+      handle_update(socket)
+    else
+      {:noreply, assign(socket, :error, "Permission denied")}
+    end
+  end
+
+  @impl true
   def handle_event("delete", _params, socket) do
     if Auth.can_edit(socket.assigns.user) do
       handle_delete(socket)
+    else
+      {:noreply, assign(socket, :error, "Permission denied")}
+    end
+  end
+
+  @impl true
+  def handle_event("validate", %{"object" => params}, socket) do
+    if Auth.can_edit(socket.assigns.user) do
+      handle_validate(params, socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
     end
@@ -119,23 +141,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   @impl true
   def handle_event("cancel", _params, socket) do
     assigns = [
-      edit: false,
+      edit: nil,
       changeset: nil,
       error: nil
-    ]
-    {:noreply, assign(socket, assigns)}
-  end
-
-  @impl true
-  def handle_event("validate", %{"object" => params}, socket) do
-
-    type = socket.assigns.type
-
-    changeset = type.update_changeset(socket.assigns.selected_object, params)
-    changeset = %{changeset | action: socket.assigns.changeset.action}
-
-    assigns = [
-      changeset: changeset
     ]
     {:noreply, assign(socket, assigns)}
   end
@@ -169,28 +177,45 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   @spec handle_create(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_create(socket) do
     type = socket.assigns.type
-    changeset = type.create_child_changeset(socket.assigns.selected_object, %{})
-    changeset = %{changeset | action: :insert}
+    changeset = type.get_create_child_changeset(socket.assigns.selected_object, %{})
     assigns = [
-      edit: true,
+      edit: :edit,
       changeset: changeset,
-      selected_object: changeset.data
+      edit_object: changeset.data,
+      action: :insert
     ]
     {:noreply, assign(socket, assigns)}
   end
 
+  @spec handle_edit(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_edit(socket) do
     type = socket.assigns.type
-    changeset = type.update_changeset(socket.assigns.selected_object, %{})
+    changeset = type.get_edit_changeset(socket.assigns.selected_object, %{})
     changeset = %{changeset | action: :update}
     assigns = [
-      edit: true,
+      edit: :edit,
       changeset: changeset,
-      selected_object: changeset.data
+      edit_object: changeset.data,
+      action: :update
     ]
     {:noreply, assign(socket, assigns)}
   end
 
+  @spec handle_update(Socket.t()) :: {:noreply, Socket.t()}
+  defp handle_update(socket) do
+    type = socket.assigns.type
+    changeset = type.get_update_changeset(%{})
+    changeset = %{changeset | action: :update}
+    assigns = [
+      edit: :update,
+      changeset: changeset,
+      edit_object: changeset.data,
+      action: :update
+    ]
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @spec handle_delete(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_delete(socket) do
     type = socket.assigns.type
     {socket, assigns} = case type.delete(socket.assigns.selected_object) do
@@ -212,13 +237,55 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  defp handle_save(socket) do
+  @spec handle_validate(map(), Socket.t()) :: {:noreply, Socket.t()}
+  def handle_validate(params, socket) do
+    case socket.assigns.edit do
+      :edit -> handle_edit_validate(params, socket)
+      :update -> handle_update_validate(params, socket)
+    end
+  end
+
+  @spec handle_edit_validate(map(), Socket.t()) :: {:noreply, Socket.t()}
+  def handle_edit_validate(params, socket) do
     type = socket.assigns.type
 
-    {socket, assigns} = case Objects.update(socket.assigns.changeset, type) do
+    changeset = type.get_edit_changeset(socket.assigns.edit_object, params)
+    changeset = %{changeset | action: socket.assigns.action}
+
+    assigns = [
+      changeset: changeset
+    ]
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @spec handle_update_validate(map(), Socket.t()) :: {:noreply, Socket.t()}
+  def handle_update_validate(params, socket) do
+    type = socket.assigns.type
+
+    changeset = type.get_update_changeset(params)
+    changeset = %{changeset | action: socket.assigns.action}
+
+    assigns = [
+      changeset: changeset
+    ]
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @spec handle_save(Socket.t()) :: {:noreply, Socket.t()}
+  defp handle_save(socket) do
+    case socket.assigns.edit do
+      :edit -> handle_edit_save(socket)
+      :update -> handle_update_save(socket)
+    end
+  end
+
+  @spec handle_edit_save(Socket.t()) :: {:noreply, Socket.t()}
+  defp handle_edit_save(socket) do
+    type = socket.assigns.type
+
+    {socket, assigns} = case Objects.apply_edit_changeset(socket.assigns.changeset, type) do
                 {:error, changeset, error} ->
                             assigns = [
-                              edit: true,
                               changeset: changeset,
                               error: error
                             ]
@@ -226,7 +293,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
                 {:ok, object} ->
                             PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
-                            socket = case socket.assigns.changeset.action do
+                            socket = case socket.assigns.action do
                                        :insert ->
                                          type_name = socket.assigns.type.get_type_name()
                                          url = Routes.object_list_path(socket, :index, type_name, object.id)
@@ -235,7 +302,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
                                          socket
                                      end
                             assigns = [
-                              edit: false,
+                              edit: nil,
                               changeset: nil,
                               error: nil,
                             ]
@@ -243,6 +310,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
               end
 
     {:noreply, assign(socket, assigns)}
+  end
+
+  @spec handle_update_save(Socket.t()) :: {:noreply, Socket.t()}
+  defp handle_update_save(socket) do
+    {:noreply, socket}
   end
 
 end

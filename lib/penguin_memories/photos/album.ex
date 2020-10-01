@@ -19,9 +19,16 @@ defmodule PenguinMemories.Photos.Album do
   end
 
   @doc false
-  def changeset(album, attrs) do
+  def edit_changeset(album, attrs) do
     album
     |> cast(attrs, [:title, :parent_id, :revised, :sort_name, :cover_photo_id, :description, :sort_order, :revised_utc_offset])
     |> validate_required([:title, :sort_name, :sort_order])
   end
+
+  @doc false
+  def update_changeset(album, attrs) do
+    album
+    |> cast(attrs, [:title, :parent_id, :revised, :sort_name, :sort_order, :revised_utc_offset])
+  end
+
 end

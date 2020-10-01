@@ -116,8 +116,8 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec get_bulk_update_fields() :: list(Objects.Field.t())
-  def get_bulk_update_fields do
+  @spec get_update_fields() :: list(Objects.Field.t())
+  def get_update_fields do
     [
       %Objects.Field{
         id: :title,
@@ -310,17 +310,23 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec create_child_changeset(map(), map()) :: Ecto.Changeset.t()
-  def create_child_changeset(album, attrs) do
+  @spec get_create_child_changeset(map(), map()) :: Ecto.Changeset.t()
+  def get_create_child_changeset(album, attrs) do
     %Album{}
-    |> Album.changeset(attrs)
+    |> Album.edit_changeset(attrs)
     |> Changeset.put_change(:parent_id, album.id)
   end
 
   @impl Objects
-  @spec update_changeset(map(), map()) :: Ecto.Changeset.t()
-  def update_changeset(album, attrs) do
-    Album.changeset(album, attrs)
+  @spec get_edit_changeset(map(), map()) :: Ecto.Changeset.t()
+  def get_edit_changeset(album, attrs) do
+    Album.edit_changeset(album, attrs)
+  end
+
+  @impl Objects
+  @spec get_update_changeset(map()) :: Ecto.Changeset.t()
+  def get_update_changeset(attrs) do
+    Album.update_changeset(%Album{}, attrs)
   end
 
   @impl Objects
