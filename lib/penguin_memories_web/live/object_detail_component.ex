@@ -240,7 +240,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   defp string_to_boolean("true"), do: true
   defp string_to_boolean(_), do: false
 
-  @spec get_update_changes(list(Field.t()), map()) :: {MapSet.t(), map()}
+  @spec get_update_changes(list(Objects.Field.t()), map()) :: {MapSet.t(), map()}
   def get_update_changes(fields, params) do
     Enum.reduce(fields, {MapSet.new(), %{}}, fn
       field, {enabled, changes} ->
@@ -357,7 +357,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     end
   end
 
-  @spec field_to_enable_field_id(Objects.Field.t()) :: String.t()
+  @spec field_to_enable_field_id(Objects.Field.t()) :: atom()
   defp field_to_enable_field_id(field) do
     String.to_atom(Atom.to_string(field.id) <> "_enable")
   end
