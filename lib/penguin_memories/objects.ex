@@ -54,7 +54,7 @@ defmodule PenguinMemories.Objects do
 
   @callback get_create_child_changeset(map(), map()) :: Ecto.Changeset.t()
   @callback get_edit_changeset(map(), map()) :: Ecto.Changeset.t()
-  @callback get_update_changeset(map()) :: Ecto.Changeset.t()
+  @callback get_update_changeset(MapSet.t(), map()) :: Ecto.Changeset.t()
   @callback has_parent_changed?(Changeset.t()) :: boolean
   @callback can_delete?(integer) :: {:no, String.t()} | :yes
   @callback delete(map()) :: :ok | {:error, String.t()}

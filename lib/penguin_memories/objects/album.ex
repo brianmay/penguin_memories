@@ -284,7 +284,7 @@ defmodule PenguinMemories.Objects.Album do
 
 
   @impl Objects
-  @spec get_icons(MapSet.t()|nil, integer()) :: list(Objects.Icon.t)
+  @spec get_icons(MapSet.t()|nil, integer()) :: list(Objects.Icon.t())
   def get_icons(ids, limit) do
 
     file_query = from f in File,
@@ -324,9 +324,9 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec get_update_changeset(map()) :: Ecto.Changeset.t()
-  def get_update_changeset(attrs) do
-    Album.update_changeset(%Album{}, attrs)
+  @spec get_update_changeset(MapSet.t(), map()) :: Ecto.Changeset.t()
+  def get_update_changeset(enabled, attrs) do
+    Album.update_changeset(%Album{}, enabled, attrs)
   end
 
   @impl Objects

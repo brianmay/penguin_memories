@@ -13,6 +13,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     assigns = [
       edit: nil,
       edit_object: nil,
+      enabled: nil,
       action: nil,
       changeset: nil,
       error: nil,
@@ -42,6 +43,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       error: nil,
       edit: nil,
       edit_object: nil,
+      enabled: nil,
       action: nil,
       user: params.user
     ]
@@ -148,32 +150,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  @spec output_field(Objects.Field.t(), keyword()) :: any()
-  defp output_field(field, _opts \\ [])
-  defp output_field(%{display: nil}, _opts), do: ""
-  defp output_field(field, _opts) do
-    case field.type do
-      :markdown ->
-        case Earmark.as_html(field.display) do
-          {:ok, html_doc, _} -> Phoenix.HTML.raw(html_doc)
-          {:error, _, errors} ->
-            result = ["</ul>"]
-            result = Enum.reduce(errors, result, fn {_, _, text}, acc -> ["<li>", text, "</li>" | acc] end)
-            result = ["<ul class='alert alert-danger'>" | result]
-            Phoenix.HTML.raw(result)
-        end
-      _ -> field.display
-    end
-  end
-
-  @spec input_field(Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
-  defp input_field(form, field, _opts \\ []) do
-    case field.type do
-        :markdown -> textarea_input_field(form, field.id, opts)
-        _ -> text_input_field(form, field.id, opts)
-      end
-  end
-
   @spec handle_create(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_create(socket) do
     type = socket.assigns.type
@@ -204,12 +180,14 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   @spec handle_update(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_update(socket) do
     type = socket.assigns.type
-    changeset = type.get_update_changeset(%{})
+    enabled = MapSet.new()
+    changeset = type.get_update_changeset(enabled, %{})
     changeset = %{changeset | action: :update}
     assigns = [
       edit: :update,
       changeset: changeset,
       edit_object: changeset.data,
+      enabled: enabled,
       action: :update
     ]
     {:noreply, assign(socket, assigns)}
@@ -258,14 +236,38 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
+  @spec string_to_boolean(String.t()) :: boolean
+  defp string_to_boolean("true"), do: true
+  defp string_to_boolean(_), do: false
+
+  @spec get_update_changes(list(Field.t()), map()) :: {MapSet.t(), map()}
+  def get_update_changes(fields, params) do
+    Enum.reduce(fields, {MapSet.new(), %{}}, fn
+      field, {enabled, changes} ->
+        field_id = Atom.to_string(field.id)
+      enable_id = Atom.to_string(field_to_enable_field_id(field))
+      enable_value = string_to_boolean(Map.get(params, enable_id, "false"))
+      if enable_value do
+        enabled = MapSet.put(enabled, field.id)
+        changes = Map.put(changes, field.id, Map.get(params, field_id))
+        {enabled, changes}
+      else
+        {enabled, changes}
+      end
+    end)
+  end
+
   @spec handle_update_validate(map(), Socket.t()) :: {:noreply, Socket.t()}
   def handle_update_validate(params, socket) do
     type = socket.assigns.type
 
-    changeset = type.get_update_changeset(params)
+    {enabled, changes} = get_update_changes(socket.assigns.selected_fields, params)
+
+    changeset = type.get_update_changeset(enabled, changes)
     changeset = %{changeset | action: socket.assigns.action}
 
     assigns = [
+      enabled: enabled,
       changeset: changeset
     ]
     {:noreply, assign(socket, assigns)}
@@ -314,7 +316,49 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @spec handle_update_save(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_update_save(socket) do
-    {:noreply, socket}
+    changeset = socket.assigns.changeset
+    assigns = case changeset.valid? do
+                false ->
+                  []
+                true ->
+                  [
+                    edit: nil,
+                    changeset: nil,
+                    error: nil,
+                    enabled: nil,
+                  ]
+              end
+    {:noreply, assign(socket, assigns)}
   end
 
+  @spec output_field(Objects.Field.t(), keyword()) :: any()
+  defp output_field(field, opts \\ [])
+  defp output_field(%{display: nil}, _opts), do: ""
+  defp output_field(field, _opts) do
+    case field.type do
+      :markdown ->
+        case Earmark.as_html(field.display) do
+          {:ok, html_doc, _} -> Phoenix.HTML.raw(html_doc)
+          {:error, _, errors} ->
+            result = ["</ul>"]
+            result = Enum.reduce(errors, result, fn {_, _, text}, acc -> ["<li>", text, "</li>" | acc] end)
+            result = ["<ul class='alert alert-danger'>" | result]
+            Phoenix.HTML.raw(result)
+        end
+      _ -> field.display
+    end
+  end
+
+  @spec input_field(Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
+  defp input_field(form, field, opts \\ []) do
+    case field.type do
+      :markdown -> textarea_input_field(form, field.id, opts)
+      _ -> text_input_field(form, field.id, opts)
+    end
+  end
+
+  @spec field_to_enable_field_id(Objects.Field.t()) :: String.t()
+  defp field_to_enable_field_id(field) do
+    String.to_atom(Atom.to_string(field.id) <> "_enable")
+  end
 end

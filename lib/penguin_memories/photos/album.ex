@@ -26,9 +26,16 @@ defmodule PenguinMemories.Photos.Album do
   end
 
   @doc false
-  def update_changeset(album, attrs) do
+  def update_changeset(album, enabled, attrs) do
+    enabled_list = MapSet.to_list(enabled)
+    required = MapSet.new([:title, :sort_name, :sort_order])
+    required_list = MapSet.to_list(
+      MapSet.intersection(enabled, required)
+    )
+
     album
-    |> cast(attrs, [:title, :parent_id, :revised, :sort_name, :sort_order, :revised_utc_offset])
+    |> cast(attrs, enabled_list)
+    |> validate_required(required_list)
   end
 
 end

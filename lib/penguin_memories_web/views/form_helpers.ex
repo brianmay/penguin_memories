@@ -17,7 +17,7 @@ defmodule PenguinMemoriesWeb.FormHelpers do
     end
   end
 
-  defmacro text_input_field(form, field, _opts \\ []) do
+  defmacro text_input_field(form, field, opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")
       feedback_for = get_feedback_for(unquote(form), unquote(field))
@@ -25,14 +25,14 @@ defmodule PenguinMemoriesWeb.FormHelpers do
       content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
         [
           label(unquote(form), unquote(field), class: "control-label"),
-          text_input(unquote(form), unquote(field), class: field_class),
+          text_input(unquote(form), unquote(field), [{:class, field_class} | unquote(opts)]),
           error_tag(unquote(form), unquote(field))
         ]
       end
     end
   end
 
-  defmacro textarea_input_field(form, field, _opts \\ []) do
+  defmacro textarea_input_field(form, field, opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")
       feedback_for = get_feedback_for(unquote(form), unquote(field))
@@ -40,14 +40,14 @@ defmodule PenguinMemoriesWeb.FormHelpers do
       content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
         [
           label(unquote(form), unquote(field), class: "control-label"),
-          textarea(unquote(form), unquote(field), class: field_class),
+          textarea(unquote(form), unquote(field), [{:class, field_class} | unquote(opts)]),
           error_tag(unquote(form), unquote(field))
         ]
       end
     end
   end
 
-  defmacro number_input_field(form, field, _opts \\ []) do
+  defmacro number_input_field(form, field, opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")
       feedback_for = get_feedback_for(unquote(form), unquote(field))
@@ -55,14 +55,14 @@ defmodule PenguinMemoriesWeb.FormHelpers do
       content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
         [
           label(unquote(form), unquote(field), class: "control-label"),
-          number_input(unquote(form), unquote(field), class: field_class),
+          number_input(unquote(form), unquote(field), [{:class, field_class} | unquote(opts)]),
           error_tag(unquote(form), unquote(field))
         ]
       end
     end
   end
 
-  defmacro select_field(form, field, options, _opts \\ []) do
+  defmacro select_field(form, field, options, opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")
       feedback_for = get_feedback_for(unquote(form), unquote(field))
@@ -70,36 +70,37 @@ defmodule PenguinMemoriesWeb.FormHelpers do
       content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
         [
           label(unquote(form), unquote(field), class: "control-label"),
-          select(unquote(form), unquote(field), unquote(options), class: field_class),
+          select(unquote(form), unquote(field), unquote(options), [{:class, field_class} | unquote(opts)]),
           error_tag(unquote(form), unquote(field))
         ]
       end
     end
   end
 
-  defmacro password_input_field(form, field, _opts \\ []) do
+  defmacro password_input_field(form, field, opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-control")
       feedback_for = get_feedback_for(unquote(form), unquote(field))
+      value = input_value(unquote(form), :password)
 
       content_tag :div, class: "form-group", phx_feedback_for: feedback_for do
         [
           label(unquote(form), unquote(field), class: "control-label"),
-          password_input(unquote(form), unquote(field), class: field_class, value: input_value(unquote(form), :password)),
+          password_input(unquote(form), unquote(field), [{:class, field_class}, {:value, value} | unquote(opts)]),
           error_tag(unquote(form), unquote(field))
         ]
       end
     end
   end
 
-  defmacro checkbox_field(form, field, _opts \\ []) do
+  defmacro checkbox_field(form, field, opts \\ []) do
     quote do
       field_class = field_class(unquote(form), unquote(field), "form-check-input")
       feedback_for = get_feedback_for(unquote(form), unquote(field))
 
       content_tag :div, class: "form-group form-check", phx_feedback_for: feedback_for do
         [
-          checkbox(unquote(form), unquote(field), class: field_class),
+          checkbox(unquote(form), unquote(field), [{:class, field_class} | unquote(opts)]),
           label(unquote(form), unquote(field), class: "control-label"),
           error_tag(unquote(form), unquote(field))
         ]
