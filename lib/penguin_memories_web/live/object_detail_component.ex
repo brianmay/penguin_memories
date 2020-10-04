@@ -145,7 +145,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     assigns = [
       edit: nil,
       changeset: nil,
-      error: nil
+      error: nil,
+      enabled: nil
     ]
     {:noreply, assign(socket, assigns)}
   end
@@ -284,8 +285,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   @spec handle_edit_save(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_edit_save(socket) do
     type = socket.assigns.type
+    changeset = socket.assigns.changeset
 
-    {socket, assigns} = case Objects.apply_edit_changeset(socket.assigns.changeset, type) do
+    {socket, assigns} = case Objects.apply_edit_changeset(changeset, type) do
                 {:error, changeset, error} ->
                             assigns = [
                               changeset: changeset,
@@ -307,6 +309,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
                               edit: nil,
                               changeset: nil,
                               error: nil,
+                              enabled: nil,
                             ]
                             {socket, assigns}
               end
@@ -316,18 +319,29 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @spec handle_update_save(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_update_save(socket) do
+    type = socket.assigns.type
+    selected_ids = socket.assigns.selected_ids
     changeset = socket.assigns.changeset
-    assigns = case changeset.valid? do
-                false ->
-                  []
-                true ->
-                  [
-                    edit: nil,
-                    changeset: nil,
-                    error: nil,
-                    enabled: nil,
-                  ]
-              end
+    enabled = socket.assigns.enabled
+
+    {socket, assigns} = case Objects.apply_update_changeset(selected_ids, changeset, enabled, type) do
+                          {:error, error} ->
+                            assigns = [
+                              error: error
+                            ]
+                            {socket, assigns}
+
+                          :ok ->
+                            PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+                            assigns = [
+                              edit: nil,
+                              changeset: nil,
+                              error: nil,
+                              enabled: nil,
+                            ]
+                            {socket, assigns}
+                        end
+
     {:noreply, assign(socket, assigns)}
   end
 

@@ -63,7 +63,7 @@ defmodule PenguinMemories.Objects.Album do
 
   @impl Objects
   @spec get_parent_ids(integer) :: list(integer())
-  def get_parent_ids(id) do
+  def get_parent_ids(id) when is_integer(id) do
     query = from o in Album,
       where: o.id == ^id,
       select: o.parent_id
@@ -310,8 +310,8 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec get_create_child_changeset(map(), map()) :: Ecto.Changeset.t()
-  def get_create_child_changeset(album, attrs) do
+  @spec get_create_child_changeset(Album.t(), map()) :: Ecto.Changeset.t()
+  def get_create_child_changeset(%Album{} = album, attrs) do
     %Album{}
     |> Album.edit_changeset(attrs)
     |> Changeset.put_change(:parent_id, album.id)
@@ -349,8 +349,8 @@ defmodule PenguinMemories.Objects.Album do
     end
   end
 
-  @spec do_delete(map()) :: :ok | {:error, String.t()}
-  def do_delete(object) do
+  @spec do_delete(Album.t()) :: :ok | {:error, String.t()}
+  defp do_delete(%Album{} = object) do
     result = Multi.new()
     |> Multi.delete_all(:index1, from(obj in AlbumAscendant, where: obj.ascendant_id == ^object.id))
     |> Multi.delete_all(:index2, from(obj in AlbumAscendant, where: obj.descendant_id == ^object.id))
@@ -369,8 +369,8 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec delete(map()) :: :ok | {:error, String.t()}
-  def delete(object) do
+  @spec delete(Album.t()) :: :ok | {:error, String.t()}
+  def delete(%Album{} = object) do
     case can_delete?(object.id) do
       :yes -> do_delete(object)
       {:no, error} -> {:error, error}

@@ -74,7 +74,7 @@ defmodule PenguinMemories.Objects do
     integer, integer, module(), seen_type,
     cache_type
   ) :: {seen_type, cache_type, MapSet.t()}
-  def generate_index(id, position, type, seen, cache) do
+  def generate_index(id, position, type, seen, cache) when is_integer(id) do
     cond  do
       Map.has_key?(cache, id) ->
         cache_item = Map.fetch!(cache, id)
@@ -113,7 +113,7 @@ defmodule PenguinMemories.Objects do
   end
 
   @spec fix_index(integer, module, cache_type) :: cache_type
-  def fix_index(id, type, cache) do
+  def fix_index(id, type, cache) when is_integer(id) do
     {_, cache, new_index} = generate_index(id, 0, type, MapSet.new(), cache)
     old_index = type.get_index(id)
 
@@ -131,7 +131,7 @@ defmodule PenguinMemories.Objects do
   end
 
   @spec fix_index_parents(integer, module, seen_type, cache_type) :: {seen_type, cache_type}
-  def fix_index_parents(id, type, seen, cache) do
+  def fix_index_parents(id, type, seen, cache) when is_integer(id) do
     cond do
       MapSet.member?(seen, id) ->
         {seen, cache}
@@ -146,7 +146,7 @@ defmodule PenguinMemories.Objects do
   end
 
   @spec fix_index_children(integer, module, seen_type, cache_type) :: {seen_type, cache_type}
-  def fix_index_children(id, type, seen, cache) do
+  def fix_index_children(id, type, seen, cache) when is_integer(id) do
     cond do
       MapSet.member?(seen, id) ->
         {seen, cache}
@@ -161,7 +161,7 @@ defmodule PenguinMemories.Objects do
   end
 
   @spec fix_index_tree(integer, module()) :: :ok
-  def fix_index_tree(id, type) do
+  def fix_index_tree(id, type) when is_integer(id) do
     cache = %{}
     {_, cache} = fix_index_parents(id, type, MapSet.new(), cache)
 
@@ -178,26 +178,82 @@ defmodule PenguinMemories.Objects do
     :ok
   end
 
-  @spec apply_edit_changeset(Changeset.t(), module()) :: {:error, Changeset.t(), String.t()} | {:ok, map()}
-  def apply_edit_changeset(changeset, type) do
-    result = Multi.new()
-    |> Multi.insert_or_update(:update, changeset)
-    |> Multi.run(:index, fn _, obj ->
+  @spec apply_changeset_to_multi(Multi.t(), Changeset.t(), module()) :: Multi.t()
+  defp apply_changeset_to_multi(multi, changeset, type) do
+    id = changeset.data.id
+    multi
+    |> Multi.insert_or_update({:update, id}, changeset)
+    |> Multi.run({:index, id}, fn _, data ->
       case type.has_parent_changed?(changeset) do
-        false -> nil
-        true -> :ok = fix_index_tree(obj.update.id, type)
+        false ->
+          nil
+        true ->
+          obj = Map.fetch!(data, {:update, id})
+          :ok = fix_index_tree(obj.id, type)
       end
       {:ok, nil}
     end)
+  end
+
+  @spec apply_edit_changeset(Changeset.t(), module()) :: {:error, Changeset.t(), String.t()} | {:ok, map()}
+  def apply_edit_changeset(changeset, type) do
+    result = Multi.new()
+    |> apply_changeset_to_multi(changeset, type)
     |> Repo.transaction()
 
     case result do
       {:ok, data} ->
-        {:ok, data.update}
-      {:error, :update, changeset, _} ->
+        obj = Map.fetch!(data, {:update, changeset.data.id})
+        {:ok, obj}
+      {:error, {:update, _id}, changeset, _} ->
         {:error, changeset, "The update failed"}
-      {:error, :index, error, _} ->
+      {:error, {:index, _id}, error, _} ->
         {:error, changeset, "Error #{inspect error} while indexing"}
+    end
+  end
+
+  @spec apply_update_changeset(list(integer), Changeset.t(), MapSet.t(), module()) :: {:error, String.t()} | :ok
+  def apply_update_changeset(id_list, changeset, fields, type) do
+    case Changeset.apply_action(changeset, :update) do
+      {:error, error} ->
+        {:error, "The changeset is invalid: #{inspect error}"}
+      {:ok, obj} ->
+        changes = Enum.reduce(fields, %{}, fn field_id, acc ->
+          Map.put(acc, field_id, Map.fetch!(obj, field_id))
+        end)
+        apply_update_changes(id_list, changes, type)
+    end
+  end
+
+  @spec apply_update_changes(list(integer), map(), module()) :: {:error, String.t()} | :ok
+  def apply_update_changes(id_list, changes, type) do
+    multi = Multi.new()
+
+    multi = Enum.reduce(id_list, multi, fn id, multi ->
+      case type.get_details(id) do
+        nil -> Multi.error(multi, {:error, id}, "Cannot find object #{id}")
+        {obj, _, _} ->
+          obj_changeset = type.get_edit_changeset(obj, changes)
+          apply_changeset_to_multi(multi, obj_changeset, type)
+      end
+    end)
+
+    case Repo.transaction(multi) do
+      {:ok, _data} ->
+        :ok
+      {:error, {:update, id}, changeset, _data} ->
+        errors = Changeset.traverse_errors(changeset, fn {msg, opts} ->
+          Enum.reduce(opts, msg, fn {key, value}, acc ->
+            String.replace(acc, "%{#{key}}", to_string(value))
+          end)
+        end)
+        |> Enum.map(fn {key, value} -> "#{key}: #{value}" end)
+        |> Enum.join(", ")
+        {:error, "The update of id #{id} failed: #{errors}"}
+      {:error, {:index, id}, error, _data} ->
+        {:error, "Error #{inspect error} while indexing id #{id}"}
+      {:error, {:error, id}, error, _data} ->
+        {:error, "Error looking for #{id}: #{error}"}
     end
   end
 
