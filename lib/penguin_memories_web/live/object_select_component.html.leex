@@ -1,0 +1,35 @@
+<div class="dropdown">
+
+    <% field_id = @field.id %>
+    <% dummy_field_id = field_to_dummy_field_id(@field) %>
+    <% field_class = field_class(@form, field_id, "") %>
+    <% feedback_for = get_feedback_for(@form, dummy_field_id) %>
+
+    <div class="form-group" phx_feedback_for="<%= feedback_for %>">
+        <%= label(@form, dummy_field_id, class: "control-label") %>
+        <div class="autoselect form-control <%= field_class %>">
+            <%= if not is_nil(@selected_id) do %>
+                <span class="selected" phx-click="remove" phx-value="@selected_id" phx-target="<%= @myself %>"><%= @selected_display %></span>
+            <% end %>
+            <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, value: @text) %>
+        </div>
+        <%= error_tag(@form, field_id) %>
+    </div>
+
+    <%= if length(@choices) > 0 do %>
+        <div class="dropdown-menu show">
+            <div class="photo_list">
+                <%= for icon <- @choices do %>
+                    <%=
+                    Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
+                    icon: icon, classes: ["dropdown-item"],
+                    event: "select",
+                    target: @myself
+                    %>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+
+    <%= hidden_input(@form, @field.id) %>
+</div>

@@ -380,11 +380,16 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     end
   end
 
-  @spec input_field(Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
-  defp input_field(form, field, opts \\ []) do
+  @spec input_field(Socket.t(), Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
+  defp input_field(socket, form, field, opts \\ []) do
     case field.type do
-      :markdown -> textarea_input_field(form, field.id, opts)
-      _ -> text_input_field(form, field.id, opts)
+      :markdown ->
+        textarea_input_field(form, field.id, opts)
+      :album ->
+        type = Objects.get_for_type("album")
+        live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent, type: type, form: form, field: field, id: field.id)
+      _ ->
+        text_input_field(form, field.id, opts)
     end
   end
 
@@ -392,4 +397,5 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   defp field_to_enable_field_id(field) do
     String.to_atom(Atom.to_string(field.id) <> "_enable")
   end
+
 end

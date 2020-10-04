@@ -135,3 +135,21 @@
         width: 400px;
     }
 }
+
+.autoselect {
+    input {
+        width: auto;
+        display: inline;
+        border: none;
+    }
+    .selected {
+        border: 1px solid black;
+        border-radius: 0.25em;
+        background: #88ff88;
+        padding: 4px;
+        display: inline-block
+    }
+    &:focus-within {
+        @extend .form-control:focus;
+    }
+}

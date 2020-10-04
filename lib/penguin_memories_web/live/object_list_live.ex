@@ -266,7 +266,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {:noreply, socket |> assign(show_selected: false) |> reload() }
   end
 
-  defp icon_classes(icon, selected_ids, last_clicked_id) do
+  @spec icon_classes(Objects.Icon.t(), MapSet.t(), integer) :: list(String.t())
+  defp icon_classes(%Objects.Icon{} = icon, selected_ids, last_clicked_id) do
     result = []
 
     result = cond do

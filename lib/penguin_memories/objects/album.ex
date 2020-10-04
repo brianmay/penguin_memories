@@ -199,7 +199,8 @@ defmodule PenguinMemories.Objects.Album do
       where: o.id == ^id,
       left_join: p in Photo, on: p.id == o.cover_photo_id,
       left_join: f in subquery(file_query), on: f.photo_id == p.id,
-      select: %{o: o, id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, cp_title: p.title, dir: f.dir, name: f.name, height: f.height, width: f.width}
+      left_join: op in Album, on: o.parent_id == op.id,
+      select: %{o: o, id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, cp_title: p.title, dir: f.dir, name: f.name, height: f.height, width: f.width, op_title: op.title}
 
     case Repo.one(query) do
       nil -> nil
@@ -215,7 +216,7 @@ defmodule PenguinMemories.Objects.Album do
           %Objects.Field{
             id: :parent_id,
             title: "Parent ID",
-            display: result.o.parent_id,
+            display: Objects.get_title(result.op_title, result.o.parent_id),
             type: :album,
           },
           %Objects.Field{
@@ -227,7 +228,7 @@ defmodule PenguinMemories.Objects.Album do
           %Objects.Field{
             id: :cover_photo_id,
             title: "Cover Photo",
-            display: "#{result.cp_title} (#{result.o.cover_photo_id})",
+            display: Objects.get_title(result.cp_title, result.o.cover_photo_id),
             type: :photo,
           },
           %Objects.Field{
@@ -290,6 +291,29 @@ defmodule PenguinMemories.Objects.Album do
 
 
   @impl Objects
+  @spec search_icons(%{required(String.t()) => String.t()}, integer) :: list(Objects.Icon.t())
+  def search_icons(filter_spec, limit) do
+    file_query = from f in File,
+      where: f.size_key == "thumb" and f.is_video == false,
+      distinct: f.photo_id,
+      order_by: [asc: :id]
+
+    query = from o in query_objects(filter_spec, nil)
+    query = from o in query,
+      left_join: p in Photo, on: p.id == o.cover_photo_id,
+      left_join: f in subquery(file_query), on: f.photo_id == p.id,
+      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width},
+      order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id],
+      limit: ^limit
+
+    entries = Repo.all(query)
+
+    Enum.map(entries, fn result ->
+      get_icon_from_result(result)
+    end)
+  end
+
+  @impl Objects
   @spec get_icons(MapSet.t()|nil, integer()) :: list(Objects.Icon.t())
   def get_icons(ids, limit) do
 
@@ -308,11 +332,9 @@ defmodule PenguinMemories.Objects.Album do
 
     entries = Repo.all(query)
 
-    icons = Enum.map(entries, fn result ->
+    Enum.map(entries, fn result ->
       get_icon_from_result(result)
     end)
-
-    icons
   end
 
   @impl Objects
