@@ -46,26 +46,26 @@
         <% end %>
 
         <%= if @edit == :edit do %>
-            <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_target: @myself] %>
+            <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save", phx_target: @myself] %>
                 <%= for field <- @selected_fields do %>
                     <%= input_field f, field %>
                 <% end %>
                 <div>
-                    <span><input type="button" class="btn btn-primary" phx-click="save" value="Save" phx-target="<%= @myself %>"></span>
+                    <span><input type="submit" class="btn btn-primary" value="Save"></span>
                     <span><input type="button" class="btn btn-danger" phx-click="cancel" value="Cancel" phx-target="<%= @myself %>"></span>
                 </div>
             </form>
         <% end %>
 
         <%= if @edit == :update do %>
-            <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_target: @myself] %>
+            <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save", phx_target: @myself] %>
                 <%= for field <- @selected_fields do %>
                     <% enabled = MapSet.member?(@enabled, field.id) %>
                     <%= checkbox_field f, field_to_enable_field_id(field), value: enabled %>
                     <%= input_field f, field, disabled: not enabled %>
                 <% end %>
                 <div>
-                    <span><input type="button" class="btn btn-primary" phx-click="save" value="Save" phx-target="<%= @myself %>"></span>
+                    <span><input type="submit" class="btn btn-primary" value="Save"</span>
                     <span><input type="button" class="btn btn-danger" phx-click="cancel" value="Cancel" phx-target="<%= @myself %>"></span>
                 </div>
             </form>
