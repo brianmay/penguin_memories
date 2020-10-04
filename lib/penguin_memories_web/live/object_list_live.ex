@@ -33,11 +33,15 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
               nil -> %{}
               query -> URI.decode_query(query)
             end
+    query = Map.drop(query, delete)
     query = Map.merge(query, merge)
-    query = Map.drop(query,
-      delete)
     query = URI.encode_query(query)
     %URI{uri | query: query}
+  end
+
+  @spec uri_to_path(URI.t()) :: URI.t()
+  defp uri_to_path(%URI{} = uri) do
+    %{uri | authority: nil, host: nil, scheme: nil}
   end
 
   @impl true
@@ -47,7 +51,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
     type = Objects.get_for_type(params["type"])
 
-    parsed_uri = URI.parse(uri)
+    parsed_uri = uri |> URI.parse() |> uri_to_path()
 
     parent_id = cond do
       (id = params["id"]) != nil -> to_int(id)
@@ -124,6 +128,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
     assigns = [
       icons: icons,
+      parse_url: parsed_uri,
       before_url: before_url,
       after_url: after_url,
       total_count: total_count,
@@ -193,6 +198,23 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     %{"id" => id} = params
     type_name = socket.assigns.type.get_type_name()
     url = Routes.object_list_path(socket, :index, type_name, id)
+    socket = push_patch(socket, to: url)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("search", params, socket) do
+    %{"query" => query} = params
+
+    search = if query == "" do
+      %{}
+    else
+      %{"query" => query}
+    end
+
+    url = socket.assigns.parsed_uri
+    |> uri_merge(search, ["before", "after", "query"])
+    |> URI.to_string()
     socket = push_patch(socket, to: url)
     {:noreply, socket}
   end

@@ -31,10 +31,16 @@ defmodule PenguinMemories.Objects.Album do
   defp query_objects(filter_spec, nil) do
     query = from o in Album
 
-    case filter_spec["parent_id"] do
+    query = case filter_spec["parent_id"] do
       nil -> query
       id -> from o in query, where: o.parent_id == ^id
     end
+
+    case filter_spec["query"] do
+      nil -> query
+      search -> from o in query, where: fragment("to_tsvector(?) @@ to_tsquery(?)", o.title, ^search)
+    end
+
   end
 
   defp query_objects(_, id_mapset) do

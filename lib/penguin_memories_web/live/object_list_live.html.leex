@@ -6,6 +6,13 @@
 
 <h2>List of <%= @type.get_plural_title() %></h2>
 
+<form method="get"  phx-submit="search" novalidate="">
+  <div class="form-group">
+    <input class="form-control" name="query" placeholder="Search" type="text" value="<%= Map.get(@search_spec, "query") %>">
+   </div>
+  <input type="submit" class="btn btn-primary" value="Search">
+</form>
+
 <% num_selected = num_selected(@selected_ids) %>
 
 <%= if length(@parents) > 0 do %>
