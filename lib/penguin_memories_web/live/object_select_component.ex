@@ -44,7 +44,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
   @impl true
   def handle_event("search", %{"value" => value}, socket) do
     type = socket.assigns.type
-    icons = type.search_icons(%{"query" => value}, 10)
+    icons = type.search_icons(%{"query" => value}, nil, 10)
     assigns = [
       choices: icons,
       text: value

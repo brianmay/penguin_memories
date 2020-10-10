@@ -13,7 +13,7 @@ defmodule PenguinMemories.Objects do
     """
     @type t :: %__MODULE__{
       id: integer,
-      action: String.t(),
+      action: String.t() | nil,
       url: String.t(),
       title: String.t(),
       subtitle: String.t(),
@@ -50,8 +50,7 @@ defmodule PenguinMemories.Objects do
   @callback get_parents(integer) :: list({Icon.t(), integer})
   @callback get_details(integer) :: {map(), Icon.t(), list(Field.t())} | nil
   @callback get_page_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, String.t()|nil, String.t()|nil) :: {list(Icon.t), String.t()|nil, String.t()|nil, integer}
-  @callback search_icons(%{required(String.t()) => String.t()}, integer) :: list(Icon.t())
-  @callback get_icons(MapSet.t()|nil, integer()) :: list(Icon.t())
+  @callback search_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, integer) :: list(Icon.t())
 
   @callback get_create_child_changeset(map(), map()) :: Ecto.Changeset.t()
   @callback get_edit_changeset(map(), map()) :: Ecto.Changeset.t()

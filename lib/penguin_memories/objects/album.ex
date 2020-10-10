@@ -28,7 +28,13 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @spec query_objects(%{required(String.t()) => String.t()}, MapSet.t()|nil) :: Ecto.Query.t()
-  defp query_objects(filter_spec, nil) do
+  defp query_objects(_, id_mapset) when not is_nil(id_mapset) do
+    id_list = MapSet.to_list(id_mapset)
+    from o in Album,
+      where: o.id in ^id_list
+  end
+
+  defp query_objects(filter_spec, _) do
     query = from o in Album
 
     query = case filter_spec["parent_id"] do
@@ -43,13 +49,43 @@ defmodule PenguinMemories.Objects.Album do
 
   end
 
-  defp query_objects(_, id_mapset) do
-    id_list = MapSet.to_list(id_mapset)
-    from o in Album,
-      where: o.id in ^id_list
+  @spec query_ascendants(integer) :: Ecto.Query.t()
+  defp query_ascendants(id) do
+    from ob in AlbumAscendant,
+      where: ob.descendant_id == ^id,
+      join: o in Album, on: o.id == ob.ascendant_id
   end
 
-  def get_icon_from_result(result) do
+  @spec query_object(integer) :: Ecto.Query.t()
+  defp query_object(id) do
+    from o in Album,
+      where: o.id == ^id
+  end
+
+  @spec query_add_parents(Ecto.Query.t()) :: Ecto.Query.t()
+  defp query_add_parents(query) do
+    from o in query,
+      left_join: op in Album, on: o.parent_id == op.id
+  end
+
+  @spec query_icons(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
+  defp query_icons(query, size) do
+    file_query = from f in File,
+      where: f.size_key == ^size and f.is_video == false,
+      distinct: f.photo_id,
+      order_by: [asc: :id]
+
+    query = from o in query,
+      left_join: p in Photo, on: p.id == o.cover_photo_id,
+      left_join: f in subquery(file_query), on: f.photo_id == p.id,
+      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width},
+      order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id]
+
+    query
+  end
+
+  @spec get_icon_from_result(map()) :: Objects.Icon.t()
+  defp get_icon_from_result(result) do
     url = if result.dir do
       "https://photos.linuxpenguins.xyz/images/#{result.dir}/#{result.name}"
     end
@@ -161,18 +197,9 @@ defmodule PenguinMemories.Objects.Album do
   @impl Objects
   @spec get_parents(integer) :: list({Objects.Icon.t(), integer})
   def get_parents(id) do
-    file_query = from f in File,
-      where: f.size_key == "thumb" and f.is_video == false,
-      distinct: f.photo_id,
-      order_by: [asc: :id]
-
-    query = from ob in AlbumAscendant,
-      where: ob.descendant_id == ^id,
-      join: o in Album, on: o.id == ob.ascendant_id,
-      left_join: p in Photo, on: p.id == o.cover_photo_id,
-      left_join: f in subquery(file_query), on: f.photo_id == p.id,
-      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width, position: ob.position},
-      order_by: [desc: ob.position]
+    query = id
+    |> query_ascendants()
+    |> query_icons("thumb")
 
     icons = Enum.map(Repo.all(query), fn result ->
       {get_icon_from_result(result), result.position}
@@ -184,17 +211,11 @@ defmodule PenguinMemories.Objects.Album do
   @impl Objects
   @spec get_details(integer) :: {map(), Objects.Icon.t(), list(Objects.Field.t())} | nil
   def get_details(id) do
-    file_query = from f in File,
-      where: f.size_key == "mid" and f.is_video == false,
-      distinct: f.photo_id,
-      order_by: [asc: :id]
-
-    query = from o in Album,
-      where: o.id == ^id,
-      left_join: p in Photo, on: p.id == o.cover_photo_id,
-      left_join: f in subquery(file_query), on: f.photo_id == p.id,
-      left_join: op in Album, on: o.parent_id == op.id,
-      select: %{o: o, id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, cp_title: p.title, dir: f.dir, name: f.name, height: f.height, width: f.width, op_title: op.title}
+    query = id
+    |> query_object()
+    |> query_add_parents()
+    |> query_icons("mid")
+    |> select_merge([o, p, op], %{o: o, cp_title: p.title, op_title: op.title})
 
     case Repo.one(query) do
       nil -> nil
@@ -251,18 +272,9 @@ defmodule PenguinMemories.Objects.Album do
   @impl Objects
   @spec get_page_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, String.t()|nil, String.t()|nil) :: {list(Objects.Icon.t), String.t()|nil, String.t()|nil, integer}
   def get_page_icons(filter_spec, ids, before_key, after_key) do
-
-    file_query = from f in File,
-      where: f.size_key == "thumb" and f.is_video == false,
-      distinct: f.photo_id,
-      order_by: [asc: :id]
-
-    query = from o in query_objects(filter_spec, ids)
-    query = from o in query,
-      left_join: p in Photo, on: p.id == o.cover_photo_id,
-      left_join: f in subquery(file_query), on: f.photo_id == p.id,
-      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width},
-      order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id]
+    query = filter_spec
+    |> query_objects(ids)
+    |> query_icons("thumb")
 
     %{entries: entries, metadata: metadata} = Repo.paginate(
       query, before: before_key, after: after_key,
@@ -279,44 +291,12 @@ defmodule PenguinMemories.Objects.Album do
 
 
   @impl Objects
-  @spec search_icons(%{required(String.t()) => String.t()}, integer) :: list(Objects.Icon.t())
-  def search_icons(filter_spec, limit) do
-    file_query = from f in File,
-      where: f.size_key == "thumb" and f.is_video == false,
-      distinct: f.photo_id,
-      order_by: [asc: :id]
-
-    query = from o in query_objects(filter_spec, nil)
-    query = from o in query,
-      left_join: p in Photo, on: p.id == o.cover_photo_id,
-      left_join: f in subquery(file_query), on: f.photo_id == p.id,
-      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width},
-      order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id],
-      limit: ^limit
-
-    entries = Repo.all(query)
-
-    Enum.map(entries, fn result ->
-      get_icon_from_result(result)
-    end)
-  end
-
-  @impl Objects
-  @spec get_icons(MapSet.t()|nil, integer()) :: list(Objects.Icon.t())
-  def get_icons(ids, limit) do
-
-    file_query = from f in File,
-      where: f.size_key == "thumb" and f.is_video == false,
-      distinct: f.photo_id,
-      order_by: [asc: :id]
-
-    query = from o in query_objects(%{}, ids)
-    query = from o in query,
-      left_join: p in Photo, on: p.id == o.cover_photo_id,
-      left_join: f in subquery(file_query), on: f.photo_id == p.id,
-      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width},
-      order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id],
-      limit: ^limit
+  @spec search_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, integer) :: list(Objects.Icon.t())
+  def search_icons(filter_spec, ids, limit) do
+    query = filter_spec
+    |> query_objects(ids)
+    |> query_icons("thumb")
+    |> limit(^limit)
 
     entries = Repo.all(query)
 
