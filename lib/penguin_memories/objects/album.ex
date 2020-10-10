@@ -31,11 +31,12 @@ defmodule PenguinMemories.Objects.Album do
   defp query_objects(_, id_mapset) when not is_nil(id_mapset) do
     id_list = MapSet.to_list(id_mapset)
     from o in Album,
+      as: :object,
       where: o.id in ^id_list
   end
 
   defp query_objects(filter_spec, _) do
-    query = from o in Album
+    query = from o in Album, as: :object
 
     query = case filter_spec["parent_id"] do
       nil -> query
@@ -51,21 +52,23 @@ defmodule PenguinMemories.Objects.Album do
 
   @spec query_ascendants(integer) :: Ecto.Query.t()
   defp query_ascendants(id) do
-    from ob in AlbumAscendant,
-      where: ob.descendant_id == ^id,
-      join: o in Album, on: o.id == ob.ascendant_id
+    from o in Album,
+      as: :object,
+      join: oa in AlbumAscendant, on: o.id == oa.ascendant_id, as: :ascendants,
+      where: oa.descendant_id == ^id
   end
 
   @spec query_object(integer) :: Ecto.Query.t()
   defp query_object(id) do
     from o in Album,
+      as: :object,
       where: o.id == ^id
   end
 
   @spec query_add_parents(Ecto.Query.t()) :: Ecto.Query.t()
   defp query_add_parents(query) do
     from o in query,
-      left_join: op in Album, on: o.parent_id == op.id
+      left_join: op in Album, on: o.parent_id == op.id, as: :parent
   end
 
   @spec query_icons(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
@@ -76,8 +79,8 @@ defmodule PenguinMemories.Objects.Album do
       order_by: [asc: :id]
 
     query = from o in query,
-      left_join: p in Photo, on: p.id == o.cover_photo_id,
-      left_join: f in subquery(file_query), on: f.photo_id == p.id,
+      left_join: p in Photo, on: p.id == o.cover_photo_id, as: :photo,
+      left_join: f in subquery(file_query), on: f.photo_id == p.id, as: :file,
       select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width},
       order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id]
 
@@ -200,6 +203,7 @@ defmodule PenguinMemories.Objects.Album do
     query = id
     |> query_ascendants()
     |> query_icons("thumb")
+    |> select_merge([ascendants: oa], %{position: oa.position})
 
     icons = Enum.map(Repo.all(query), fn result ->
       {get_icon_from_result(result), result.position}
@@ -215,7 +219,7 @@ defmodule PenguinMemories.Objects.Album do
     |> query_object()
     |> query_add_parents()
     |> query_icons("mid")
-    |> select_merge([o, p, op], %{o: o, cp_title: p.title, op_title: op.title})
+    |> select_merge([object: o, photo: p, parent: op], %{o: o, cp_title: p.title, op_title: op.title})
 
     case Repo.one(query) do
       nil -> nil
@@ -360,7 +364,7 @@ defmodule PenguinMemories.Objects.Album do
       {:error, :index2, _, _} ->
         {:error, "Cannot index 2"}
       {:error, :object, _, _} ->
-        {:error, "Cannot album"}
+        {:error, "Cannot delete album"}
     end
   end
 
