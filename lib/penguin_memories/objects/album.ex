@@ -155,12 +155,6 @@ defmodule PenguinMemories.Objects.Album do
         display: nil,
         type: :time,
       },
-      %Objects.Field{
-        id: :revised_utc_offset,
-        title: "Revised timezone",
-        display: nil,
-        type: :utc_offset,
-      },
     ]
   end
 
@@ -246,14 +240,8 @@ defmodule PenguinMemories.Objects.Album do
           %Objects.Field{
             id: :revised,
             title: "Revised time",
-            display: result.o.revised,
-            type: :time,
-          },
-          %Objects.Field{
-            id: :revised_utc_offset,
-            title: "Revised timezone",
-            display: result.o.revised_utc_offset,
-            type: :utc_offset,
+            display: Objects.display_datetime_offset(result.o.revised, result.o.revised_utc_offset),
+            type: :datetime,
           },
         ]
         {result.o, icon, fields}

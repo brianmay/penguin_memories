@@ -388,6 +388,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       :album ->
         type = Objects.get_for_type("album")
         live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent, type: type, form: form, field: field, id: field.id)
+      :datetime ->
+        [
+          text_input_field(form, field.id, opts),
+          text_input_field(form, field_to_utc_offset_field_id(field), opts)
+        ]
       _ ->
         text_input_field(form, field.id, opts)
     end
@@ -396,6 +401,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   @spec field_to_enable_field_id(Objects.Field.t()) :: atom()
   defp field_to_enable_field_id(field) do
     String.to_atom(Atom.to_string(field.id) <> "_enable")
+  end
+
+  @spec field_to_utc_offset_field_id(Objects.Field.t()) :: atom()
+  defp field_to_utc_offset_field_id(field) do
+    String.to_atom(Atom.to_string(field.id) <> "_utc_offset")
   end
 
 end

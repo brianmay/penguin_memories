@@ -261,4 +261,18 @@ defmodule PenguinMemories.Objects do
   @spec get_title(String.t()|nil, integer()|nil) :: String.t() | nil
   def get_title(nil, nil), do: nil
   def get_title(name, id), do: "#{name} (#{id})"
+
+  @spec display_datetime_offset(DateTime.t()|nil, integer|nil) :: String.t() | nil
+  def display_datetime_offset(nil, _), do: nil
+
+  def display_datetime_offset(datetime, nil) do
+    display_datetime_offset(datetime, 0)
+  end
+
+  def display_datetime_offset(datetime, offset) do
+    offset = offset * 60
+    datetime = DateTime.add(datetime, offset)
+    datetime = %{datetime | utc_offset: offset}
+    DateTime.to_string(datetime)
+  end
 end
