@@ -30,7 +30,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       form: form,
       field: field,
       selected_id: id,
-      selected_display: field.display
+      selected_display: field.display,
+      disabled: params.disabled
     ]
 
     {:ok, assign(socket, assigns)}
@@ -43,41 +44,53 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
 
   @impl true
   def handle_event("search", %{"value" => value}, socket) do
-    type = socket.assigns.type
-    icons = type.search_icons(%{"query" => value}, nil, 10)
-    assigns = [
-      choices: icons,
-      text: value
-    ]
-    {:noreply, assign(socket, assigns)}
+    if socket.assigns.disabled do
+      {:noreply, socket}
+    else
+      type = socket.assigns.type
+      icons = type.search_icons(%{"query" => value}, nil, 10)
+      assigns = [
+        choices: icons,
+        text: value
+      ]
+      {:noreply, assign(socket, assigns)}
+    end
   end
 
   @impl true
   def handle_event("select", %{"id" => id}, socket) do
-    {id, ""} = Integer.parse(id)
-    changeset = Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, id)
-    [icon | _] = socket.assigns.choices |> Enum.filter(fn icon -> icon.id == id end)
-    assigns = [
-      choices: [],
-      form: %{socket.assigns.form | source: changeset},
-      selected_id: id,
-      selected_display: Objects.get_title(icon.title, icon.id),
-      text: ""
-    ]
-    {:noreply, assign(socket, assigns)}
+    if socket.assigns.disabled do
+      {:noreply, socket}
+    else
+      {id, ""} = Integer.parse(id)
+      changeset = Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, id)
+      [icon | _] = socket.assigns.choices |> Enum.filter(fn icon -> icon.id == id end)
+      assigns = [
+        choices: [],
+        form: %{socket.assigns.form | source: changeset},
+        selected_id: id,
+        selected_display: Objects.get_title(icon.title, icon.id),
+        text: ""
+      ]
+      {:noreply, assign(socket, assigns)}
+    end
   end
 
   @impl true
   def handle_event("remove", _param, socket) do
-    changeset = Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, nil)
-    assigns = [
-      choices: [],
-      form: %{socket.assigns.form | source: changeset},
-      selected_id: nil,
-      selected_display: nil,
-      text: ""
-    ]
-    {:noreply, assign(socket, assigns)}
+    if socket.assigns.disabled do
+      {:noreply, socket}
+    else
+      changeset = Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, nil)
+      assigns = [
+        choices: [],
+        form: %{socket.assigns.form | source: changeset},
+        selected_id: nil,
+        selected_display: nil,
+        text: ""
+      ]
+      {:noreply, assign(socket, assigns)}
+    end
   end
 
   @impl true

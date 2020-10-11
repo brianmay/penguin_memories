@@ -3,7 +3,9 @@ defmodule PenguinMemories.Photos.Album do
   import Ecto.Changeset
   alias Ecto.Changeset
 
+  import PenguinMemories.Photos.Private
   alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Photos.PhotoAlbum
 
   @type t :: map()
   schema "spud_album" do
@@ -18,30 +20,7 @@ defmodule PenguinMemories.Photos.Album do
     belongs_to :cover_photo, Photo
     has_many :ascendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :ascendant_id
-  end
-
-  @spec validate_pair(Changeset.t(), atom(), atom()) :: Changeset.t()
-  defp validate_pair(%Changeset{} = changeset, key1, key2) do
-    value1 = get_field(changeset, key1)
-    value2 = get_field(changeset, key2)
-
-    string1 = Atom.to_string(key1)
-    string2 = Atom.to_string(key2)
-
-    case {value1, value2}  do
-      {nil, nil} ->
-        changeset
-
-      {_, nil} ->
-        add_error(changeset, key2, "If #{string1} supplied then #{string2} must be supplied too")
-
-      {nil, _} ->
-        add_error(changeset, key1, "If #{string2} supplied then #{string1} must be supplied too")
-
-      {_, _} ->
-        changeset
-
-    end
+    many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoAlbum
   end
 
   @spec validate_revised(Changeset.t()) :: Changeset.t()

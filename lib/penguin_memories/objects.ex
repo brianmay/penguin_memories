@@ -59,11 +59,13 @@ defmodule PenguinMemories.Objects do
   @callback can_delete?(integer) :: {:no, String.t()} | :yes
   @callback delete(map()) :: :ok | {:error, String.t()}
 
+  @callback get_photo_params(integer) :: map() | nil
 
   @spec get_for_type(String.t()) :: module()
   def get_for_type(type) do
     case type do
       "album" -> PenguinMemories.Objects.Album
+      "photo" -> PenguinMemories.Objects.Photo
     end
   end
 

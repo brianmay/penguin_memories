@@ -172,7 +172,7 @@ defmodule PenguinMemories.Objects.Album do
       },
       %Objects.Field{
         id: :parent_id,
-        title: "Parent ID",
+        title: "Parent",
         display: nil,
         type: :album,
       },
@@ -234,7 +234,7 @@ defmodule PenguinMemories.Objects.Album do
           },
           %Objects.Field{
             id: :parent_id,
-            title: "Parent ID",
+            title: "Parent",
             display: Objects.get_title(result.op_title, result.o.parent_id),
             type: :album,
           },
@@ -375,6 +375,14 @@ defmodule PenguinMemories.Objects.Album do
       :yes -> do_delete(object)
       {:no, error} -> {:error, error}
     end
+  end
+
+  @impl Objects
+  @spec get_photo_params(integer) :: map() | nil
+  def get_photo_params(id) do
+    %{
+      "album" => id
+    }
   end
 
 end

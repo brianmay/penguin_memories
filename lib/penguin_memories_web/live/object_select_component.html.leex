@@ -6,12 +6,12 @@
     <% feedback_for = get_feedback_for(@form, dummy_field_id) %>
 
     <div class="form-group" phx_feedback_for="<%= feedback_for %>">
-        <%= label(@form, dummy_field_id, class: "control-label") %>
+        <%= label(@form, dummy_field_id, @field.title, class: "control-label") %>
         <div class="autoselect form-control <%= field_class %>">
             <%= if not is_nil(@selected_id) do %>
                 <span class="selected" phx-click="remove" phx-value="@selected_id" phx-target="<%= @myself %>"><%= @selected_display %></span>
             <% end %>
-            <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, value: @text) %>
+            <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, value: @text, disabled: @disabled) %>
         </div>
         <%= error_tag(@form, field_id) %>
     </div>

@@ -78,9 +78,16 @@
                     <% icon = hd(@icons) %>
                     <%= if @edit == nil do %>
                         <%= live_patch to: Routes.object_list_path(@socket, :index, type_name, icon.id), class: "btn btn-secondary" do %>
-                            Goto Album
+                            Goto
                         <% end %>
-                        <div class="btn btn-secondary">Goto Photos</div>
+
+                        <% url = get_photo_url(@socket, @type, icon.id) %>
+                        <%= if url do %>
+                           <%= live_redirect to: url, class: "btn btn-secondary" do %>
+                                Photos
+                           <% end %>
+                        <% end %>
+
                         <%= if Auth.can_edit(@user) do %>
                             <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
                             <div class="btn btn-secondary" phx-click="edit" phx-target="<%= @myself %>">Edit</div>

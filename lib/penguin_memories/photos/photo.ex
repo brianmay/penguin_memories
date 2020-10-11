@@ -1,12 +1,16 @@
 defmodule PenguinMemories.Photos.Photo do
   use Ecto.Schema
   import Ecto.Changeset
+  alias Ecto.Changeset
 
+  import PenguinMemories.Photos.Private
   alias PenguinMemories.Photos.Album
+  alias PenguinMemories.Photos.PhotoAlbum
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Thumb
   alias PenguinMemories.Photos.Video
 
+  @type t :: map()
   schema "spud_photo" do
     field :action, :string
     field :aperture, :string
@@ -34,10 +38,11 @@ defmodule PenguinMemories.Photos.Photo do
     field :title, :string
     field :utc_offset, :integer
     field :view, :string
-    has_many :albums, Album, foreign_key: :cover_photo_id
+    has_many :cover_photo_albums, Album, foreign_key: :cover_photo_id
     has_many :files, File
     has_many :thumbs, Thumb
     has_many :videos, Video
+    many_to_many :albums, PenguinMemories.Photos.Album, join_through: PhotoAlbum
   end
 
   @doc false
@@ -46,4 +51,32 @@ defmodule PenguinMemories.Photos.Photo do
     |> cast(attrs, [:comment, :rating, :flash_used, :metering_mode, :datetime, :size, :compression, :title, :photographer_id, :place_id, :aperture, :ccd_width, :description, :timestamp, :iso_equiv, :focal_length, :path, :exposure, :namer, :level, :camera_make, :camera_model, :focus_dist, :action, :view, :utc_offset])
     |> validate_required([:comment, :rating, :flash_used, :metering_mode, :datetime, :size, :compression, :title, :photographer_id, :place_id, :aperture, :ccd_width, :description, :timestamp, :iso_equiv, :focal_length, :path, :exposure, :namer, :level, :camera_make, :camera_model, :focus_dist, :action, :view, :utc_offset])
   end
+
+  @spec validate_datetime(Changeset.t()) :: Changeset.t()
+  defp validate_datetime(%Changeset{data: %__MODULE__{}} = changeset) do
+    validate_pair(changeset, :datetime, :utc_offset)
+  end
+
+  @spec edit_changeset(t(), map()) :: Changeset.t()
+  def edit_changeset(%__MODULE__{} = photo, attrs) do
+    photo
+    |> cast(attrs, [:title])
+    |> validate_required([:title])
+    |> validate_datetime()
+  end
+
+  @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
+  def update_changeset(%__MODULE__{} = photo, enabled, attrs) do
+    enabled_list = MapSet.to_list(enabled)
+    required = MapSet.new([:title])
+    required_list = MapSet.to_list(
+      MapSet.intersection(enabled, required)
+    )
+
+    photo
+    |> cast(attrs, enabled_list)
+    |> validate_required(required_list)
+    |> validate_datetime()
+  end
+
 end

@@ -382,16 +382,19 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @spec input_field(Socket.t(), Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
   defp input_field(socket, form, field, opts \\ []) do
+    opts = [{:label, field.title} | opts]
     case field.type do
       :markdown ->
         textarea_input_field(form, field.id, opts)
       :album ->
+        disabled = opts[:disabled]
         type = Objects.get_for_type("album")
-        live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent, type: type, form: form, field: field, id: field.id)
+        live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent, type: type, form: form, field: field, id: field.id, disabled: disabled)
       :datetime ->
+        opts_2 = [{:label, field.title <> " UTC offset"} | opts]
         [
           text_input_field(form, field.id, opts),
-          text_input_field(form, field_to_utc_offset_field_id(field), opts)
+          text_input_field(form, field_to_utc_offset_field_id(field), opts_2)
         ]
       _ ->
         text_input_field(form, field.id, opts)
@@ -406,6 +409,16 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   @spec field_to_utc_offset_field_id(Objects.Field.t()) :: atom()
   defp field_to_utc_offset_field_id(field) do
     String.to_atom(Atom.to_string(field.id) <> "_utc_offset")
+  end
+
+  @spec get_photo_url(Socket.t(), module(), integer) :: String.t() | nil
+  defp get_photo_url(socket, type, id) do
+    case type.get_photo_params(id) do
+      nil -> nil
+      params ->
+        query = URI.encode_query(params)
+        Routes.object_list_path(socket, :index, "photo") <> "?" <> query
+    end
   end
 
 end
