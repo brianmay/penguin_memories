@@ -32,7 +32,7 @@ defmodule PenguinMemories.Objects do
       id: atom,
       title: String.t(),
       display: String.t() | nil,
-      type: :string|:markdown|:album|:photo|:time|:utc_offset
+      type: :string|:markdown|:album|:photo|:time|:utc_offset|:readonly
     }
     @enforce_keys [:id, :title, :display, :type]
     defstruct [:id, :title, :display, :type]

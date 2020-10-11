@@ -57,6 +57,19 @@ defmodule PenguinMemories.Photos.Photo do
     validate_pair(changeset, :datetime, :utc_offset)
   end
 
+  @spec validate_delete(Changeset.t()) :: Changeset.t()
+  defp validate_delete(changeset) do
+    id = get_field(changeset, :id)
+    if get_change(changeset, :action) == "D" do
+      case PenguinMemories.Objects.Photo.can_delete?(id) do
+        :yes -> changeset
+        {:no, error} -> add_error(changeset, :action, error)
+      end
+    else
+      changeset
+    end
+  end
+
   @spec validate_action(Changeset.t()) :: Changeset.t()
   defp validate_action(changeset) do
     validate_inclusion(changeset, :action, ["D", "R", "M", "auto", "90", "180", "270"])
@@ -65,8 +78,9 @@ defmodule PenguinMemories.Photos.Photo do
   @spec edit_changeset(t(), map()) :: Changeset.t()
   def edit_changeset(%__MODULE__{} = photo, attrs) do
     photo
-    |> cast(attrs, [:title, :photographer_id, :place_id, :view, :rating, :description, :datetime, :utc_offset, :action])
+    |> cast(attrs, [:title, :photographer_id, :place_id, :view, :rating, :description, :datetime, :utc_offset, :action, :comment])
     |> validate_action()
+    |> validate_delete()
     |> validate_datetime()
   end
 

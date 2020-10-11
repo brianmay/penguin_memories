@@ -172,6 +172,12 @@ defmodule PenguinMemories.Objects.Photo do
         type: :string,
       },
       %Objects.Field{
+        id: :comment,
+        title: "Comment",
+        display: nil,
+        type: :string,
+      },
+      %Objects.Field{
         id: :datetime,
         title: "Time",
         display: nil,
@@ -248,6 +254,12 @@ defmodule PenguinMemories.Objects.Photo do
             type: :string,
           },
           %Objects.Field{
+            id: :comment,
+            title: "Comment",
+            display: result.o.comment,
+            type: :markdown,
+          },
+          %Objects.Field{
             id: :datetime,
             title: "Time",
             display: Objects.display_datetime_offset(result.o.datetime, result.o.utc_offset),
@@ -264,6 +276,78 @@ defmodule PenguinMemories.Objects.Photo do
             title: "Action",
             display: result.o.action,
             type: :string,
+          },
+          %Objects.Field{
+            id: :camera_make,
+            title: "Camera Make",
+            display: result.o.camera_make,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :camera_model,
+            title: "Camera Model",
+            display: result.o.camera_model,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :flash_used,
+            title: "Flash Used",
+            display: result.o.flash_used,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :focal_length,
+            title: "Focal Length",
+            display: result.o.focal_length,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :exposure,
+            title: "Exposure",
+            display: result.o.exposure,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :compression,
+            title: "Compression",
+            display: result.o.compression,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :aperture,
+            title: "Aperture",
+            display: result.o.aperture,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :level,
+            title: "Level",
+            display: result.o.level,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :iso_equiv,
+            title: "ISO",
+            display: result.o.iso_equiv,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :metering_mode,
+            title: "Metering Mode",
+            display: result.o.metering_mode,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :focus_dist,
+            title: "Focus Distance",
+            display: result.o.focus_dist,
+            type: :readonly,
+          },
+          %Objects.Field{
+            id: :ccd_width,
+            title: "CCD Width",
+            display: result.o.ccd_width,
+            type: :readonly,
           }
         ]
         {result.o, icon, fields}
