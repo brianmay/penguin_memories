@@ -65,26 +65,20 @@ defmodule PenguinMemories.Photos.Photo do
   @spec edit_changeset(t(), map()) :: Changeset.t()
   def edit_changeset(%__MODULE__{} = photo, attrs) do
     photo
-    |> cast(attrs, [:title, :photographer_id, :action])
-    |> validate_required([:title])
+    |> cast(attrs, [:title, :photographer_id, :place_id, :view, :rating, :description, :datetime, :utc_offset, :action])
     |> validate_action()
     |> validate_datetime()
   end
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
   def update_changeset(%__MODULE__{} = photo, enabled, attrs) do
-    allowed_list = [:title, :photographer_id, :action]
+    allowed_list = [:title, :photographer_id, :place_id, :view, :rating, :description, :datetime, :utc_offset, :action]
     allowed = MapSet.new(allowed_list)
     enabled = MapSet.intersection(enabled, allowed)
     enabled_list = MapSet.to_list(enabled)
-    required = MapSet.new([:title])
-    required_list = MapSet.to_list(
-      MapSet.intersection(enabled, required)
-    )
 
     changeset = photo
     |> cast(attrs, enabled_list)
-    |> validate_required(required_list)
     |> validate_datetime()
 
     if MapSet.member?(enabled, :action) do
