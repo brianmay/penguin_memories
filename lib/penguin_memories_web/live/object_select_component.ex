@@ -23,6 +23,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     type = params.type
     form = params.form
     field = params.field
+    search = Map.get(params, :search, %{})
     id = Changeset.get_field(form.source, field.id)
 
     assigns = [
@@ -31,7 +32,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       field: field,
       selected_id: id,
       selected_display: field.display,
-      disabled: params.disabled
+      disabled: params.disabled,
+      search: search
     ]
 
     {:ok, assign(socket, assigns)}
@@ -44,11 +46,12 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
 
   @impl true
   def handle_event("search", %{"value" => value}, socket) do
+    search = Map.put(socket.assigns.search, "query", value)
     if socket.assigns.disabled do
       {:noreply, socket}
     else
       type = socket.assigns.type
-      icons = type.search_icons(%{"query" => value}, nil, 10)
+      icons = type.search_icons(search, nil, 10)
       assigns = [
         choices: icons,
         text: value

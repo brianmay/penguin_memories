@@ -8,6 +8,7 @@ defmodule PenguinMemories.Objects.Photo do
 
   alias PenguinMemories.Repo
   alias PenguinMemories.Objects
+  alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.File
 
@@ -65,7 +66,7 @@ defmodule PenguinMemories.Objects.Photo do
 
     query = from o in query,
       left_join: f in subquery(file_query), on: f.photo_id == o.id, as: :file,
-      select: %{id: o.id, title: o.title, datetime: o.datetime, utc_offset: o.utc_offset, dir: f.dir, name: f.name, height: f.height, width: f.width},
+      select: %{id: o.id, title: o.title, datetime: o.datetime, utc_offset: o.utc_offset, dir: f.dir, name: f.name, height: f.height, width: f.width, action: o.action},
       order_by: [asc: o.datetime, asc: o.id]
 
     query
@@ -80,12 +81,12 @@ defmodule PenguinMemories.Objects.Photo do
 
     %Objects.Icon{
       id: result.id,
-      action: nil,
+      action: result.action,
       url: url,
       title: result.title,
       subtitle: subtitle,
       height: result.height,
-      width: result.width
+      width: result.width,
     }
   end
 
@@ -139,6 +140,18 @@ defmodule PenguinMemories.Objects.Photo do
         title: "Title",
         display: nil,
         type: :string,
+      },
+      %Objects.Field{
+        id: :photographer_id,
+        title: "Photographer",
+        display: nil,
+        type: :person,
+      },
+      %Objects.Field{
+        id: :action,
+        title: "Action",
+        display: nil,
+        type: :string,
       }
     ]
   end
@@ -172,6 +185,12 @@ defmodule PenguinMemories.Objects.Photo do
             id: :photographer_id,
             title: "Photographer",
             display: result.o.photographer_id,
+            type: :person,
+          },
+          %Objects.Field{
+            id: :action,
+            title: "Action",
+            display: result.o.action,
             type: :string,
           }
         ]
@@ -241,11 +260,21 @@ defmodule PenguinMemories.Objects.Photo do
     false
   end
 
+  @spec is_album_cover_photo?(integer) :: boolean
+  def is_album_cover_photo?(id) do
+    query = from o in Album, where: o.cover_photo_id == ^id
+    Repo.exists?(query)
+  end
+
   @impl Objects
   @spec can_delete?(integer) :: {:no, String.t()} | :yes
-  def can_delete?(_id) do
-    # FIXME: check albums
-    :yes
+  def can_delete?(id) do
+    cond do
+      is_album_cover_photo?(id) ->
+        {:no, "Cannot delete photo that is used by album cover photo"}
+      true ->
+        :yes
+    end
   end
 
   @spec do_delete(Photo.t()) :: :ok | {:error, String.t()}
@@ -270,7 +299,7 @@ defmodule PenguinMemories.Objects.Photo do
   def delete(%Photo{} = object) do
     case can_delete?(object.id) do
       :yes -> do_delete(object)
-      # {:no, error} -> {:error, error}
+      {:no, error} -> {:error, error}
     end
   end
 

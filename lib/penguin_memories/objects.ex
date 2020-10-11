@@ -18,7 +18,7 @@ defmodule PenguinMemories.Objects do
       title: String.t(),
       subtitle: String.t(),
       width: integer,
-      height: integer,
+      height: integer
     }
     @enforce_keys [:id, :action, :url, :title, :subtitle, :width, :height]
     defstruct [:id, :action, :url, :title, :subtitle, :width, :height]

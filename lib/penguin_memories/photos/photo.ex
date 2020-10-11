@@ -57,26 +57,41 @@ defmodule PenguinMemories.Photos.Photo do
     validate_pair(changeset, :datetime, :utc_offset)
   end
 
+  @spec validate_action(Changeset.t()) :: Changeset.t()
+  defp validate_action(changeset) do
+    validate_inclusion(changeset, :action, ["D", "R", "M", "auto", "90", "180", "270"])
+  end
+
   @spec edit_changeset(t(), map()) :: Changeset.t()
   def edit_changeset(%__MODULE__{} = photo, attrs) do
     photo
-    |> cast(attrs, [:title])
+    |> cast(attrs, [:title, :photographer_id, :action])
     |> validate_required([:title])
+    |> validate_action()
     |> validate_datetime()
   end
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
   def update_changeset(%__MODULE__{} = photo, enabled, attrs) do
+    allowed_list = [:title, :photographer_id, :action]
+    allowed = MapSet.new(allowed_list)
+    enabled = MapSet.intersection(enabled, allowed)
     enabled_list = MapSet.to_list(enabled)
     required = MapSet.new([:title])
     required_list = MapSet.to_list(
       MapSet.intersection(enabled, required)
     )
 
-    photo
+    changeset = photo
     |> cast(attrs, enabled_list)
     |> validate_required(required_list)
     |> validate_datetime()
+
+    if MapSet.member?(enabled, :action) do
+      validate_action(changeset)
+    else
+      changeset
+    end
   end
 
 end

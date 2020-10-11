@@ -390,6 +390,10 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
         disabled = opts[:disabled]
         type = Objects.get_for_type("album")
         live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent, type: type, form: form, field: field, id: field.id, disabled: disabled)
+      :photo ->
+        disabled = opts[:disabled]
+        type = Objects.get_for_type("photo")
+        live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent, type: type, form: form, field: field, id: field.id, disabled: disabled)
       :datetime ->
         opts_2 = [{:label, field.title <> " UTC offset"} | opts]
         [

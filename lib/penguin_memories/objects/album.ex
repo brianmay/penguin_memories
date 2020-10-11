@@ -160,6 +160,7 @@ defmodule PenguinMemories.Objects.Album do
     :ok
   end
 
+
   @impl Objects
   @spec get_update_fields() :: list(Objects.Field.t())
   def get_update_fields do
