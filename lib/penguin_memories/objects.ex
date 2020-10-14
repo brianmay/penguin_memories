@@ -48,9 +48,9 @@ defmodule PenguinMemories.Objects do
   @callback get_plural_title() :: String.t()
   @callback get_update_fields() :: list(Field.t())
   @callback get_parents(integer) :: list({Icon.t(), integer})
-  @callback get_details(integer) :: {map(), Icon.t(), list(Field.t())} | nil
-  @callback get_page_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, String.t()|nil, String.t()|nil) :: {list(Icon.t), String.t()|nil, String.t()|nil, integer}
-  @callback search_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, integer) :: list(Icon.t())
+  @callback get_details(integer) :: {map(), Icon.t(), list(Field.t()), String.t()} | nil
+  @callback get_page_icons(%{required(String.t()) => String.t()}, String.t()|nil, String.t()|nil, integer()) :: {list(Icon.t), String.t()|nil, String.t()|nil, integer}
+  @callback search_icons(%{required(String.t()) => String.t()}, integer) :: list(Icon.t())
 
   @callback get_create_child_changeset(map(), map()) :: Ecto.Changeset.t()
   @callback get_edit_changeset(map(), map()) :: Ecto.Changeset.t()

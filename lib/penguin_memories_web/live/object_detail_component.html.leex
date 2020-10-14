@@ -85,6 +85,14 @@
                             Goto
                         <% end %>
 
+                        <%= if @prev_icon do %>
+                            <div class="btn btn-secondary" phx-click="select-object" phx-value-id="<%= @prev_icon.id %>">&lt;</div>
+                        <% end %>
+
+                        <%= if @next_icon do %>
+                            <div class="btn btn-secondary" phx-click="select-object" phx-value-id="<%= @next_icon.id %>">&gt;</div>
+                        <% end %>
+
                         <% url = get_photo_url(@socket, @type, icon.id) %>
                         <%= if url do %>
                            <%= live_redirect to: url, class: "btn btn-secondary" do %>

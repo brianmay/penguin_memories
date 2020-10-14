@@ -26,15 +26,15 @@ defmodule PenguinMemories.Objects.Photo do
     "photos"
   end
 
-  @spec query_objects(%{required(String.t()) => String.t()}, MapSet.t()|nil) :: Ecto.Query.t()
-  defp query_objects(_, id_mapset) when not is_nil(id_mapset) do
+  @spec query_objects(%{required(String.t()) => String.t()}) :: Ecto.Query.t()
+  defp query_objects(%{"ids" => id_mapset}) when not is_nil(id_mapset) do
     id_list = MapSet.to_list(id_mapset)
     from o in Photo,
       as: :object,
       where: o.id in ^id_list
   end
 
-  defp query_objects(filter_spec, _) do
+  defp query_objects(filter_spec) do
     query = from o in Photo, as: :object
 
     query = case filter_spec["album"] do
@@ -205,7 +205,7 @@ defmodule PenguinMemories.Objects.Photo do
   end
 
   @impl Objects
-  @spec get_details(integer) :: {map(), Objects.Icon.t(), list(Objects.Field.t())} | nil
+  @spec get_details(integer) :: {map(), Objects.Icon.t(), list(Objects.Field.t()), String.t()} | nil
   def get_details(id) do
     query = id
     |> query_object()
@@ -350,21 +350,22 @@ defmodule PenguinMemories.Objects.Photo do
             type: :readonly,
           }
         ]
-        {result.o, icon, fields}
+        cursor = Paginator.cursor_for_record(result, [:datetime, :id])
+        {result.o, icon, fields, cursor}
     end
   end
 
   @impl Objects
-  @spec get_page_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, String.t()|nil, String.t()|nil) :: {list(Objects.Icon.t), String.t()|nil, String.t()|nil, integer}
-  def get_page_icons(filter_spec, ids, before_key, after_key) do
+  @spec get_page_icons(%{required(String.t()) => String.t()}, String.t()|nil, String.t()|nil, integer()) :: {list(Objects.Icon.t), String.t()|nil, String.t()|nil, integer}
+  def get_page_icons(filter_spec, before_key, after_key, limit) do
     query = filter_spec
-    |> query_objects(ids)
+    |> query_objects()
     |> query_icons("thumb")
 
     %{entries: entries, metadata: metadata} = Repo.paginate(
       query, before: before_key, after: after_key,
       cursor_fields: [:datetime, :id],
-      limit: 10
+      limit: limit
     )
 
     icons = Enum.map(entries, fn result ->
@@ -376,10 +377,10 @@ defmodule PenguinMemories.Objects.Photo do
 
 
   @impl Objects
-  @spec search_icons(%{required(String.t()) => String.t()}, MapSet.t()|nil, integer) :: list(Objects.Icon.t())
-  def search_icons(filter_spec, ids, limit) do
+  @spec search_icons(%{required(String.t()) => String.t()}, integer) :: list(Objects.Icon.t())
+  def search_icons(filter_spec, limit) do
     query = filter_spec
-    |> query_objects(ids)
+    |> query_objects()
     |> query_icons("thumb")
     |> limit(^limit)
 

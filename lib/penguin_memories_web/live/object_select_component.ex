@@ -51,7 +51,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       {:noreply, socket}
     else
       type = socket.assigns.type
-      icons = type.search_icons(search, nil, 10)
+      icons = type.search_icons(search, 10)
       assigns = [
         choices: icons,
         text: value

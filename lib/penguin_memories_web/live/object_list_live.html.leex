@@ -14,6 +14,7 @@
 </form>
 
 <% num_selected = num_selected(@selected_ids) %>
+<% search_spec = get_search_spec(assigns) %>
 
 <%= if length(@parents) > 0 do %>
     <div class="parents">
@@ -37,7 +38,7 @@ true -> MapSet.new()
 end
 %>
 
-<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: selected_ids, type: @type, id: :detail) %>
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: selected_ids, type: @type, search_spec: search_spec, id: :detail) %>
 
 <div class="buttons">
     <%= if not @show_selected do %>

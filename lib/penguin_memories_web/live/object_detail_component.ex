@@ -46,7 +46,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       edit_object: nil,
       enabled: nil,
       action: nil,
-      user: params.user
+      user: params.user,
+      search_spec: params.search_spec
     ]
 
     socket = socket
@@ -56,25 +57,34 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:ok, socket}
   end
 
+  @spec get_icon_from_results({list(Objects.Icon.t), String.t()|nil, String.t()|nil, integer}) :: Objects.Icon.t()
+  defp get_icon_from_results({[], _, _, _}), do: nil
+  defp get_icon_from_results({[%Objects.Icon{}=icon], _, _, _}), do: icon
+
   def reload(socket) do
     type = socket.assigns.type
     num_selected = socket.assigns.num_selected
     selected_ids = socket.assigns.selected_ids
+    search_spec = socket.assigns.search_spec
 
-    {selected_object, selected_fields, icons, more_icons} = cond do
+    {selected_object, selected_fields, icons, more_icons, prev_icon, next_icon} = cond do
       num_selected == 0 ->
-        {nil, nil, [], false}
+        {nil, nil, [], false, nil, nil}
       num_selected == 1 ->
         [id] = MapSet.to_list(selected_ids)
         case type.get_details(id) do
-          nil -> {nil, nil, [], false}
-          {object, icon, fields} -> {object, fields, [icon], false}
+          nil ->
+            {nil, nil, [], false, nil, nil}
+          {object, icon, fields, cursor} ->
+            prev_icon = type.get_page_icons(search_spec, cursor, nil, 1) |> get_icon_from_results()
+            next_icon = type.get_page_icons(search_spec, nil, cursor, 1) |> get_icon_from_results()
+            {object, fields, [icon], false, prev_icon, next_icon}
         end
       true ->
         limit = 5
-        icons = type.search_icons(%{}, selected_ids, limit)
+        icons = type.search_icons(%{"ids" => selected_ids}, limit)
         fields = type.get_update_fields()
-        {nil, fields, icons, length(icons) >= limit}
+        {nil, fields, icons, length(icons) >= limit, nil, nil}
     end
 
     assigns = [
@@ -82,12 +92,20 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       selected_fields: selected_fields,
       more_icons: more_icons,
       icons: icons,
+      prev_icon: prev_icon,
+      next_icon: next_icon
     ]
 
     assign(socket, assigns)
   end
 
   @impl true
+  def handle_event("select", %{"id" => id}, socket) do
+    id = to_int(id)
+    socket = assign(socket, selected_ids: MapSet.new([id]), num_selected: 1) |> reload()
+    {:noreply, socket}
+  end
+
   def handle_event("create", _params, socket) do
     if Auth.can_edit(socket.assigns.user) do
       handle_create(socket)
@@ -414,4 +432,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     end
   end
 
+  @spec to_int(String.t()) :: integer
+  def to_int(int) do
+    {int, ""} = Integer.parse(int)
+    int
+  end
 end
