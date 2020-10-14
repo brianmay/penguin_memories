@@ -15,6 +15,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       choices: [],
       text: ""
     ]
+
     {:ok, assign(socket, assigns)}
   end
 
@@ -47,15 +48,18 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
   @impl true
   def handle_event("search", %{"value" => value}, socket) do
     search = Map.put(socket.assigns.search, "query", value)
+
     if socket.assigns.disabled do
       {:noreply, socket}
     else
       type = socket.assigns.type
       icons = type.search_icons(search, 10)
+
       assigns = [
         choices: icons,
         text: value
       ]
+
       {:noreply, assign(socket, assigns)}
     end
   end
@@ -68,6 +72,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       {id, ""} = Integer.parse(id)
       changeset = Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, id)
       [icon | _] = socket.assigns.choices |> Enum.filter(fn icon -> icon.id == id end)
+
       assigns = [
         choices: [],
         form: %{socket.assigns.form | source: changeset},
@@ -75,6 +80,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
         selected_display: Objects.get_title(icon.title, icon.id),
         text: ""
       ]
+
       {:noreply, assign(socket, assigns)}
     end
   end
@@ -85,6 +91,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       {:noreply, socket}
     else
       changeset = Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, nil)
+
       assigns = [
         choices: [],
         form: %{socket.assigns.form | source: changeset},
@@ -92,6 +99,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
         selected_display: nil,
         text: ""
       ]
+
       {:noreply, assign(socket, assigns)}
     end
   end
@@ -101,7 +109,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     assigns = [
       # choices: []
     ]
+
     {:noreply, assign(socket, assigns)}
   end
-
 end

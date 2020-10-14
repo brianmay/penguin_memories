@@ -8,12 +8,13 @@ defmodule PenguinMemoriesWeb.SessionLive do
   def mount(_params, _session, socket) do
     changeset = Accounts.login_user(%User{})
 
-    socket = assign(
+    socket =
+      assign(
         socket,
         changeset: changeset,
         action: Routes.session_path(socket, :login),
         active: "session"
-    )
+      )
 
     {:ok, socket}
   end
@@ -30,4 +31,3 @@ defmodule PenguinMemoriesWeb.SessionLive do
     {:noreply, assign(socket, changeset: changeset)}
   end
 end
-

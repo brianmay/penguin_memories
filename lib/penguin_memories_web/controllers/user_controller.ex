@@ -10,7 +10,7 @@ defmodule PenguinMemoriesWeb.UserController do
 
   def index(conn, _params) do
     users = Accounts.list_users()
-    render(conn, "index.html", params(conn, [users: users]))
+    render(conn, "index.html", params(conn, users: users))
   end
 
   def new(conn, _params) do

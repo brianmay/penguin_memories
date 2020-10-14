@@ -30,6 +30,7 @@ defmodule PenguinMemories.Objects.Album do
   @spec query_objects(%{required(String.t()) => String.t()}) :: Ecto.Query.t()
   defp query_objects(%{"ids" => id_mapset}) when not is_nil(id_mapset) do
     id_list = MapSet.to_list(id_mapset)
+
     from o in Album,
       as: :object,
       where: o.id in ^id_list
@@ -38,23 +39,28 @@ defmodule PenguinMemories.Objects.Album do
   defp query_objects(filter_spec) do
     query = from o in Album, as: :object
 
-    query = case filter_spec["parent_id"] do
-      nil -> query
-      id -> from o in query, where: o.parent_id == ^id
-    end
+    query =
+      case filter_spec["parent_id"] do
+        nil -> query
+        id -> from o in query, where: o.parent_id == ^id
+      end
 
     case filter_spec["query"] do
-      nil -> query
-      search -> from o in query, where: fragment("to_tsvector(?) @@ to_tsquery(?)", o.title, ^search)
-    end
+      nil ->
+        query
 
+      search ->
+        from o in query, where: fragment("to_tsvector(?) @@ to_tsquery(?)", o.title, ^search)
+    end
   end
 
   @spec query_ascendants(integer) :: Ecto.Query.t()
   defp query_ascendants(id) do
     from o in Album,
       as: :object,
-      join: oa in AlbumAscendant, on: o.id == oa.ascendant_id, as: :ascendants,
+      join: oa in AlbumAscendant,
+      on: o.id == oa.ascendant_id,
+      as: :ascendants,
       where: oa.descendant_id == ^id
   end
 
@@ -67,34 +73,52 @@ defmodule PenguinMemories.Objects.Album do
 
   @spec query_add_parents(Ecto.Query.t()) :: Ecto.Query.t()
   defp query_add_parents(query) do
-    from o in query,
-      left_join: op in Album, on: o.parent_id == op.id, as: :parent
+    from o in query, left_join: op in Album, on: o.parent_id == op.id, as: :parent
   end
 
   @spec query_icons(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
   defp query_icons(query, size) do
-    file_query = from f in File,
-      where: f.size_key == ^size and f.is_video == false,
-      distinct: f.photo_id,
-      order_by: [asc: :id]
+    file_query =
+      from f in File,
+        where: f.size_key == ^size and f.is_video == false,
+        distinct: f.photo_id,
+        order_by: [asc: :id]
 
-    query = from o in query,
-      left_join: p in Photo, on: p.id == o.cover_photo_id, as: :photo,
-      left_join: f in subquery(file_query), on: f.photo_id == p.id, as: :file,
-      select: %{id: o.id, title: o.title, sort_name: o.sort_name, sort_order: o.sort_order, dir: f.dir, name: f.name, height: f.height, width: f.width},
-      order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id]
+    query =
+      from o in query,
+        left_join: p in Photo,
+        on: p.id == o.cover_photo_id,
+        as: :photo,
+        left_join: f in subquery(file_query),
+        on: f.photo_id == p.id,
+        as: :file,
+        select: %{
+          id: o.id,
+          title: o.title,
+          sort_name: o.sort_name,
+          sort_order: o.sort_order,
+          dir: f.dir,
+          name: f.name,
+          height: f.height,
+          width: f.width
+        },
+        order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id]
 
     query
   end
 
   @spec get_icon_from_result(map()) :: Objects.Icon.t()
   defp get_icon_from_result(result) do
-    url = if result.dir do
-      "https://photos.linuxpenguins.xyz/images/#{result.dir}/#{result.name}"
-    end
-    subtitle = if result.sort_name != "" and result.sort_order != "" do
-      "#{result.sort_name}: #{result.sort_order}"
-    end
+    url =
+      if result.dir do
+        "https://photos.linuxpenguins.xyz/images/#{result.dir}/#{result.name}"
+      end
+
+    subtitle =
+      if result.sort_name != "" and result.sort_order != "" do
+        "#{result.sort_name}: #{result.sort_order}"
+      end
+
     %Objects.Icon{
       id: result.id,
       action: nil,
@@ -109,9 +133,10 @@ defmodule PenguinMemories.Objects.Album do
   @impl Objects
   @spec get_parent_ids(integer) :: list(integer())
   def get_parent_ids(id) when is_integer(id) do
-    query = from o in Album,
-      where: o.id == ^id,
-      select: o.parent_id
+    query =
+      from o in Album,
+        where: o.id == ^id,
+        select: o.parent_id
 
     case Repo.one!(query) do
       nil -> []
@@ -122,9 +147,10 @@ defmodule PenguinMemories.Objects.Album do
   @impl Objects
   @spec get_child_ids(integer) :: list(integer())
   def get_child_ids(id) do
-    query = from o in Album,
-      where: o.parent_id == ^id,
-      select: o.id
+    query =
+      from o in Album,
+        where: o.parent_id == ^id,
+        select: o.id
 
     Repo.all(query)
   end
@@ -132,9 +158,10 @@ defmodule PenguinMemories.Objects.Album do
   @impl Objects
   @spec get_index(integer) :: list(MapSet.t())
   def get_index(id) do
-    query = from oa in AlbumAscendant,
-      where: oa.descendant_id == ^id,
-      select: {oa.ascendant_id, oa.position}
+    query =
+      from oa in AlbumAscendant,
+        where: oa.descendant_id == ^id,
+        select: {oa.ascendant_id, oa.position}
 
     Enum.reduce(Repo.all(query), MapSet.new(), fn result, mapset ->
       MapSet.put(mapset, result)
@@ -145,7 +172,13 @@ defmodule PenguinMemories.Objects.Album do
   @spec create_index(integer, {integer, integer}) :: :ok
   def create_index(id, index) do
     {referenced_id, position} = index
-    Repo.insert!(%AlbumAscendant{ascendant_id: referenced_id, descendant_id: id, position: position})
+
+    Repo.insert!(%AlbumAscendant{
+      ascendant_id: referenced_id,
+      descendant_id: id,
+      position: position
+    })
+
     :ok
   end
 
@@ -153,13 +186,14 @@ defmodule PenguinMemories.Objects.Album do
   @spec delete_index(integer, {integer, integer}) :: :ok
   def delete_index(id, index) do
     {referenced_id, _position} = index
+
     Repo.delete_all(
       from oa in AlbumAscendant,
-      where: oa.ascendant_id == ^referenced_id and oa.descendant_id == ^id
+        where: oa.ascendant_id == ^referenced_id and oa.descendant_id == ^id
     )
+
     :ok
   end
-
 
   @impl Objects
   @spec get_update_fields() :: list(Objects.Field.t())
@@ -169,37 +203,37 @@ defmodule PenguinMemories.Objects.Album do
         id: :title,
         title: "Title",
         display: nil,
-        type: :string,
+        type: :string
       },
       %Objects.Field{
         id: :parent_id,
         title: "Parent",
         display: nil,
-        type: :album,
+        type: :album
       },
       %Objects.Field{
         id: :sort_name,
         title: "Sort Name",
         display: nil,
-        type: :string,
+        type: :string
       },
       %Objects.Field{
         id: :sort_order,
         title: "Sort Order",
         display: nil,
-        type: :string,
+        type: :string
       },
       %Objects.Field{
         id: :revised,
         title: "Revised time",
         display: nil,
-        type: :datetime,
+        type: :datetime
       },
       %Objects.Field{
         id: :revised,
         title: "Revised UTC offset",
         display: nil,
-        type: :string,
+        type: :string
       }
     ]
   end
@@ -207,114 +241,137 @@ defmodule PenguinMemories.Objects.Album do
   @impl Objects
   @spec get_parents(integer) :: list({Objects.Icon.t(), integer})
   def get_parents(id) do
-    query = id
-    |> query_ascendants()
-    |> query_icons("thumb")
-    |> select_merge([ascendants: oa], %{position: oa.position})
+    query =
+      id
+      |> query_ascendants()
+      |> query_icons("thumb")
+      |> select_merge([ascendants: oa], %{position: oa.position})
 
-    icons = Enum.map(Repo.all(query), fn result ->
-      {get_icon_from_result(result), result.position}
-    end)
+    icons =
+      Enum.map(Repo.all(query), fn result ->
+        {get_icon_from_result(result), result.position}
+      end)
 
     icons
   end
 
   @impl Objects
-  @spec get_details(integer) :: {map(), Objects.Icon.t(), list(Objects.Field.t()), String.t()} | nil
+  @spec get_details(integer) ::
+          {map(), Objects.Icon.t(), list(Objects.Field.t()), String.t()} | nil
   def get_details(id) do
-    query = id
-    |> query_object()
-    |> query_add_parents()
-    |> query_icons("mid")
-    |> select_merge([object: o, photo: p, parent: op], %{o: o, cp_title: p.title, op_title: op.title})
+    query =
+      id
+      |> query_object()
+      |> query_add_parents()
+      |> query_icons("mid")
+      |> select_merge([object: o, photo: p, parent: op], %{
+        o: o,
+        cp_title: p.title,
+        op_title: op.title
+      })
 
     case Repo.one(query) do
-      nil -> nil
+      nil ->
+        nil
+
       result ->
         icon = get_icon_from_result(result)
+
         fields = [
           %Objects.Field{
             id: :title,
             title: "Title",
             display: result.o.title,
-            type: :string,
+            type: :string
           },
           %Objects.Field{
             id: :parent_id,
             title: "Parent",
             display: Objects.get_title(result.op_title, result.o.parent_id),
-            type: :album,
+            type: :album
           },
           %Objects.Field{
             id: :description,
             title: "Description",
             display: result.o.description,
-            type: :markdown,
+            type: :markdown
           },
           %Objects.Field{
             id: :cover_photo_id,
             title: "Cover Photo",
             display: Objects.get_title(result.cp_title, result.o.cover_photo_id),
-            type: :photo,
+            type: :photo
           },
           %Objects.Field{
             id: :sort_name,
             title: "Sort Name",
             display: result.o.sort_name,
-            type: :string,
+            type: :string
           },
           %Objects.Field{
             id: :sort_order,
             title: "Sort Order",
             display: result.o.sort_order,
-            type: :string,
+            type: :string
           },
           %Objects.Field{
             id: :revised,
             title: "Revised time",
-            display: Objects.display_datetime_offset(result.o.revised, result.o.revised_utc_offset),
-            type: :datetime,
+            display:
+              Objects.display_datetime_offset(result.o.revised, result.o.revised_utc_offset),
+            type: :datetime
           },
           %Objects.Field{
             id: :revised,
             title: "Revised UTC offset",
             display: result.o.revised_utc_offset,
-            type: :string,
+            type: :string
           }
         ]
+
         cursor = Paginator.cursor_for_record(result, [:sort_name, :sort_order, :id])
         {result.o, icon, fields, cursor}
     end
   end
 
   @impl Objects
-  @spec get_page_icons(%{required(String.t()) => String.t()}, String.t()|nil, String.t()|nil, integer()) :: {list(Objects.Icon.t), String.t()|nil, String.t()|nil, integer}
+  @spec get_page_icons(
+          %{required(String.t()) => String.t()},
+          String.t() | nil,
+          String.t() | nil,
+          integer()
+        ) :: {list(Objects.Icon.t()), String.t() | nil, String.t() | nil, integer}
   def get_page_icons(filter_spec, before_key, after_key, limit) do
-    query = filter_spec
-    |> query_objects()
-    |> query_icons("thumb")
+    query =
+      filter_spec
+      |> query_objects()
+      |> query_icons("thumb")
 
-    %{entries: entries, metadata: metadata} = Repo.paginate(
-      query, before: before_key, after: after_key,
-      cursor_fields: [:sort_name, :sort_order, :id],
-      limit: limit
-    )
+    %{entries: entries, metadata: metadata} =
+      Repo.paginate(
+        query,
+        before: before_key,
+        after: after_key,
+        cursor_fields: [:sort_name, :sort_order, :id],
+        limit: limit
+      )
 
-    icons = Enum.map(entries, fn result ->
-      get_icon_from_result(result)
-    end)
+    icons =
+      Enum.map(entries, fn result ->
+        get_icon_from_result(result)
+      end)
 
     {icons, metadata.before, metadata.after, metadata.total_count}
   end
 
-
   @impl Objects
   @spec search_icons(%{required(String.t()) => String.t()}, integer) :: list(Objects.Icon.t())
   def search_icons(filter_spec, limit) do
-    query = filter_spec
-    |> query_objects()
-    |> query_icons("thumb")
-    |> limit(^limit)
+    query =
+      filter_spec
+      |> query_objects()
+      |> query_icons("thumb")
+      |> limit(^limit)
 
     entries = Repo.all(query)
 
@@ -358,6 +415,7 @@ defmodule PenguinMemories.Objects.Album do
     cond do
       length(get_child_ids(id)) > 0 ->
         {:no, "Cannot delete object with child"}
+
       true ->
         :yes
     end
@@ -365,18 +423,29 @@ defmodule PenguinMemories.Objects.Album do
 
   @spec do_delete(Album.t()) :: :ok | {:error, String.t()}
   defp do_delete(%Album{} = object) do
-    result = Multi.new()
-    |> Multi.delete_all(:index1, from(obj in AlbumAscendant, where: obj.ascendant_id == ^object.id))
-    |> Multi.delete_all(:index2, from(obj in AlbumAscendant, where: obj.descendant_id == ^object.id))
-    |> Multi.run(:object, fn _, _ -> Repo.delete(object) end)
-    |> Repo.transaction()
+    result =
+      Multi.new()
+      |> Multi.delete_all(
+        :index1,
+        from(obj in AlbumAscendant, where: obj.ascendant_id == ^object.id)
+      )
+      |> Multi.delete_all(
+        :index2,
+        from(obj in AlbumAscendant, where: obj.descendant_id == ^object.id)
+      )
+      |> Multi.run(:object, fn _, _ -> Repo.delete(object) end)
+      |> Repo.transaction()
 
     case result do
-      {:ok, _} -> :ok
+      {:ok, _} ->
+        :ok
+
       {:error, :index1, _, _} ->
         {:error, "Cannot index 1"}
+
       {:error, :index2, _, _} ->
         {:error, "Cannot index 2"}
+
       {:error, :object, _, _} ->
         {:error, "Cannot delete album"}
     end
@@ -398,5 +467,4 @@ defmodule PenguinMemories.Objects.Album do
       "album" => id
     }
   end
-
 end

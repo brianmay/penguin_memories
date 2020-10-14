@@ -56,7 +56,7 @@ defmodule PenguinMemories.MixProject do
       {:dialyxir, "~> 0.5.0", only: [:dev], runtime: false},
       {:mox, "~> 0.5", only: :test},
       {:paginator, "~> 1.0.1"},
-      {:earmark, "~> 1.4.10" }
+      {:earmark, "~> 1.4.10"}
     ]
   end
 

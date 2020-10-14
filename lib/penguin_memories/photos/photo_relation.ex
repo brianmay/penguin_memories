@@ -10,5 +10,4 @@ defmodule PenguinMemories.Photos.PhotoRelation do
     belongs_to :photo_1, PenguinMemories.Photos.Photo
     belongs_to :photo_2, PenguinMemories.Photos.Photo
   end
-
 end

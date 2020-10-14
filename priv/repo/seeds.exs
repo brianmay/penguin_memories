@@ -10,10 +10,11 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-{:ok, _} = PenguinMemories.Accounts.create_user(%{
+{:ok, _} =
+  PenguinMemories.Accounts.create_user(%{
     is_admin: true,
     username: "test",
     password: "testtest",
     password_confirmation: "testtest",
-    name: "Test User",
-})
+    name: "Test User"
+  })

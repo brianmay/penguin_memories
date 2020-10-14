@@ -81,7 +81,9 @@ defmodule PenguinMemories.AccountsTest do
     test "update_password/2 with valid data updates the user" do
       user = user_fixture()
       assert {:ok, %User{} = user} = Accounts.update_password(user, @password_attrs)
-      assert {:ok, user} == Argon2.check_pass(user, "some other password", hash_key: :password_hash)
+
+      assert {:ok, user} ==
+               Argon2.check_pass(user, "some other password", hash_key: :password_hash)
     end
 
     test "update_password/2 with invalid data returns error changeset" do

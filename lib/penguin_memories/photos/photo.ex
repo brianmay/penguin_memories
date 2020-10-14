@@ -48,8 +48,62 @@ defmodule PenguinMemories.Photos.Photo do
   @doc false
   def changeset(photo, attrs) do
     photo
-    |> cast(attrs, [:comment, :rating, :flash_used, :metering_mode, :datetime, :size, :compression, :title, :photographer_id, :place_id, :aperture, :ccd_width, :description, :timestamp, :iso_equiv, :focal_length, :path, :exposure, :namer, :level, :camera_make, :camera_model, :focus_dist, :action, :view, :utc_offset])
-    |> validate_required([:comment, :rating, :flash_used, :metering_mode, :datetime, :size, :compression, :title, :photographer_id, :place_id, :aperture, :ccd_width, :description, :timestamp, :iso_equiv, :focal_length, :path, :exposure, :namer, :level, :camera_make, :camera_model, :focus_dist, :action, :view, :utc_offset])
+    |> cast(attrs, [
+      :comment,
+      :rating,
+      :flash_used,
+      :metering_mode,
+      :datetime,
+      :size,
+      :compression,
+      :title,
+      :photographer_id,
+      :place_id,
+      :aperture,
+      :ccd_width,
+      :description,
+      :timestamp,
+      :iso_equiv,
+      :focal_length,
+      :path,
+      :exposure,
+      :namer,
+      :level,
+      :camera_make,
+      :camera_model,
+      :focus_dist,
+      :action,
+      :view,
+      :utc_offset
+    ])
+    |> validate_required([
+      :comment,
+      :rating,
+      :flash_used,
+      :metering_mode,
+      :datetime,
+      :size,
+      :compression,
+      :title,
+      :photographer_id,
+      :place_id,
+      :aperture,
+      :ccd_width,
+      :description,
+      :timestamp,
+      :iso_equiv,
+      :focal_length,
+      :path,
+      :exposure,
+      :namer,
+      :level,
+      :camera_make,
+      :camera_model,
+      :focus_dist,
+      :action,
+      :view,
+      :utc_offset
+    ])
   end
 
   @spec validate_datetime(Changeset.t()) :: Changeset.t()
@@ -60,6 +114,7 @@ defmodule PenguinMemories.Photos.Photo do
   @spec validate_delete(Changeset.t()) :: Changeset.t()
   defp validate_delete(changeset) do
     id = get_field(changeset, :id)
+
     if get_change(changeset, :action) == "D" do
       case PenguinMemories.Objects.Photo.can_delete?(id) do
         :yes -> changeset
@@ -78,7 +133,18 @@ defmodule PenguinMemories.Photos.Photo do
   @spec edit_changeset(t(), map()) :: Changeset.t()
   def edit_changeset(%__MODULE__{} = photo, attrs) do
     photo
-    |> cast(attrs, [:title, :photographer_id, :place_id, :view, :rating, :description, :datetime, :utc_offset, :action, :comment])
+    |> cast(attrs, [
+      :title,
+      :photographer_id,
+      :place_id,
+      :view,
+      :rating,
+      :description,
+      :datetime,
+      :utc_offset,
+      :action,
+      :comment
+    ])
     |> validate_action()
     |> validate_delete()
     |> validate_datetime()
@@ -86,14 +152,26 @@ defmodule PenguinMemories.Photos.Photo do
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
   def update_changeset(%__MODULE__{} = photo, enabled, attrs) do
-    allowed_list = [:title, :photographer_id, :place_id, :view, :rating, :description, :datetime, :utc_offset, :action]
+    allowed_list = [
+      :title,
+      :photographer_id,
+      :place_id,
+      :view,
+      :rating,
+      :description,
+      :datetime,
+      :utc_offset,
+      :action
+    ]
+
     allowed = MapSet.new(allowed_list)
     enabled = MapSet.intersection(enabled, allowed)
     enabled_list = MapSet.to_list(enabled)
 
-    changeset = photo
-    |> cast(attrs, enabled_list)
-    |> validate_datetime()
+    changeset =
+      photo
+      |> cast(attrs, enabled_list)
+      |> validate_datetime()
 
     if MapSet.member?(enabled, :action) do
       validate_action(changeset)
@@ -101,5 +179,4 @@ defmodule PenguinMemories.Photos.Photo do
       changeset
     end
   end
-
 end

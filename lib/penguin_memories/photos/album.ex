@@ -31,7 +31,16 @@ defmodule PenguinMemories.Photos.Album do
   @spec edit_changeset(t(), map()) :: Changeset.t()
   def edit_changeset(%__MODULE__{} = album, attrs) do
     album
-    |> cast(attrs, [:title, :parent_id, :sort_name, :cover_photo_id, :description, :sort_order, :revised, :revised_utc_offset])
+    |> cast(attrs, [
+      :title,
+      :parent_id,
+      :sort_name,
+      :cover_photo_id,
+      :description,
+      :sort_order,
+      :revised,
+      :revised_utc_offset
+    ])
     |> validate_required([:title, :sort_name, :sort_order])
     |> validate_revised()
   end
@@ -43,13 +52,10 @@ defmodule PenguinMemories.Photos.Album do
     enabled = MapSet.intersection(enabled, allowed)
     enabled_list = MapSet.to_list(enabled)
     required = MapSet.new([:title, :sort_name, :sort_order])
-    required_list = MapSet.to_list(
-      MapSet.intersection(enabled, required)
-    )
+    required_list = MapSet.to_list(MapSet.intersection(enabled, required))
 
     album
     |> cast(attrs, enabled_list)
     |> validate_required(required_list)
   end
-
 end

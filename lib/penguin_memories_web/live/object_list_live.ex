@@ -357,5 +357,4 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {int, ""} = Integer.parse(int)
     int
   end
-
 end

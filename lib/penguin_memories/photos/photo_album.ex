@@ -9,5 +9,4 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
     belongs_to :photo, PenguinMemories.Photos.Photo
     belongs_to :album, PenguinMemories.Photos.Album
   end
-
 end

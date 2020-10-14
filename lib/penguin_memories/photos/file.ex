@@ -20,6 +20,15 @@ defmodule PenguinMemories.Photos.File do
   def changeset(file, attrs) do
     file
     |> cast(attrs, [:size_key, :width, :height, :dir, :name, :is_video, :sha256_hash, :num_bytes])
-    |> validate_required([:size_key, :width, :height, :dir, :name, :is_video, :sha256_hash, :num_bytes])
+    |> validate_required([
+      :size_key,
+      :width,
+      :height,
+      :dir,
+      :name,
+      :is_video,
+      :sha256_hash,
+      :num_bytes
+    ])
   end
 end

@@ -5,12 +5,14 @@ defmodule PenguinMemories.ObjectsTest do
     end
 
     def handle_call({:put, id, ref_id, position}, _from, state) do
-      state = Map.update(
-        state,
-        id,
-        MapSet.new([{ref_id, position}]),
-        fn mapset -> MapSet.put(mapset, {ref_id, position}) end
-      )
+      state =
+        Map.update(
+          state,
+          id,
+          MapSet.new([{ref_id, position}]),
+          fn mapset -> MapSet.put(mapset, {ref_id, position}) end
+        )
+
       {:reply, :ok, state}
     end
 
@@ -48,8 +50,9 @@ defmodule PenguinMemories.ObjectsTest do
     test "single item" do
       # 1 object with no parents or children.
       parent_data = %{
-        1 => [],
+        1 => []
       }
+
       child_data = reverse_map(parent_data)
 
       PenguinMemories.ObjectsMock
@@ -58,11 +61,16 @@ defmodule PenguinMemories.ObjectsTest do
 
       seen = MapSet.new()
       cache = %{}
-      {seen, cache, index} = Objects.generate_index(1, 0, PenguinMemories.ObjectsMock, seen, cache)
+
+      {seen, cache, index} =
+        Objects.generate_index(1, 0, PenguinMemories.ObjectsMock, seen, cache)
+
       assert seen == MapSet.new([1])
+
       assert cache == %{
-        1 => MapSet.new([{1, 0}])
-      }
+               1 => MapSet.new([{1, 0}])
+             }
+
       assert index == MapSet.new([{1, 0}])
     end
 
@@ -73,6 +81,7 @@ defmodule PenguinMemories.ObjectsTest do
         2 => [1],
         3 => [2]
       }
+
       child_data = reverse_map(parent_data)
 
       PenguinMemories.ObjectsMock
@@ -81,13 +90,18 @@ defmodule PenguinMemories.ObjectsTest do
 
       seen = MapSet.new()
       cache = %{}
-      {seen, cache, index} = Objects.generate_index(3, 0, PenguinMemories.ObjectsMock, seen, cache)
+
+      {seen, cache, index} =
+        Objects.generate_index(3, 0, PenguinMemories.ObjectsMock, seen, cache)
+
       assert seen == MapSet.new([1, 2, 3])
+
       assert cache == %{
-        1 => MapSet.new([{1, 0}]),
-        2 => MapSet.new([{2, 0}, {1, 1}]),
-        3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-      }
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{2, 0}, {1, 1}]),
+               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
+
       assert index == MapSet.new([{3, 0}, {2, 1}, {1, 2}])
     end
 
@@ -98,6 +112,7 @@ defmodule PenguinMemories.ObjectsTest do
         2 => [1],
         3 => [2]
       }
+
       child_data = reverse_map(parent_data)
 
       PenguinMemories.ObjectsMock
@@ -106,13 +121,18 @@ defmodule PenguinMemories.ObjectsTest do
 
       seen = MapSet.new()
       cache = %{}
-      {seen, cache, index} = Objects.generate_index(3, 0, PenguinMemories.ObjectsMock, seen, cache)
+
+      {seen, cache, index} =
+        Objects.generate_index(3, 0, PenguinMemories.ObjectsMock, seen, cache)
+
       assert seen == MapSet.new([1, 2, 3])
+
       assert cache == %{
-        1 => MapSet.new([{1, 0}]),
-        2 => MapSet.new([{2, 0}, {1, 1}]),
-        3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-      }
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{2, 0}, {1, 1}]),
+               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
+
       assert index == MapSet.new([{3, 0}, {2, 1}, {1, 2}])
     end
 
@@ -127,6 +147,7 @@ defmodule PenguinMemories.ObjectsTest do
         6 => [3, 4],
         7 => [5, 6]
       }
+
       child_data = reverse_map(parent_data)
 
       PenguinMemories.ObjectsMock
@@ -135,17 +156,22 @@ defmodule PenguinMemories.ObjectsTest do
 
       seen = MapSet.new()
       cache = %{}
-      {seen, cache, index} = Objects.generate_index(7, 0, PenguinMemories.ObjectsMock, seen, cache)
+
+      {seen, cache, index} =
+        Objects.generate_index(7, 0, PenguinMemories.ObjectsMock, seen, cache)
+
       assert seen == MapSet.new([1, 2, 3, 4, 5, 6, 7])
+
       assert cache == %{
-        1 => MapSet.new([{1, 0}]),
-        2 => MapSet.new([{2, 0}]),
-        3 => MapSet.new([{3, 0}]),
-        4 => MapSet.new([{4, 0}]),
-        5 => MapSet.new([{5, 0}, {1, 1}, {2, 1}]),
-        6 => MapSet.new([{6, 0}, {3, 1}, {4, 1}]),
-        7 => MapSet.new([{7, 0}, {5, 1}, {6, 1}, {1, 2}, {2, 2}, {3, 2}, {4, 2}])
-      }
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{2, 0}]),
+               3 => MapSet.new([{3, 0}]),
+               4 => MapSet.new([{4, 0}]),
+               5 => MapSet.new([{5, 0}, {1, 1}, {2, 1}]),
+               6 => MapSet.new([{6, 0}, {3, 1}, {4, 1}]),
+               7 => MapSet.new([{7, 0}, {5, 1}, {6, 1}, {1, 2}, {2, 2}, {3, 2}, {4, 2}])
+             }
+
       assert index == MapSet.new([{7, 0}, {5, 1}, {6, 1}, {1, 2}, {2, 2}, {3, 2}, {4, 2}])
     end
 
@@ -157,6 +183,7 @@ defmodule PenguinMemories.ObjectsTest do
         3 => [1],
         4 => [2, 3]
       }
+
       child_data = reverse_map(parent_data)
 
       PenguinMemories.ObjectsMock
@@ -165,15 +192,20 @@ defmodule PenguinMemories.ObjectsTest do
 
       seen = MapSet.new()
       cache = %{}
-      {seen, cache, index} = Objects.generate_index(4, 0, PenguinMemories.ObjectsMock, seen, cache)
+
+      {seen, cache, index} =
+        Objects.generate_index(4, 0, PenguinMemories.ObjectsMock, seen, cache)
+
       assert seen == MapSet.new([1, 2, 3, 4])
+
       assert cache == %{
-        1 => MapSet.new([{1, 0}]),
-        2 => MapSet.new([{2, 0}, {1, 1}]),
-        3 => MapSet.new([{3, 0}, {1, 1}]),
-        4 => MapSet.new([{4, 0}, {2, 1}, {3, 1}, {1, 2}])
-      }
-      assert index == MapSet.new([{4, 0}, {2, 1,}, {3, 1}, {4, 0}, {1, 2}])
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{2, 0}, {1, 1}]),
+               3 => MapSet.new([{3, 0}, {1, 1}]),
+               4 => MapSet.new([{4, 0}, {2, 1}, {3, 1}, {1, 2}])
+             }
+
+      assert index == MapSet.new([{4, 0}, {2, 1}, {3, 1}, {4, 0}, {1, 2}])
     end
 
     test "shared path different position" do
@@ -182,8 +214,9 @@ defmodule PenguinMemories.ObjectsTest do
       parent_data = %{
         1 => [],
         2 => [1],
-        3 => [2, 1],
+        3 => [2, 1]
       }
+
       child_data = reverse_map(parent_data)
 
       PenguinMemories.ObjectsMock
@@ -192,24 +225,29 @@ defmodule PenguinMemories.ObjectsTest do
 
       seen = MapSet.new()
       cache = %{}
-      {seen, cache, index} = Objects.generate_index(3, 0, PenguinMemories.ObjectsMock, seen, cache)
+
+      {seen, cache, index} =
+        Objects.generate_index(3, 0, PenguinMemories.ObjectsMock, seen, cache)
+
       assert seen == MapSet.new([1, 2, 3])
+
       assert cache == %{
-        1 => MapSet.new([{1, 0}]),
-        2 => MapSet.new([{2, 0}, {1, 1}]),
-        3 => MapSet.new([{3, 0}, {1, 1}, {2, 1}, {1, 2}]),
-      }
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{2, 0}, {1, 1}]),
+               3 => MapSet.new([{3, 0}, {1, 1}, {2, 1}, {1, 2}])
+             }
+
       assert index == MapSet.new([{1, 2}, {1, 1}, {2, 1}, {3, 0}])
     end
-
   end
 
   describe "fix_index_tree/4" do
     test "single item" do
       # 1 object with no parents or children.
       parent_data = %{
-        1 => [],
+        1 => []
       }
+
       child_data = reverse_map(parent_data)
 
       index = %{
@@ -234,12 +272,13 @@ defmodule PenguinMemories.ObjectsTest do
 
       :ok = Objects.fix_index_tree(1, PenguinMemories.ObjectsMock)
 
-      assert GenServer.call(delete_table, :get)  == %{
-        1 => MapSet.new([{1, 1}])
-      }
-      assert GenServer.call(create_table, :get)  == %{
-        1 => MapSet.new([{1, 0}]),
-      }
+      assert GenServer.call(delete_table, :get) == %{
+               1 => MapSet.new([{1, 1}])
+             }
+
+      assert GenServer.call(create_table, :get) == %{
+               1 => MapSet.new([{1, 0}])
+             }
 
       verify!()
     end
@@ -251,6 +290,7 @@ defmodule PenguinMemories.ObjectsTest do
         2 => [1],
         3 => [2]
       }
+
       child_data = reverse_map(parent_data)
 
       index = %{
@@ -277,15 +317,16 @@ defmodule PenguinMemories.ObjectsTest do
 
       :ok = Objects.fix_index_tree(3, PenguinMemories.ObjectsMock)
 
-      assert GenServer.call(delete_table, :get)  == %{
-        1 => MapSet.new([{1, 98}]),
-        2 => MapSet.new([{1, 99}])
-      }
-      assert GenServer.call(create_table, :get)  == %{
-        1 => MapSet.new([{1, 0}]),
-        2 => MapSet.new([{2, 0}, {1, 1}]),
-        3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-      }
+      assert GenServer.call(delete_table, :get) == %{
+               1 => MapSet.new([{1, 98}]),
+               2 => MapSet.new([{1, 99}])
+             }
+
+      assert GenServer.call(create_table, :get) == %{
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{2, 0}, {1, 1}]),
+               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
 
       verify!()
     end
@@ -297,6 +338,7 @@ defmodule PenguinMemories.ObjectsTest do
         2 => [1],
         3 => [2]
       }
+
       child_data = reverse_map(parent_data)
 
       index = %{
@@ -323,15 +365,16 @@ defmodule PenguinMemories.ObjectsTest do
 
       :ok = Objects.fix_index_tree(3, PenguinMemories.ObjectsMock)
 
-      assert GenServer.call(delete_table, :get)  == %{
-        1 => MapSet.new([{1, 98}]),
-        2 => MapSet.new([{1, 99}])
-      }
-      assert GenServer.call(create_table, :get)  == %{
-        1 => MapSet.new([{1, 0}, {3, 1}, {2, 2}]),
-        2 => MapSet.new([{2, 0}, {1, 1}, {3, 2}]),
-        3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-      }
+      assert GenServer.call(delete_table, :get) == %{
+               1 => MapSet.new([{1, 98}]),
+               2 => MapSet.new([{1, 99}])
+             }
+
+      assert GenServer.call(create_table, :get) == %{
+               1 => MapSet.new([{1, 0}, {3, 1}, {2, 2}]),
+               2 => MapSet.new([{2, 0}, {1, 1}, {3, 2}]),
+               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
 
       verify!()
     end
@@ -343,6 +386,7 @@ defmodule PenguinMemories.ObjectsTest do
         2 => [1],
         3 => [2]
       }
+
       child_data = reverse_map(parent_data)
 
       index = %{
@@ -369,15 +413,16 @@ defmodule PenguinMemories.ObjectsTest do
 
       :ok = Objects.fix_index_tree(3, PenguinMemories.ObjectsMock)
 
-      assert GenServer.call(delete_table, :get)  == %{
-        1 => MapSet.new([{1, 98}]),
-        2 => MapSet.new([{1, 99}])
-      }
-      assert GenServer.call(create_table, :get)  == %{
-        1 => MapSet.new([{1, 0}]),
-        2 => MapSet.new([{2, 0}, {1, 1}]),
-        3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-      }
+      assert GenServer.call(delete_table, :get) == %{
+               1 => MapSet.new([{1, 98}]),
+               2 => MapSet.new([{1, 99}])
+             }
+
+      assert GenServer.call(create_table, :get) == %{
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{2, 0}, {1, 1}]),
+               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
 
       verify!()
     end
@@ -389,6 +434,7 @@ defmodule PenguinMemories.ObjectsTest do
         2 => [1],
         3 => [2]
       }
+
       child_data = reverse_map(parent_data)
 
       index = %{
@@ -415,18 +461,18 @@ defmodule PenguinMemories.ObjectsTest do
 
       :ok = Objects.fix_index_tree(3, PenguinMemories.ObjectsMock)
 
-      assert GenServer.call(delete_table, :get)  == %{
-        1 => MapSet.new([{1, 98}]),
-        2 => MapSet.new([{1, 99}])
-      }
-      assert GenServer.call(create_table, :get)  == %{
-        1 => MapSet.new([{1, 0}, {3, 1}, {2, 2}]),
-        2 => MapSet.new([{2, 0}, {1, 1}, {3, 2}]),
-        3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-      }
+      assert GenServer.call(delete_table, :get) == %{
+               1 => MapSet.new([{1, 98}]),
+               2 => MapSet.new([{1, 99}])
+             }
+
+      assert GenServer.call(create_table, :get) == %{
+               1 => MapSet.new([{1, 0}, {3, 1}, {2, 2}]),
+               2 => MapSet.new([{2, 0}, {1, 1}, {3, 2}]),
+               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
 
       verify!()
     end
   end
-
 end

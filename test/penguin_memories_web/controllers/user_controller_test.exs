@@ -33,7 +33,7 @@ defmodule PenguinMemoriesWeb.UserControllerTest do
         name: "User",
         is_admin: false,
         password: "some password",
-        password_confirmation: "some password",
+        password_confirmation: "some password"
       })
 
     {:ok, token, _} = Guardian.encode_and_sign(user, %{}, token_type: :access)
@@ -47,7 +47,7 @@ defmodule PenguinMemoriesWeb.UserControllerTest do
         name: "Admin",
         is_admin: true,
         password: "some password",
-        password_confirmation: "some password",
+        password_confirmation: "some password"
       })
 
     {:ok, token, _} = Guardian.encode_and_sign(user, %{}, token_type: :access)

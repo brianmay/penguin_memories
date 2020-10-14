@@ -26,11 +26,12 @@ defmodule PenguinMemories.Auth do
   def load_user(%{@token_key => token}) do
     case Guardian.decode_and_verify(token) do
       {:ok, claims} ->
-         Guardian.resource_from_claims(claims)
+        Guardian.resource_from_claims(claims)
+
       _ ->
         nil
     end
   end
-  def load_user(_), do: :not_logged_in
 
+  def load_user(_), do: :not_logged_in
 end

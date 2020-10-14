@@ -13,7 +13,7 @@ defmodule PenguinMemoriesWeb.FormHelpers do
   def get_feedback_for(form, field) do
     case form.source.action do
       :update -> nil
-        _ -> input_id(form, field)
+      _ -> input_id(form, field)
     end
   end
 

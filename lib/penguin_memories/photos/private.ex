@@ -11,7 +11,7 @@ defmodule PenguinMemories.Photos.Private do
     string1 = Atom.to_string(key1)
     string2 = Atom.to_string(key2)
 
-    case {value1, value2}  do
+    case {value1, value2} do
       {nil, nil} ->
         changeset
 
