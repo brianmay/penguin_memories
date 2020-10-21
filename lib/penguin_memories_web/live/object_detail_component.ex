@@ -112,7 +112,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   def handle_event("create", _params, socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    type = socket.assigns.type
+    if Auth.can_edit(socket.assigns.user) and type.can_create?() do
       handle_create(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}

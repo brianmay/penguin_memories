@@ -101,7 +101,9 @@
                         <% end %>
 
                         <%= if Auth.can_edit(@user) do %>
-                            <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
+                            <%= if @type.can_create?() do %>
+                                <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
+                            <% end %>
                             <div class="btn btn-secondary" phx-click="edit" phx-target="<%= @myself %>">Edit</div>
                             <div class="btn btn-secondary" phx-click="delete" phx-target="<%= @myself %>">Delete</div>
                         <% end %>

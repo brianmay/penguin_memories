@@ -57,6 +57,7 @@ defmodule PenguinMemories.Objects do
             ) :: {list(Icon.t()), String.t() | nil, String.t() | nil, integer}
   @callback search_icons(%{required(String.t()) => String.t()}, integer) :: list(Icon.t())
 
+  @callback can_create?() :: boolean()
   @callback get_create_child_changeset(map(), map()) :: Ecto.Changeset.t()
   @callback get_edit_changeset(map(), map()) :: Ecto.Changeset.t()
   @callback get_update_changeset(MapSet.t(), map()) :: Ecto.Changeset.t()

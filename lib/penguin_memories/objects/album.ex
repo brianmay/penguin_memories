@@ -381,6 +381,10 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
+  @spec can_create?() :: boolean()
+  def can_create?(), do: true
+
+  @impl Objects
   @spec get_create_child_changeset(Album.t(), map()) :: Ecto.Changeset.t()
   def get_create_child_changeset(%Album{} = album, attrs) do
     %Album{}

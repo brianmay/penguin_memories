@@ -435,11 +435,14 @@ defmodule PenguinMemories.Objects.Photo do
   end
 
   @impl Objects
+  @spec can_create?() :: boolean()
+  def can_create?(), do: false
+
+  @impl Objects
   @spec get_create_child_changeset(Photo.t(), map()) :: Ecto.Changeset.t()
-  def get_create_child_changeset(%Photo{} = album, attrs) do
+  def get_create_child_changeset(%Photo{}, attrs) do
     %Photo{}
     |> Photo.edit_changeset(attrs)
-    |> Changeset.put_change(:parent_id, album.id)
   end
 
   @impl Objects
