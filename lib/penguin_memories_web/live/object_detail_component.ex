@@ -111,13 +111,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     assign(socket, assigns)
   end
 
-  @impl true
-  def handle_event("select", %{"id" => id}, socket) do
-    id = to_int(id)
-    socket = assign(socket, selected_ids: MapSet.new([id]), num_selected: 1) |> reload()
-    {:noreply, socket}
-  end
-
   def handle_event("create", _params, socket) do
     if Auth.can_edit(socket.assigns.user) do
       handle_create(socket)
