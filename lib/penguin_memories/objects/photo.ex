@@ -283,7 +283,7 @@ defmodule PenguinMemories.Objects.Photo do
             id: :description,
             title: "Description",
             display: result.o.description,
-            type: :string
+            type: :markdown
           },
           %Objects.Field{
             id: :comment,
