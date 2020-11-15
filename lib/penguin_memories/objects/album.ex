@@ -344,7 +344,7 @@ defmodule PenguinMemories.Objects.Album do
             type: :datetime
           },
           %Objects.Field{
-            id: :revised,
+            id: :revised_utc_offset,
             title: "Revised UTC offset",
             display: result.o.revised_utc_offset,
             type: :string
