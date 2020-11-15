@@ -108,6 +108,7 @@
                             <div class="btn btn-secondary" phx-click="delete" phx-target="<%= @myself %>">Delete</div>
                         <% end %>
                     <% end %>
+                <% @num_selected == 1 -> %>
                 <% @num_selected > 1 -> %>
                     <%= if @edit == nil and Auth.can_edit(@user) do %>
                         <div class="btn btn-secondary" phx-click="update" phx-target="<%= @myself %>">Bulk Update</div>
