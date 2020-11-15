@@ -25,6 +25,21 @@ defmodule PenguinMemories.Objects do
     defstruct [:id, :action, :url, :title, :subtitle, :width, :height, :type]
   end
 
+  defmodule Video do
+    @moduledoc """
+    All the attributes required to display an icon.
+    """
+    @type t :: %__MODULE__{
+            url: String.t(),
+            width: integer,
+            height: integer,
+            mime_type: String.t(),
+            type: module()
+          }
+    @enforce_keys [:url, :width, :height, :mime_type, :type]
+    defstruct [:url, :width, :height, :mime_type, :type]
+  end
+
   defmodule Field do
     @moduledoc """
     A field specification that can be displayed or edited.
@@ -51,7 +66,8 @@ defmodule PenguinMemories.Objects do
   @callback get_plural_title() :: String.t()
   @callback get_update_fields() :: list(Field.t())
   @callback get_parents(integer) :: list({Icon.t(), integer})
-  @callback get_details(integer) :: {map(), Icon.t(), list(Field.t()), String.t()} | nil
+  @callback get_details(integer) ::
+              {map(), Icon.t(), list(Video.t()), list(Field.t()), String.t()} | nil
   @callback get_page_icons(
               %{required(String.t()) => String.t()},
               String.t() | nil,

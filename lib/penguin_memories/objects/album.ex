@@ -28,18 +28,24 @@ defmodule PenguinMemories.Objects.Album do
     "albums"
   end
 
+  @spec query_common() :: Ecto.Query.t()
+  defp query_common() do
+    from o in Album,
+      as: :object,
+      select: %{sort_name: o.sort_name, sort_order: o.sort_order, id: o.id, title: o.title},
+      order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id]
+  end
+
   @spec query_objects(%{required(String.t()) => String.t()}) :: Ecto.Query.t()
   defp query_objects(%{"ids" => id_mapset}) when not is_nil(id_mapset) do
     id_list = MapSet.to_list(id_mapset)
 
-    from o in Album,
-      as: :object,
-      where: o.id in ^id_list,
-      select: %{id: o.id}
+    from [object: o] in query_common(),
+      where: o.id in ^id_list
   end
 
   defp query_objects(filter_spec) do
-    query = from o in Album, as: :object, select: %{id: o.id}
+    query = query_common()
 
     query =
       case filter_spec["photo_id"] do
@@ -47,7 +53,7 @@ defmodule PenguinMemories.Objects.Album do
           query
 
         id ->
-          from o in query,
+          from [object: o] in query,
             join: op in PhotoAlbum,
             on: op.album_id == o.id,
             where: op.photo_id == ^id
@@ -56,7 +62,7 @@ defmodule PenguinMemories.Objects.Album do
     query =
       case filter_spec["parent_id"] do
         nil -> query
-        id -> from o in query, where: o.parent_id == ^id
+        id -> from [object: o] in query, where: o.parent_id == ^id
       end
 
     case filter_spec["query"] do
@@ -74,7 +80,7 @@ defmodule PenguinMemories.Objects.Album do
             _ -> dynamic
           end
 
-        from o in query, where: ^dynamic
+        from [object: o] in query, where: ^dynamic
     end
   end
 
@@ -85,24 +91,21 @@ defmodule PenguinMemories.Objects.Album do
       join: oa in AlbumAscendant,
       on: o.id == oa.ascendant_id,
       as: :ascendants,
-      where: oa.descendant_id == ^id,
-      select: %{id: o.id}
+      where: oa.descendant_id == ^id
   end
 
   @spec query_object(integer) :: Ecto.Query.t()
   defp query_object(id) do
-    from o in Album,
-      as: :object,
+    from [object: o] in query_common(),
       where: o.id == ^id
   end
 
   @spec query_add_parents(Ecto.Query.t()) :: Ecto.Query.t()
   defp query_add_parents(query) do
-    from o in query,
+    from [object: o] in query,
       left_join: op in Album,
       on: o.parent_id == op.id,
-      as: :parent,
-      select: %{id: o.id}
+      as: :parent
   end
 
   @spec query_icons(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
@@ -114,7 +117,7 @@ defmodule PenguinMemories.Objects.Album do
         order_by: [asc: :id]
 
     query =
-      from o in query,
+      from [object: o] in query,
         left_join: p in Photo,
         on: p.id == o.cover_photo_id,
         as: :photo,
@@ -123,16 +126,12 @@ defmodule PenguinMemories.Objects.Album do
         as: :icon,
         select_merge: %{
           icon: %{
-            title: o.title,
-            sort_name: o.sort_name,
-            sort_order: o.sort_order,
             dir: f.dir,
             name: f.name,
             height: f.height,
             width: f.width
           }
-        },
-        order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id]
+        }
 
     query
   end
@@ -145,15 +144,15 @@ defmodule PenguinMemories.Objects.Album do
       end
 
     subtitle =
-      if result.icon.sort_name != "" and result.icon.sort_order != "" do
-        "#{result.icon.sort_name}: #{result.icon.sort_order}"
+      if result.sort_name != "" and result.sort_order != "" do
+        "#{result.sort_name}: #{result.sort_order}"
       end
 
     %Objects.Icon{
       id: result.id,
       action: nil,
       url: url,
-      title: result.icon.title,
+      title: result.title,
       subtitle: subtitle,
       height: result.icon.height,
       width: result.icon.width,
@@ -288,7 +287,8 @@ defmodule PenguinMemories.Objects.Album do
 
   @impl Objects
   @spec get_details(integer) ::
-          {map(), Objects.Icon.t(), list(Objects.Field.t()), String.t()} | nil
+          {map(), Objects.Icon.t(), list(Objects.Video.t()), list(Objects.Field.t()), String.t()}
+          | nil
   def get_details(id) do
     query =
       id
@@ -368,7 +368,7 @@ defmodule PenguinMemories.Objects.Album do
         ]
 
         cursor = Paginator.cursor_for_record(result, [:sort_name, :sort_order, :id])
-        {result.o, icon, fields, cursor}
+        {result.o, icon, [], fields, cursor}
     end
   end
 

@@ -26,18 +26,24 @@ defmodule PenguinMemories.Objects.Photo do
     "photos"
   end
 
+  @spec query_common() :: Ecto.Query.t()
+  defp query_common() do
+    from o in Photo,
+      as: :object,
+      select: %{id: o.id, datetime: o.datetime},
+      order_by: [asc: o.datetime, asc: o.id]
+  end
+
   @spec query_objects(%{required(String.t()) => String.t()}) :: Ecto.Query.t()
   defp query_objects(%{"ids" => id_mapset}) when not is_nil(id_mapset) do
     id_list = MapSet.to_list(id_mapset)
 
-    from o in Photo,
-      as: :object,
-      where: o.id in ^id_list,
-      select: %{id: o.id}
+    from [object: o] in query_common(),
+      where: o.id in ^id_list
   end
 
   defp query_objects(filter_spec) do
-    query = from o in Photo, as: :object, select: %{id: o.id}
+    query = query_common()
 
     query =
       case filter_spec["album"] do
@@ -71,10 +77,8 @@ defmodule PenguinMemories.Objects.Photo do
 
   @spec query_object(integer) :: Ecto.Query.t()
   defp query_object(id) do
-    from o in Photo,
-      as: :object,
-      where: o.id == ^id,
-      select: %{id: o.id}
+    from [object: o] in query_common(),
+      where: o.id == ^id
   end
 
   @spec query_icons(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
@@ -93,7 +97,6 @@ defmodule PenguinMemories.Objects.Photo do
         select_merge: %{
           icon: %{
             title: o.title,
-            datetime: o.datetime,
             utc_offset: o.utc_offset,
             dir: f.dir,
             name: f.name,
@@ -101,10 +104,41 @@ defmodule PenguinMemories.Objects.Photo do
             width: f.width,
             action: o.action
           }
-        },
-        order_by: [asc: o.datetime, asc: o.id]
+        }
 
     query
+  end
+
+  @spec query_videos(integer(), String.t()) :: list(Video.t())
+  defp query_videos(photo_id, size) do
+    file_query =
+      from f in File,
+        where: f.size_key == ^size and f.is_video == true and f.photo_id == ^photo_id,
+        order_by: [asc: :id],
+        select_merge: %{
+          dir: f.dir,
+          name: f.name,
+          height: f.height,
+          width: f.width,
+          mime_type: f.mime_type
+        }
+
+    entries = Repo.all(file_query)
+
+    Enum.map(entries, fn result ->
+      url =
+        if result.dir do
+          "https://photos.linuxpenguins.xyz/images/#{result.dir}/#{result.name}"
+        end
+
+      %Objects.Video{
+        url: url,
+        height: result.height,
+        width: result.width,
+        mime_type: result.mime_type,
+        type: __MODULE__
+      }
+    end)
   end
 
   @spec get_icon_from_result(map()) :: Objects.Icon.t()
@@ -114,7 +148,7 @@ defmodule PenguinMemories.Objects.Photo do
         "https://photos.linuxpenguins.xyz/images/#{result.icon.dir}/#{result.icon.name}"
       end
 
-    subtitle = Objects.display_datetime_offset(result.icon.datetime, result.icon.utc_offset)
+    subtitle = Objects.display_datetime_offset(result.datetime, result.icon.utc_offset)
 
     %Objects.Icon{
       id: result.id,
@@ -246,7 +280,8 @@ defmodule PenguinMemories.Objects.Photo do
 
   @impl Objects
   @spec get_details(integer) ::
-          {map(), Objects.Icon.t(), list(Objects.Field.t()), String.t()} | nil
+          {map(), Objects.Icon.t(), list(Objects.Video.t()), list(Objects.Field.t()), String.t()}
+          | nil
   def get_details(id) do
     query =
       id
@@ -263,6 +298,8 @@ defmodule PenguinMemories.Objects.Photo do
         id = result.o.id
         icon = get_icon_from_result(result)
         albums = PenguinMemories.Objects.Album.search_icons(%{"photo_id" => id}, 10)
+        videos = query_videos(id, "320")
+        IO.inspect(videos)
 
         album_list =
           albums
@@ -414,7 +451,7 @@ defmodule PenguinMemories.Objects.Photo do
         ]
 
         cursor = Paginator.cursor_for_record(result, [:datetime, :id])
-        {o, icon, fields, cursor}
+        {o, icon, videos, fields, cursor}
     end
   end
 

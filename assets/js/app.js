@@ -31,8 +31,29 @@ import {Socket} from "phoenix";
 import NProgress from "nprogress";
 import {LiveSocket} from "phoenix_live_view";
 
+let Hooks = {};
+Hooks.video = {
+    mounted() {
+        this.updated()
+    },
+
+    updated() {
+        let children = this.el.children;
+        for (let i = 0; i < children.length; i++) {
+            let child = children[i];
+            let src = child.getAttribute("src");
+            let type = child.getAttribute("type");
+            if (this.el.canPlayType(type)) {
+                this.el.setAttribute("src", src)
+                break
+            }
+        }
+
+    }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
-let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, metadata: metadata});
+let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, metadata: metadata, hooks: Hooks});
 
 // Show progress bar on live navigation and form submits
 window.addEventListener("phx:page-loading-start", info => NProgress.start());

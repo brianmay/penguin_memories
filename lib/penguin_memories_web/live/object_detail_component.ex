@@ -19,7 +19,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       changeset: nil,
       error: nil,
       selected_object: nil,
-      user: nil
+      user: nil,
+      videos: nil
     ]
 
     {:ok, assign(socket, assigns)}
@@ -70,26 +71,28 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     selected_ids = socket.assigns.selected_ids
     search_spec = socket.assigns.search_spec
 
-    {selected_object, selected_fields, icons, more_icons, prev_icon, next_icon} =
+    {selected_object, selected_fields, icons, more_icons, prev_icon, next_icon, videos} =
       cond do
         num_selected == 0 ->
-          {nil, nil, [], false, nil, nil}
+          {nil, nil, [], false, nil, nil, []}
 
         num_selected == 1 ->
           [id] = MapSet.to_list(selected_ids)
 
           case type.get_details(id) do
             nil ->
-              {nil, nil, [], false, nil, nil}
+              {nil, nil, [], false, nil, nil, []}
 
-            {object, icon, fields, cursor} ->
+            {object, icon, videos, fields, cursor} ->
+              Paginator.Cursor.decode(cursor) |> IO.inspect()
+
               prev_icon =
                 type.get_page_icons(search_spec, cursor, nil, 1) |> get_icon_from_results()
 
               next_icon =
                 type.get_page_icons(search_spec, nil, cursor, 1) |> get_icon_from_results()
 
-              {object, fields, [icon], false, prev_icon, next_icon}
+              {object, fields, [icon], false, prev_icon, next_icon, videos}
           end
 
         true ->
@@ -105,7 +108,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       more_icons: more_icons,
       icons: icons,
       prev_icon: prev_icon,
-      next_icon: next_icon
+      next_icon: next_icon,
+      videos: videos
     ]
 
     assign(socket, assigns)

@@ -14,28 +14,45 @@
 
         <%= if @icons do %>
             <div class="photo_list_small">
-                <%= for icon <- @icons do %>
+                <%= if length(@videos) > 0 do %>
                     <div class="photo_item">
-                        <%= if icon.url do %>
-                            <img
-                                src="<%= icon.url %>"
-                                alt="<%= icon.title %>"
-                                width="<%= icon.width %>"
-                                height="<%= icon.height %>"
-                            >
-                        <% else %>
-                            No image
-                        <% end %>
-                        <%= if @num_selected == 1 do %>
-                            <div class="title">
-                                <%= icon.title %>
-                                (<%= icon.id %>)
-                            </div>
+                        <% first = hd(@videos) %>
+                        <video phx-hook="video" controls='controls' width="<%= first.width %>" height="<%= first.height %>">
+                            <%= for video <- @videos do %>
+                            <source src="<%= video.url %>" type="<%= video.mime_type %>"/>
+                            <% end %>
+                        </video>
+                        <%= if not is_nil(@selected_object) do %>
+                                <div class="title">
+                                    <%= @selected_object.title %>
+                                    (<%= @selected_object.id %>)
+                                </div>
                         <% end %>
                     </div>
-                <% end %>
-                <%= if @more_icons do %>
-                    ...
+                <% else %>
+                    <%= for icon <- @icons do %>
+                        <div class="photo_item">
+                            <%= if icon.url do %>
+                                <img
+                                    src="<%= icon.url %>"
+                                    alt="<%= icon.title %>"
+                                    width="<%= icon.width %>"
+                                    height="<%= icon.height %>"
+                                >
+                            <% else %>
+                                No image
+                            <% end %>
+                            <%= if @num_selected == 1 do %>
+                                <div class="title">
+                                    <%= icon.title %>
+                                    (<%= icon.id %>)
+                                </div>
+                            <% end %>
+                        </div>
+                    <% end %>
+                    <%= if @more_icons do %>
+                        ...
+                    <% end %>
                 <% end %>
             </div>
         <% end %>
