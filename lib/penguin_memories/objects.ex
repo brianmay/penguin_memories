@@ -18,10 +18,11 @@ defmodule PenguinMemories.Objects do
             title: String.t(),
             subtitle: String.t(),
             width: integer,
-            height: integer
+            height: integer,
+            type: module()
           }
-    @enforce_keys [:id, :action, :url, :title, :subtitle, :width, :height]
-    defstruct [:id, :action, :url, :title, :subtitle, :width, :height]
+    @enforce_keys [:id, :action, :url, :title, :subtitle, :width, :height, :type]
+    defstruct [:id, :action, :url, :title, :subtitle, :width, :height, :type]
   end
 
   defmodule Field do
@@ -32,10 +33,11 @@ defmodule PenguinMemories.Objects do
             id: atom,
             title: String.t(),
             display: String.t() | nil,
-            type: :string | :markdown | :album | :photo | :time | :utc_offset | :readonly
+            icons: list(Icon.t()) | nil,
+            type: :string | :markdown | :album | :albums | :photo | :time | :utc_offset | :readonly
           }
     @enforce_keys [:id, :title, :display, :type]
-    defstruct [:id, :title, :display, :type]
+    defstruct [:id, :title, :display, :type, :icons]
   end
 
   @callback get_parent_ids(integer) :: list(integer())

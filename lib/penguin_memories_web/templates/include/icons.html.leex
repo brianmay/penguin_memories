@@ -1,0 +1,10 @@
+<%= if length(@icons) > 0 do %>
+    <div class="photo_list">
+        <%=  for icon <- @icons do %>
+            <%=
+            Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
+            icon: icon, classes: [], event: @event
+            %>
+        <% end %>
+    </div>
+<% end %>

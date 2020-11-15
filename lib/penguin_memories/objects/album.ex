@@ -11,6 +11,7 @@ defmodule PenguinMemories.Objects.Album do
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.AlbumAscendant
   alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Photos.PhotoAlbum
   alias PenguinMemories.Photos.File
 
   @behaviour Objects
@@ -38,6 +39,15 @@ defmodule PenguinMemories.Objects.Album do
 
   defp query_objects(filter_spec) do
     query = from o in Album, as: :object
+
+    query =
+      case filter_spec["photo_id"] do
+        nil -> query
+        id -> from o in query,
+          join: op in PhotoAlbum,
+          on: op.album_id == o.id,
+          where: op.photo_id == ^id
+      end
 
     query =
       case filter_spec["parent_id"] do
@@ -126,7 +136,8 @@ defmodule PenguinMemories.Objects.Album do
       title: result.title,
       subtitle: subtitle,
       height: result.height,
-      width: result.width
+      width: result.width,
+      type: __MODULE__,
     }
   end
 
@@ -266,8 +277,6 @@ defmodule PenguinMemories.Objects.Album do
       |> query_icons("mid")
       |> select_merge([object: o, photo: p, parent: op], %{
         o: o,
-        cp_title: p.title,
-        op_title: op.title
       })
 
     case Repo.one(query) do
@@ -276,6 +285,8 @@ defmodule PenguinMemories.Objects.Album do
 
       result ->
         icon = get_icon_from_result(result)
+        parent_icons = search_icons(%{"ids" => MapSet.new([result.o.parent_id])}, 1)
+        cover_icons = PenguinMemories.Objects.Photo.search_icons(%{"ids" => MapSet.new([result.o.cover_photo_id])}, 1)
 
         fields = [
           %Objects.Field{
@@ -287,7 +298,8 @@ defmodule PenguinMemories.Objects.Album do
           %Objects.Field{
             id: :parent_id,
             title: "Parent",
-            display: Objects.get_title(result.op_title, result.o.parent_id),
+            display: nil,
+            icons: parent_icons,
             type: :album
           },
           %Objects.Field{
@@ -299,7 +311,8 @@ defmodule PenguinMemories.Objects.Album do
           %Objects.Field{
             id: :cover_photo_id,
             title: "Cover Photo",
-            display: Objects.get_title(result.cp_title, result.o.cover_photo_id),
+            display: nil,
+            icons: cover_icons,
             type: :photo
           },
           %Objects.Field{

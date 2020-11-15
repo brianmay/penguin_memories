@@ -4,9 +4,23 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
   """
 
   use Ecto.Schema
+  import Ecto.Changeset
+
+  @type t :: %__MODULE__{
+    photo_id: integer,
+    album_id: integer,
+  }
 
   schema "spud_photo_album" do
     belongs_to :photo, PenguinMemories.Photos.Photo
     belongs_to :album, PenguinMemories.Photos.Album
+  end
+
+  def changeset(photo_album, attrs) do
+    photo_album
+    |> cast(attrs, [:photo_id, :album_id])
+    |> validate_required([:photo_id, :album_id])
+    |> foreign_key_constraint(:photo_id, name: :photo_id_refs_photo_id_56180e95)
+    |> foreign_key_constraint(:album_id, name: :album_id_refs_album_id_58ff3a98)
   end
 end

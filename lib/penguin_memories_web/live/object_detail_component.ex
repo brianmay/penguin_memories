@@ -113,6 +113,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   def handle_event("create", _params, socket) do
     type = socket.assigns.type
+
     if Auth.can_edit(socket.assigns.user) and type.can_create?() do
       handle_create(socket)
     else
@@ -417,30 +418,37 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @spec output_field(Objects.Field.t(), keyword()) :: any()
   defp output_field(field, opts \\ [])
+
+  defp output_field(%{icons: icons}, _opts) when not is_nil(icons) do
+    Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icons.html",
+      icons: icons,
+      classes: [],
+      event: "goto"
+    )
+  end
+
   defp output_field(%{display: nil}, _opts), do: ""
 
-  defp output_field(field, _opts) do
-    case field.type do
-      :markdown ->
-        case Earmark.as_html(field.display) do
-          {:ok, html_doc, _} ->
-            Phoenix.HTML.raw(html_doc)
+  defp output_field(%{type: :markdown} = field, _opts) do
+    case Earmark.as_html(field.display) do
+      {:ok, html_doc, _} ->
+        Phoenix.HTML.raw(html_doc)
 
-          {:error, _, errors} ->
-            result = ["</ul>"]
+      {:error, _, errors} ->
+        result = ["</ul>"]
 
-            result =
-              Enum.reduce(errors, result, fn {_, _, text}, acc ->
-                ["<li>", text, "</li>" | acc]
-              end)
+        result =
+          Enum.reduce(errors, result, fn {_, _, text}, acc ->
+            ["<li>", text, "</li>" | acc]
+          end)
 
-            result = ["<ul class='alert alert-danger'>" | result]
-            Phoenix.HTML.raw(result)
-        end
-
-      _ ->
-        field.display
+        result = ["<ul class='alert alert-danger'>" | result]
+        Phoenix.HTML.raw(result)
     end
+  end
+
+  defp output_field(field, _opts) do
+    field.display
   end
 
   @spec input_field(Socket.t(), Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
@@ -460,7 +468,21 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
           form: form,
           field: field,
           id: field.id,
-          disabled: disabled
+          disabled: disabled,
+          single_choice: true
+        )
+
+      :albums ->
+        disabled = opts[:disabled]
+        type = Objects.get_for_type("album")
+
+        live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent,
+          type: type,
+          form: form,
+          field: field,
+          id: field.id,
+          disabled: disabled,
+          single_choice: false
         )
 
       :photo ->
@@ -472,7 +494,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
           form: form,
           field: field,
           id: field.id,
-          disabled: disabled
+          disabled: disabled,
+          single_choice: true
         )
 
       _ ->
@@ -497,9 +520,4 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     end
   end
 
-  @spec to_int(String.t()) :: integer
-  def to_int(int) do
-    {int, ""} = Integer.parse(int)
-    int
-  end
 end

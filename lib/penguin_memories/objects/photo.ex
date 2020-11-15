@@ -111,7 +111,8 @@ defmodule PenguinMemories.Objects.Photo do
       title: result.title,
       subtitle: subtitle,
       height: result.height,
-      width: result.width
+      width: result.width,
+      type: __MODULE__,
     }
   end
 
@@ -240,151 +241,167 @@ defmodule PenguinMemories.Objects.Photo do
       |> query_object()
       |> query_icons("mid")
       |> select_merge([object: o], %{o: o})
+      |> preload([:photo_albums])
 
     case Repo.one(query) do
       nil ->
         nil
 
       result ->
+        id = result.o.id
         icon = get_icon_from_result(result)
+        albums = PenguinMemories.Objects.Album.search_icons(%{"photo_id" => id}, 10)
+
+        album_list = albums
+        |> Enum.map(fn album -> album.id end)
+        |> Enum.join(",")
+
+        o = %{result.o | album_list: album_list}
 
         fields = [
           %Objects.Field{
             id: :title,
             title: "Title",
-            display: result.o.title,
+            display: o.title,
             type: :string
+          },
+          %Objects.Field{
+            id: :album_list,
+            title: "Albums",
+            display: o.album_list,
+            icons: albums,
+            type: :albums
           },
           %Objects.Field{
             id: :photographer_id,
             title: "Photographer",
-            display: result.o.photographer_id,
+            display: o.photographer_id,
             type: :person
           },
           %Objects.Field{
             id: :place_id,
             title: "Place",
-            display: result.o.place_id,
+            display: o.place_id,
             type: :place
           },
           %Objects.Field{
             id: :view,
             title: "View",
-            display: result.o.view,
+            display: o.view,
             type: :string
           },
           %Objects.Field{
             id: :rating,
             title: "Rating",
-            display: result.o.rating,
+            display: o.rating,
             type: :string
           },
           %Objects.Field{
             id: :description,
             title: "Description",
-            display: result.o.description,
+            display: o.description,
             type: :markdown
           },
           %Objects.Field{
             id: :comment,
             title: "Comment",
-            display: result.o.comment,
+            display: o.comment,
             type: :markdown
           },
           %Objects.Field{
             id: :datetime,
             title: "Time",
-            display: Objects.display_datetime_offset(result.o.datetime, result.o.utc_offset),
+            display: Objects.display_datetime_offset(o.datetime, o.utc_offset),
             type: :datetime
           },
           %Objects.Field{
             id: :utc_offset,
             title: "Revised UTC offset",
-            display: result.o.utc_offset,
+            display: o.utc_offset,
             type: :string
           },
           %Objects.Field{
             id: :action,
             title: "Action",
-            display: result.o.action,
+            display: o.action,
             type: :string
           },
           %Objects.Field{
             id: :camera_make,
             title: "Camera Make",
-            display: result.o.camera_make,
+            display: o.camera_make,
             type: :readonly
           },
           %Objects.Field{
             id: :camera_model,
             title: "Camera Model",
-            display: result.o.camera_model,
+            display: o.camera_model,
             type: :readonly
           },
           %Objects.Field{
             id: :flash_used,
             title: "Flash Used",
-            display: result.o.flash_used,
+            display: o.flash_used,
             type: :readonly
           },
           %Objects.Field{
             id: :focal_length,
             title: "Focal Length",
-            display: result.o.focal_length,
+            display: o.focal_length,
             type: :readonly
           },
           %Objects.Field{
             id: :exposure,
             title: "Exposure",
-            display: result.o.exposure,
+            display: o.exposure,
             type: :readonly
           },
           %Objects.Field{
             id: :compression,
             title: "Compression",
-            display: result.o.compression,
+            display: o.compression,
             type: :readonly
           },
           %Objects.Field{
             id: :aperture,
             title: "Aperture",
-            display: result.o.aperture,
+            display: o.aperture,
             type: :readonly
           },
           %Objects.Field{
             id: :level,
             title: "Level",
-            display: result.o.level,
+            display: o.level,
             type: :readonly
           },
           %Objects.Field{
             id: :iso_equiv,
             title: "ISO",
-            display: result.o.iso_equiv,
+            display: o.iso_equiv,
             type: :readonly
           },
           %Objects.Field{
             id: :metering_mode,
             title: "Metering Mode",
-            display: result.o.metering_mode,
+            display: o.metering_mode,
             type: :readonly
           },
           %Objects.Field{
             id: :focus_dist,
             title: "Focus Distance",
-            display: result.o.focus_dist,
+            display: o.focus_dist,
             type: :readonly
           },
           %Objects.Field{
             id: :ccd_width,
             title: "CCD Width",
-            display: result.o.ccd_width,
+            display: o.ccd_width,
             type: :readonly
           }
         ]
 
         cursor = Paginator.cursor_for_record(result, [:datetime, :id])
-        {result.o, icon, fields, cursor}
+        {o, icon, fields, cursor}
     end
   end
 

@@ -42,11 +42,14 @@ defmodule PenguinMemories.Photos.Photo do
     has_many :files, File
     has_many :thumbs, Thumb
     has_many :videos, Video
-    many_to_many :albums, PenguinMemories.Photos.Album, join_through: PhotoAlbum
+
+    field :album_list, :string, virtual: true
+    has_many :photo_albums, PhotoAlbum, on_replace: :delete
+    many_to_many :albums, Album, join_through: PhotoAlbum
   end
 
   @doc false
-  def changeset(photo, attrs) do
+  def delete_changeset(photo, attrs) do
     photo
     |> cast(attrs, [
       :comment,
@@ -130,6 +133,34 @@ defmodule PenguinMemories.Photos.Photo do
     validate_inclusion(changeset, :action, ["D", "R", "M", "auto", "90", "180", "270"])
   end
 
+  @spec get_photo_album(list(PhotoAlbum.t()), integer(), integer()) :: PhotoAlbum.t()
+  defp get_photo_album(photo_albums, photo_id, album_id) do
+    case Enum.filter(photo_albums, fn pa -> pa.photo_id == photo_id and pa.album_id == album_id end) do
+      [result] -> result
+      [] -> %PhotoAlbum{}
+    end
+  end
+
+  defp put_albums(%Ecto.Changeset{valid?: true, changes: %{album_list: album_list}} = changeset) do
+    photo_id = fetch_field!(changeset, :id)
+    photo_albums = fetch_field!(changeset, :photo_albums)
+
+    case validate_list_ids(album_list) do
+      {:ok, list} ->
+        cs_list = Enum.map(list, fn album_id ->
+          pa = get_photo_album(photo_albums, photo_id, album_id)
+          PhotoAlbum.changeset(pa, %{photo_id: photo_id, album_id: album_id})
+        end)
+        put_assoc(changeset, :photo_albums, cs_list)
+
+      {:error, msg} ->
+        add_error(changeset, :album_list, msg)
+
+    end
+  end
+
+  defp put_albums(changeset), do: changeset
+
   @spec edit_changeset(t(), map()) :: Changeset.t()
   def edit_changeset(%__MODULE__{} = photo, attrs) do
     photo
@@ -143,11 +174,13 @@ defmodule PenguinMemories.Photos.Photo do
       :datetime,
       :utc_offset,
       :action,
-      :comment
+      :comment,
+      :album_list
     ])
     |> validate_action()
     |> validate_delete()
     |> validate_datetime()
+    |> put_albums()
   end
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()

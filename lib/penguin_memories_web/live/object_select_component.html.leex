@@ -8,8 +8,8 @@
     <div class="form-group" phx_feedback_for="<%= feedback_for %>">
         <%= label(@form, dummy_field_id, @field.title, class: "control-label") %>
         <div class="autoselect form-control <%= field_class %>">
-            <%= if not is_nil(@selected_id) do %>
-                <span class="selected" phx-click="remove" phx-value="@selected_id" phx-target="<%= @myself %>"><%= @selected_display %></span>
+            <%= for icon <- @selected do %>
+                <span class="selected" phx-click="remove" phx-value-id="<%= icon.id %>" phx-target="<%= @myself %>"><%= icon.title %></span>
             <% end %>
             <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, value: @text, disabled: @disabled) %>
         </div>
@@ -23,7 +23,7 @@
                     <%=
                     Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
                     icon: icon, classes: ["dropdown-item"],
-                    event: "select",
+                    event: "add",
                     target: @myself
                     %>
                 <% end %>

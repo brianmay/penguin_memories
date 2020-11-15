@@ -22,7 +22,7 @@
             <%=  for icon <- icons do %>
                 <%=
                 Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
-                icon: icon, classes: [], event: "parent"
+                icon: icon, classes: [], event: "goto"
                 %>
             <% end %>
             <div class="arrow">🠆</div>
