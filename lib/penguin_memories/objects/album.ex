@@ -86,8 +86,7 @@ defmodule PenguinMemories.Objects.Album do
 
   @spec query_ascendants(integer) :: Ecto.Query.t()
   defp query_ascendants(id) do
-    from o in Album,
-      as: :object,
+    from [object: o] in query_common(),
       join: oa in AlbumAscendant,
       on: o.id == oa.ascendant_id,
       as: :ascendants,
