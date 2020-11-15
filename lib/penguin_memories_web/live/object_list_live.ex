@@ -240,7 +240,12 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     type = String.to_existing_atom(type)
     type_name = type.get_type_name()
     url = Routes.object_list_path(socket, :index, type_name, id)
-    socket = push_patch(socket, to: url)
+
+    socket = cond do
+      type == socket.assigns.type -> push_patch(socket, to: url)
+      true -> push_redirect(socket, to: url)
+    end
+
     {:noreply, socket}
   end
 
