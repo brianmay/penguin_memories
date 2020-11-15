@@ -74,6 +74,12 @@ defmodule PenguinMemories.Objects do
               String.t() | nil,
               integer()
             ) :: {list(Icon.t()), String.t() | nil, String.t() | nil, integer}
+  @callback get_prev_next_id(
+              %{required(String.t()) => String.t()},
+              String.t() | nil,
+              String.t() | nil
+            ) :: nil | Icon.t()
+
   @callback search_icons(%{required(String.t()) => String.t()}, integer) :: list(Icon.t())
 
   @callback can_create?() :: boolean()

@@ -402,6 +402,34 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
+  @spec get_prev_next_id(
+          %{required(String.t()) => String.t()},
+          String.t() | nil,
+          String.t() | nil
+        ) :: nil | Object.Icon.t()
+  def get_prev_next_id(filter_spec, before_key, after_key) do
+    query =
+      filter_spec
+      |> query_objects()
+      |> query_icons("thumb")
+
+    %{entries: entries, metadata: _} =
+      Repo.paginate(
+        query,
+        before: before_key,
+        after: after_key,
+        cursor_fields: [:sort_name, :sort_order, :id],
+        limit: 1,
+        include_total_count: false
+      )
+
+    case entries do
+      [result] -> get_icon_from_result(result)
+      [] -> nil
+    end
+  end
+
+  @impl Objects
   @spec search_icons(%{required(String.t()) => String.t()}, integer) :: list(Objects.Icon.t())
   def search_icons(filter_spec, limit) do
     query =

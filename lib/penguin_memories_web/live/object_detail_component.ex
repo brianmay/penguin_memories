@@ -59,12 +59,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:ok, socket}
   end
 
-  @spec get_icon_from_results(
-          {list(Objects.Icon.t()), String.t() | nil, String.t() | nil, integer}
-        ) :: Objects.Icon.t()
-  defp get_icon_from_results({[], _, _, _}), do: nil
-  defp get_icon_from_results({[%Objects.Icon{} = icon], _, _, _}), do: icon
-
   def reload(socket) do
     type = socket.assigns.type
     num_selected = socket.assigns.num_selected
@@ -84,12 +78,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
               {nil, nil, [], false, nil, nil, []}
 
             {object, icon, videos, fields, cursor} ->
-              prev_icon =
-                type.get_page_icons(search_spec, cursor, nil, 1) |> get_icon_from_results()
-
-              next_icon =
-                type.get_page_icons(search_spec, nil, cursor, 1) |> get_icon_from_results()
-
+              prev_icon = type.get_prev_next_id(search_spec, cursor, nil)
+              next_icon = type.get_prev_next_id(search_spec, nil, cursor)
               {object, fields, [icon], false, prev_icon, next_icon, videos}
           end
 
