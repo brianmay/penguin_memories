@@ -233,7 +233,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   end
 
   @impl true
-  @spec handle_event(<<_::32, _::_*8>>, any, Phoenix.LiveView.Socket.t()) :: {:noreply, Phoenix.LiveView.Socket.t()}
+  @spec handle_event(<<_::32, _::_*8>>, any, Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("goto", params, socket) do
     %{"id" => id, "type" => type} = params
     id = to_int(id)
@@ -241,10 +242,11 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     type_name = type.get_type_name()
     url = Routes.object_list_path(socket, :index, type_name, id)
 
-    socket = cond do
-      type == socket.assigns.type -> push_patch(socket, to: url)
-      true -> push_redirect(socket, to: url)
-    end
+    socket =
+      cond do
+        type == socket.assigns.type -> push_patch(socket, to: url)
+        true -> push_redirect(socket, to: url)
+      end
 
     {:noreply, socket}
   end

@@ -7,9 +7,9 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
   import Ecto.Changeset
 
   @type t :: %__MODULE__{
-    photo_id: integer,
-    album_id: integer,
-  }
+          photo_id: integer,
+          album_id: integer
+        }
 
   schema "spud_photo_album" do
     belongs_to :photo, PenguinMemories.Photos.Photo

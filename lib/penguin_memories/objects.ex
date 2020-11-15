@@ -34,7 +34,8 @@ defmodule PenguinMemories.Objects do
             title: String.t(),
             display: String.t() | nil,
             icons: list(Icon.t()) | nil,
-            type: :string | :markdown | :album | :albums | :photo | :time | :utc_offset | :readonly
+            type:
+              :string | :markdown | :album | :albums | :photo | :time | :utc_offset | :readonly
           }
     @enforce_keys [:id, :title, :display, :type]
     defstruct [:id, :title, :display, :type, :icons]

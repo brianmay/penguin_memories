@@ -519,5 +519,4 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
         Routes.object_list_path(socket, :index, "photo") <> "?" <> query
     end
   end
-
 end

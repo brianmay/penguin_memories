@@ -42,11 +42,14 @@ defmodule PenguinMemories.Objects.Album do
 
     query =
       case filter_spec["photo_id"] do
-        nil -> query
-        id -> from o in query,
-          join: op in PhotoAlbum,
-          on: op.album_id == o.id,
-          where: op.photo_id == ^id
+        nil ->
+          query
+
+        id ->
+          from o in query,
+            join: op in PhotoAlbum,
+            on: op.album_id == o.id,
+            where: op.photo_id == ^id
       end
 
     query =
@@ -64,10 +67,11 @@ defmodule PenguinMemories.Objects.Album do
         filtered_search = Enum.join(filtered_search)
         dynamic = dynamic([o], ilike(o.title, ^filtered_search))
 
-        dynamic = case Integer.parse(search) do
-          {int, ""} -> dynamic([o], ^dynamic or o.id == ^int)
-          _ -> dynamic
-        end
+        dynamic =
+          case Integer.parse(search) do
+            {int, ""} -> dynamic([o], ^dynamic or o.id == ^int)
+            _ -> dynamic
+          end
 
         from o in query, where: ^dynamic
     end
@@ -146,7 +150,7 @@ defmodule PenguinMemories.Objects.Album do
       subtitle: subtitle,
       height: result.height,
       width: result.width,
-      type: __MODULE__,
+      type: __MODULE__
     }
   end
 
@@ -285,7 +289,7 @@ defmodule PenguinMemories.Objects.Album do
       |> query_add_parents()
       |> query_icons("mid")
       |> select_merge([object: o, photo: p, parent: op], %{
-        o: o,
+        o: o
       })
 
     case Repo.one(query) do
@@ -295,7 +299,12 @@ defmodule PenguinMemories.Objects.Album do
       result ->
         icon = get_icon_from_result(result)
         parent_icons = search_icons(%{"ids" => MapSet.new([result.o.parent_id])}, 1)
-        cover_icons = PenguinMemories.Objects.Photo.search_icons(%{"ids" => MapSet.new([result.o.cover_photo_id])}, 1)
+
+        cover_icons =
+          PenguinMemories.Objects.Photo.search_icons(
+            %{"ids" => MapSet.new([result.o.cover_photo_id])},
+            1
+          )
 
         fields = [
           %Objects.Field{

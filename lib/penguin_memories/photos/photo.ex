@@ -135,7 +135,9 @@ defmodule PenguinMemories.Photos.Photo do
 
   @spec get_photo_album(list(PhotoAlbum.t()), integer(), integer()) :: PhotoAlbum.t()
   defp get_photo_album(photo_albums, photo_id, album_id) do
-    case Enum.filter(photo_albums, fn pa -> pa.photo_id == photo_id and pa.album_id == album_id end) do
+    case Enum.filter(photo_albums, fn pa ->
+           pa.photo_id == photo_id and pa.album_id == album_id
+         end) do
       [result] -> result
       [] -> %PhotoAlbum{}
     end
@@ -147,15 +149,16 @@ defmodule PenguinMemories.Photos.Photo do
 
     case validate_list_ids(album_list) do
       {:ok, list} ->
-        cs_list = Enum.map(list, fn album_id ->
-          pa = get_photo_album(photo_albums, photo_id, album_id)
-          PhotoAlbum.changeset(pa, %{photo_id: photo_id, album_id: album_id})
-        end)
+        cs_list =
+          Enum.map(list, fn album_id ->
+            pa = get_photo_album(photo_albums, photo_id, album_id)
+            PhotoAlbum.changeset(pa, %{photo_id: photo_id, album_id: album_id})
+          end)
+
         put_assoc(changeset, :photo_albums, cs_list)
 
       {:error, msg} ->
         add_error(changeset, :album_list, msg)
-
     end
   end
 

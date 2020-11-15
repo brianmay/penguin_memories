@@ -59,10 +59,11 @@ defmodule PenguinMemories.Objects.Photo do
         filtered_search = Enum.join(filtered_search)
         dynamic = dynamic([o], ilike(o.title, ^filtered_search))
 
-        dynamic = case Integer.parse(search) do
-          {int, ""} -> dynamic([o], ^dynamic or o.id == ^int)
-          _ -> dynamic
-        end
+        dynamic =
+          case Integer.parse(search) do
+            {int, ""} -> dynamic([o], ^dynamic or o.id == ^int)
+            _ -> dynamic
+          end
 
         from o in query, where: ^dynamic
     end
@@ -121,7 +122,7 @@ defmodule PenguinMemories.Objects.Photo do
       subtitle: subtitle,
       height: result.height,
       width: result.width,
-      type: __MODULE__,
+      type: __MODULE__
     }
   end
 
@@ -261,9 +262,10 @@ defmodule PenguinMemories.Objects.Photo do
         icon = get_icon_from_result(result)
         albums = PenguinMemories.Objects.Album.search_icons(%{"photo_id" => id}, 10)
 
-        album_list = albums
-        |> Enum.map(fn album -> album.id end)
-        |> Enum.join(",")
+        album_list =
+          albums
+          |> Enum.map(fn album -> album.id end)
+          |> Enum.join(",")
 
         o = %{result.o | album_list: album_list}
 
