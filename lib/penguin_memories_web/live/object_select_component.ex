@@ -44,6 +44,9 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
             {id, ""} = Integer.parse(id)
             id
           end)
+
+        is_nil(selected) ->
+          []
       end
       |> MapSet.new()
 
