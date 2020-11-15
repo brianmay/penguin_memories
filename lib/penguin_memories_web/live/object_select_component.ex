@@ -30,15 +30,21 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     form = params.form
     field = params.field
     search = Map.get(params, :search, %{})
+    selected = Changeset.get_field(form.source, field.id)
 
     ids =
-      form.source
-      |> Changeset.get_field(field.id)
-      |> String.split(",")
-      |> Enum.map(fn id ->
-        {id, ""} = Integer.parse(id)
-        id
-      end)
+      cond do
+        is_integer(selected) ->
+          [selected]
+
+        is_binary(selected) ->
+          selected
+          |> String.split(",")
+          |> Enum.map(fn id ->
+            {id, ""} = Integer.parse(id)
+            id
+          end)
+      end
       |> MapSet.new()
 
     icons = type.search_icons(%{"ids" => ids}, 100)
@@ -70,11 +76,13 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     else
       type = socket.assigns.type
 
-      selected = socket.assigns.selected
-      |> Enum.map(fn icon -> icon.id end)
-      |> MapSet.new()
+      selected =
+        socket.assigns.selected
+        |> Enum.map(fn icon -> icon.id end)
+        |> MapSet.new()
 
-      icons = search
+      icons =
+        search
         |> type.search_icons(10)
         |> Enum.reject(fn icon -> MapSet.member?(selected, icon.id) end)
 
@@ -166,5 +174,4 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
 
     Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, ids)
   end
-
 end
