@@ -55,7 +55,16 @@ defmodule PenguinMemories.Objects.Photo do
         query
 
       search ->
-        from o in query, where: fragment("to_tsvector(?) @@ to_tsquery(?)", o.title, ^search)
+        filtered_search = ["%", String.replace(search, "%", ""), "%"]
+        filtered_search = Enum.join(filtered_search)
+        dynamic = dynamic([o], like(o.title, ^filtered_search))
+
+        dynamic = case Integer.parse(search) do
+          {int, ""} -> dynamic([o], ^dynamic or o.id == ^int)
+          _ -> dynamic
+        end
+
+        from o in query, where: ^dynamic
     end
   end
 
