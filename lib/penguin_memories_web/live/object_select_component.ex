@@ -150,7 +150,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  @spec add_selected(list(Icon.t()), Icon.t(), boolean()) :: list(Icon.t())
+  @spec add_selected(list(Objects.Icon.t()), Objects.Icon.t(), boolean()) :: list(Objects.Icon.t())
   def add_selected(_selected, icon, true) do
     [icon]
   end
@@ -159,7 +159,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     [icon | selected]
   end
 
-  @spec remove_selected(list(Icon.t()), Icon.t(), boolean()) :: list(Icon.t())
+  @spec remove_selected(list(Objects.Icon.t()), Objects.Icon.t(), boolean()) :: list(Objects.Icon.t())
   def remove_selected(_selected, _icon, true) do
     []
   end
@@ -168,7 +168,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     Enum.reject(selected, fn s -> s.id == icon.id end)
   end
 
-  @spec update_changeset(Phoenix.LiveView.Socket.t(), list(Icon.t())) :: Changeset.t()
+  @spec update_changeset(Phoenix.LiveView.Socket.t(), list(Objects.Icon.t())) :: Changeset.t()
   def update_changeset(socket, selected) do
     ids =
       selected

@@ -66,7 +66,7 @@ defmodule PenguinMemories.Objects do
   @callback get_plural_title() :: String.t()
   @callback get_update_fields() :: list(Field.t())
   @callback get_parents(integer) :: list({Icon.t(), integer})
-  @callback get_details(integer) ::
+  @callback get_details(integer, String.t(), String.t()) ::
               {map(), Icon.t(), list(Video.t()), list(Field.t()), String.t()} | nil
   @callback get_page_icons(
               %{required(String.t()) => String.t()},

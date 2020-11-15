@@ -109,7 +109,7 @@ defmodule PenguinMemories.Objects.Photo do
     query
   end
 
-  @spec query_videos(integer(), String.t()) :: list(Video.t())
+  @spec query_videos(integer(), String.t()) :: list(Objects.Video.t())
   defp query_videos(photo_id, size) do
     file_query =
       from f in File,
@@ -279,14 +279,14 @@ defmodule PenguinMemories.Objects.Photo do
   end
 
   @impl Objects
-  @spec get_details(integer) ::
+  @spec get_details(integer, String.t(), String.t()) ::
           {map(), Objects.Icon.t(), list(Objects.Video.t()), list(Objects.Field.t()), String.t()}
           | nil
-  def get_details(id) do
+  def get_details(id, icon_size, video_size) do
     query =
       id
       |> query_object()
-      |> query_icons("mid")
+      |> query_icons(icon_size)
       |> select_merge([object: o], %{o: o})
       |> preload([:photo_albums])
 
@@ -298,7 +298,7 @@ defmodule PenguinMemories.Objects.Photo do
         id = result.o.id
         icon = get_icon_from_result(result)
         albums = PenguinMemories.Objects.Album.search_icons(%{"photo_id" => id}, 10)
-        videos = query_videos(id, "320")
+        videos = query_videos(id, video_size)
 
         album_list =
           albums
@@ -489,7 +489,7 @@ defmodule PenguinMemories.Objects.Photo do
           %{required(String.t()) => String.t()},
           String.t() | nil,
           String.t() | nil
-        ) :: nil | Object.Icon.t()
+        ) :: nil | Objects.Icon.t()
   def get_prev_next_id(filter_spec, before_key, after_key) do
     query =
       filter_spec

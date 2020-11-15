@@ -40,36 +40,38 @@ end
 
 <%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: selected_ids, type: @type, search_spec: search_spec, id: :detail) %>
 
-<div class="buttons">
-    <%= if not @show_selected do %>
-        <div class="btn btn-secondary" phx-click="show-selected">Show Selected</div>
-    <% end %>
-    <%= if @show_selected do %>
-        <div class="btn btn-secondary" phx-click="show-all">Show All</div>
-    <% end %>
-    <%= if num_selected > 0 do %>
-        <div class="btn btn-secondary" phx-click="select-none">Unselect All</div>
-    <% end %>
-</div>
+<div class="photo_list_with_controls">
+    <div class="buttons">
+        <%= if not @show_selected do %>
+            <div class="btn btn-secondary" phx-click="show-selected">Show Selected</div>
+        <% end %>
+        <%= if @show_selected do %>
+            <div class="btn btn-secondary" phx-click="show-all">Show All</div>
+        <% end %>
+        <%= if num_selected > 0 do %>
+            <div class="btn btn-secondary" phx-click="select-none">Unselect All</div>
+        <% end %>
+        <%= if @before_url do %>
+            <%= live_patch to: @before_url, class: "btn btn-secondary btn-prev" do %>
+                &lt
+            <% end %>
+        <% end %>
+        <%= if @after_url do %>
+            <%= live_patch to: @after_url, class: "btn btn-secondary btn-next" do %>
+                &gt
+            <% end %>
+        <% end %>
+    </div>
 
-<div class="photo_list">
-    <%= for icon <- @icons do %>
-        <%=
-        Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
-        icon: icon, classes: icon_classes(icon, @selected_ids, @last_clicked_id),
-        event: "select"
-        %>
-    <% end %>
-</div>
+    <div class="photo_list">
+        <%= for icon <- @icons do %>
+            <%=
+            Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
+            icon: icon, classes: icon_classes(icon, @selected_ids, @last_clicked_id),
+            event: "select"
+            %>
+        <% end %>
+    </div>
 
-<%= if @before_url do %>
-    <%= live_patch to: @before_url, class: "btn btn-secondary" do %>
-        &lt
-    <% end %>
-<% end %>
-<%= if @after_url do %>
-    <%= live_patch to: @after_url, class: "btn btn-secondary" do %>
-        &gt
-    <% end %>
-<% end %>
-Total count: '<%= @total_count %>'
+    Total count: '<%= @total_count %>'
+</div>

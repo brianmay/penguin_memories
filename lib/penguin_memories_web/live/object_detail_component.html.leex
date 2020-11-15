@@ -7,7 +7,7 @@
         </div>
     <% end %>
 
-    <div class="photo_detail">
+    <div class="photo_detail <%= if @big do %>big<% end %>">
         <%= if @num_selected == 1 and is_nil(@selected_object) do %>
             <div class="alert alert-danger">Selected object not found</div>
         <% end %>
@@ -111,11 +111,17 @@
                         <% end %>
 
                         <%= if @prev_icon do %>
-                            <div class="btn btn-secondary" phx-click="select-object" phx-value-id="<%= @prev_icon.id %>">&lt;</div>
+                            <div class="btn btn-secondary btn-prev" phx-click="select-object" phx-value-id="<%= @prev_icon.id %>">&lt;</div>
                         <% end %>
 
                         <%= if @next_icon do %>
-                            <div class="btn btn-secondary" phx-click="select-object" phx-value-id="<%= @next_icon.id %>">&gt;</div>
+                            <div class="btn btn-secondary btn-next" phx-click="select-object" phx-value-id="<%= @next_icon.id %>">&gt;</div>
+                        <% end %>
+
+                        <%= if @big do %>
+                            <div class="btn btn-secondary" phx-click="unbig" phx-target="<%= @myself %>">Unbig</div>
+                        <% else %>
+                            <div class="btn btn-secondary" phx-click="big" phx-target="<%= @myself %>">Big</div>
                         <% end %>
 
                         <% url = get_photo_url(@socket, @type, icon.id) %>

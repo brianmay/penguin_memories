@@ -285,15 +285,16 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec get_details(integer) ::
+  @spec get_details(integer, String.t(), String.t()) ::
           {map(), Objects.Icon.t(), list(Objects.Video.t()), list(Objects.Field.t()), String.t()}
           | nil
-  def get_details(id) do
+  def get_details(id, icon_size, _video_size) do
+
     query =
       id
       |> query_object()
       |> query_add_parents()
-      |> query_icons("mid")
+      |> query_icons(icon_size)
       |> select_merge([object: o, photo: p, parent: op], %{
         o: o
       })
@@ -406,7 +407,7 @@ defmodule PenguinMemories.Objects.Album do
           %{required(String.t()) => String.t()},
           String.t() | nil,
           String.t() | nil
-        ) :: nil | Object.Icon.t()
+        ) :: nil | Objects.Icon.t()
   def get_prev_next_id(filter_spec, before_key, after_key) do
     query =
       filter_spec

@@ -20,7 +20,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       error: nil,
       selected_object: nil,
       user: nil,
-      videos: nil
+      videos: nil,
+      big: false
     ]
 
     {:ok, assign(socket, assigns)}
@@ -65,6 +66,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     selected_ids = socket.assigns.selected_ids
     search_spec = socket.assigns.search_spec
 
+    {icon_size, video_size} = case socket.assigns.big do
+      false -> {"mid", "320"}
+      true -> {"large", "1080"}
+    end
+
     {selected_object, selected_fields, icons, more_icons, prev_icon, next_icon, videos} =
       cond do
         num_selected == 0 ->
@@ -73,7 +79,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
         num_selected == 1 ->
           [id] = MapSet.to_list(selected_ids)
 
-          case type.get_details(id) do
+          case type.get_details(id, icon_size, video_size) do
             nil ->
               {nil, nil, [], false, nil, nil, []}
 
@@ -111,6 +117,16 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     else
       {:noreply, assign(socket, :error, "Permission denied")}
     end
+  end
+
+  @impl true
+  def handle_event("big", _params, socket) do
+    {:noreply, assign(socket, :big, true) |> reload()}
+  end
+
+  @impl true
+  def handle_event("unbig", _params, socket) do
+    {:noreply, assign(socket, :big, false) |> reload()}
   end
 
   @impl true
