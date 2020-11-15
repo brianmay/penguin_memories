@@ -84,8 +84,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
               {nil, nil, [], false, nil, nil, []}
 
             {object, icon, videos, fields, cursor} ->
-              Paginator.Cursor.decode(cursor) |> IO.inspect()
-
               prev_icon =
                 type.get_page_icons(search_spec, cursor, nil, 1) |> get_icon_from_results()
 

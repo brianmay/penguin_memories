@@ -299,7 +299,6 @@ defmodule PenguinMemories.Objects.Photo do
         icon = get_icon_from_result(result)
         albums = PenguinMemories.Objects.Album.search_icons(%{"photo_id" => id}, 10)
         videos = query_videos(id, "320")
-        IO.inspect(videos)
 
         album_list =
           albums
