@@ -34,11 +34,12 @@ defmodule PenguinMemories.Objects.Album do
 
     from o in Album,
       as: :object,
-      where: o.id in ^id_list
+      where: o.id in ^id_list,
+      select: %{id: o.id}
   end
 
   defp query_objects(filter_spec) do
-    query = from o in Album, as: :object
+    query = from o in Album, as: :object, select: %{id: o.id}
 
     query =
       case filter_spec["photo_id"] do
@@ -84,7 +85,8 @@ defmodule PenguinMemories.Objects.Album do
       join: oa in AlbumAscendant,
       on: o.id == oa.ascendant_id,
       as: :ascendants,
-      where: oa.descendant_id == ^id
+      where: oa.descendant_id == ^id,
+      select: %{id: o.id}
   end
 
   @spec query_object(integer) :: Ecto.Query.t()
@@ -96,7 +98,11 @@ defmodule PenguinMemories.Objects.Album do
 
   @spec query_add_parents(Ecto.Query.t()) :: Ecto.Query.t()
   defp query_add_parents(query) do
-    from o in query, left_join: op in Album, on: o.parent_id == op.id, as: :parent
+    from o in query,
+      left_join: op in Album,
+      on: o.parent_id == op.id,
+      as: :parent,
+      select: %{id: o.id}
   end
 
   @spec query_icons(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
@@ -114,16 +120,17 @@ defmodule PenguinMemories.Objects.Album do
         as: :photo,
         left_join: f in subquery(file_query),
         on: f.photo_id == p.id,
-        as: :file,
-        select: %{
-          id: o.id,
-          title: o.title,
-          sort_name: o.sort_name,
-          sort_order: o.sort_order,
-          dir: f.dir,
-          name: f.name,
-          height: f.height,
-          width: f.width
+        as: :icon,
+        select_merge: %{
+          icon: %{
+            title: o.title,
+            sort_name: o.sort_name,
+            sort_order: o.sort_order,
+            dir: f.dir,
+            name: f.name,
+            height: f.height,
+            width: f.width
+          }
         },
         order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id]
 
@@ -133,23 +140,23 @@ defmodule PenguinMemories.Objects.Album do
   @spec get_icon_from_result(map()) :: Objects.Icon.t()
   defp get_icon_from_result(result) do
     url =
-      if result.dir do
-        "https://photos.linuxpenguins.xyz/images/#{result.dir}/#{result.name}"
+      if result.icon.dir do
+        "https://photos.linuxpenguins.xyz/images/#{result.icon.dir}/#{result.icon.name}"
       end
 
     subtitle =
-      if result.sort_name != "" and result.sort_order != "" do
-        "#{result.sort_name}: #{result.sort_order}"
+      if result.icon.sort_name != "" and result.icon.sort_order != "" do
+        "#{result.icon.sort_name}: #{result.icon.sort_order}"
       end
 
     %Objects.Icon{
       id: result.id,
       action: nil,
       url: url,
-      title: result.title,
+      title: result.icon.title,
       subtitle: subtitle,
-      height: result.height,
-      width: result.width,
+      height: result.icon.height,
+      width: result.icon.width,
       type: __MODULE__
     }
   end

@@ -32,11 +32,12 @@ defmodule PenguinMemories.Objects.Photo do
 
     from o in Photo,
       as: :object,
-      where: o.id in ^id_list
+      where: o.id in ^id_list,
+      select: %{id: o.id}
   end
 
   defp query_objects(filter_spec) do
-    query = from o in Photo, as: :object
+    query = from o in Photo, as: :object, select: %{id: o.id}
 
     query =
       case filter_spec["album"] do
@@ -44,8 +45,7 @@ defmodule PenguinMemories.Objects.Photo do
           query
 
         id ->
-          from o in Photo,
-            as: :object,
+          from [object: o] in query,
             join: album in assoc(o, :albums),
             where: album.id == ^id
       end
@@ -65,7 +65,7 @@ defmodule PenguinMemories.Objects.Photo do
             _ -> dynamic
           end
 
-        from o in query, where: ^dynamic
+        from [object: o] in query, where: ^dynamic
     end
   end
 
@@ -73,7 +73,8 @@ defmodule PenguinMemories.Objects.Photo do
   defp query_object(id) do
     from o in Photo,
       as: :object,
-      where: o.id == ^id
+      where: o.id == ^id,
+      select: %{id: o.id}
   end
 
   @spec query_icons(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
@@ -85,20 +86,21 @@ defmodule PenguinMemories.Objects.Photo do
         order_by: [asc: :id]
 
     query =
-      from o in query,
+      from [object: o] in query,
         left_join: f in subquery(file_query),
         on: f.photo_id == o.id,
-        as: :file,
-        select: %{
-          id: o.id,
-          title: o.title,
-          datetime: o.datetime,
-          utc_offset: o.utc_offset,
-          dir: f.dir,
-          name: f.name,
-          height: f.height,
-          width: f.width,
-          action: o.action
+        as: :icon,
+        select_merge: %{
+          icon: %{
+            title: o.title,
+            datetime: o.datetime,
+            utc_offset: o.utc_offset,
+            dir: f.dir,
+            name: f.name,
+            height: f.height,
+            width: f.width,
+            action: o.action
+          }
         },
         order_by: [asc: o.datetime, asc: o.id]
 
@@ -108,20 +110,20 @@ defmodule PenguinMemories.Objects.Photo do
   @spec get_icon_from_result(map()) :: Objects.Icon.t()
   defp get_icon_from_result(result) do
     url =
-      if result.dir do
-        "https://photos.linuxpenguins.xyz/images/#{result.dir}/#{result.name}"
+      if result.icon.dir do
+        "https://photos.linuxpenguins.xyz/images/#{result.icon.dir}/#{result.icon.name}"
       end
 
-    subtitle = Objects.display_datetime_offset(result.datetime, result.utc_offset)
+    subtitle = Objects.display_datetime_offset(result.icon.datetime, result.icon.utc_offset)
 
     %Objects.Icon{
       id: result.id,
-      action: result.action,
+      action: result.icon.action,
       url: url,
-      title: result.title,
+      title: result.icon.title,
       subtitle: subtitle,
-      height: result.height,
-      width: result.width,
+      height: result.icon.height,
+      width: result.icon.width,
       type: __MODULE__
     }
   end
@@ -130,7 +132,7 @@ defmodule PenguinMemories.Objects.Photo do
   @spec get_parent_ids(integer) :: list(integer())
   def get_parent_ids(id) when is_integer(id) do
     query =
-      from o in Photo,
+      from [object: o] in Photo,
         where: o.id == ^id,
         select: o.parent_id
 
@@ -144,7 +146,7 @@ defmodule PenguinMemories.Objects.Photo do
   @spec get_child_ids(integer) :: list(integer())
   def get_child_ids(id) do
     query =
-      from o in Photo,
+      from [object: o] in Photo,
         where: o.parent_id == ^id,
         select: o.id
 
