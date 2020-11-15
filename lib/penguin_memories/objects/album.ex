@@ -62,7 +62,7 @@ defmodule PenguinMemories.Objects.Album do
       search ->
         filtered_search = ["%", String.replace(search, "%", ""), "%"]
         filtered_search = Enum.join(filtered_search)
-        dynamic = dynamic([o], like(o.title, ^filtered_search))
+        dynamic = dynamic([o], ilike(o.title, ^filtered_search))
 
         dynamic = case Integer.parse(search) do
           {int, ""} -> dynamic([o], ^dynamic or o.id == ^int)
