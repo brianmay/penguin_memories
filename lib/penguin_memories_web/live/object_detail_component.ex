@@ -67,8 +67,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     search_spec = socket.assigns.search_spec
 
     {icon_size, video_size} = case socket.assigns.big do
-      false -> {"mid", "320"}
-      true -> {"large", "1080"}
+      false -> {"mid", "mid"}
+      true -> {"large", "large"}
     end
 
     {selected_object, selected_fields, icons, more_icons, prev_icon, next_icon, videos} =
