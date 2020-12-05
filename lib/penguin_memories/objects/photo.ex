@@ -64,6 +64,7 @@ defmodule PenguinMemories.Objects.Photo do
         filtered_search = ["%", String.replace(search, "%", ""), "%"]
         filtered_search = Enum.join(filtered_search)
         dynamic = dynamic([o], ilike(o.title, ^filtered_search))
+        dynamic = dynamic([o], ^dynamic or ilike(o.name, ^filtered_search))
 
         dynamic =
           case Integer.parse(search) do
