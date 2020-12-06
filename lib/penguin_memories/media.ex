@@ -150,5 +150,16 @@ defmodule PenguinMemories.Media do
     |> List.first()
   end
 
+  @spec get_sha256_hash(t()) :: binary()
+  def get_sha256_hash(%__MODULE__{} = media) do
+    File.stream!(media.path, [], 2_048)
+    |> Enum.reduce(:crypto.hash_init(:sha256), &:crypto.hash_update(&2, &1))
+    |> :crypto.hash_final()
+  end
+
+  @spec get_num_bytes(t()) :: integer()
+  def get_num_bytes(%__MODULE__{} = media) do
+    %{size: size} = File.stat!(media.path)
+    size
   end
 end
