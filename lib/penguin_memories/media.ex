@@ -143,11 +143,12 @@ defmodule PenguinMemories.Media do
     exif = get_exif(media)
 
     ["EXIF:DateTimeOriginal", "EXIF:DateTimeDigitized", "EXIF:CreateDate"]
-      |> Enum.map(fn name -> Map.get(exif, name, nil) end)
-      |> Enum.reject(fn value -> is_nil(value) end)
-      |> Enum.reject(fn value -> value == "    :  :     :  :  " end)
-      |> Enum.map(fn value -> Timex.parse!(value, "%Y:%m:%d %H:%M:%S", :strftime) end)
-      |> List.first()
+    |> Enum.map(fn name -> Map.get(exif, name, nil) end)
+    |> Enum.reject(fn value -> is_nil(value) end)
+    |> Enum.reject(fn value -> value == "    :  :     :  :  " end)
+    |> Enum.map(fn value -> Timex.parse!(value, "%Y:%m:%d %H:%M:%S", :strftime) end)
+    |> List.first()
+  end
 
   end
 end
