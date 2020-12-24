@@ -220,9 +220,10 @@ defmodule PenguinMemories.Objects do
     seen = MapSet.new()
     children = type.get_child_ids(id)
 
-    Enum.reduce(children, {seen, cache}, fn
-      child, {seen, cache} -> fix_index_children(child, type, seen, cache)
-    end)
+    {_, _} =
+      Enum.reduce(children, {seen, cache}, fn
+        child, {seen, cache} -> fix_index_children(child, type, seen, cache)
+      end)
 
     :ok
   end
@@ -285,6 +286,20 @@ defmodule PenguinMemories.Objects do
     end
   end
 
+  @spec subst_string_values(String.t(), keyword()) :: String.t()
+  defp subst_string_values(msg, opts) do
+    Enum.reduce(opts, msg, fn {key, value}, acc ->
+      String.replace(acc, "%{#{key}}", to_string(value))
+    end)
+  end
+
+  @spec errors_to_strings(Changeset.t()) :: %{atom() => list(String.t())}
+  defp errors_to_strings(changeset) do
+    Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      subst_string_values(msg, opts)
+    end)
+  end
+
   @spec apply_update_changes(list(integer), map(), module()) :: {:error, String.t()} | :ok
   def apply_update_changes(id_list, changes, type) do
     multi = Multi.new()
@@ -307,11 +322,7 @@ defmodule PenguinMemories.Objects do
 
       {:error, {:update, id}, changeset, _data} ->
         errors =
-          Changeset.traverse_errors(changeset, fn {msg, opts} ->
-            Enum.reduce(opts, msg, fn {key, value}, acc ->
-              String.replace(acc, "%{#{key}}", to_string(value))
-            end)
-          end)
+          errors_to_strings(changeset)
           |> Enum.map(fn {key, value} -> "#{key}: #{value}" end)
           |> Enum.join(", ")
 

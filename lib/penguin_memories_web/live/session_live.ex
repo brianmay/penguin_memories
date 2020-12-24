@@ -1,4 +1,5 @@
 defmodule PenguinMemoriesWeb.SessionLive do
+  @moduledoc "Login/logout of a session"
   use PenguinMemoriesWeb, :live_view
 
   alias PenguinMemories.{Accounts, Accounts.User}

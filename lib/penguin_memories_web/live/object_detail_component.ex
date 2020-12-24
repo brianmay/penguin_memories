@@ -5,9 +5,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   use PenguinMemoriesWeb, :live_component
 
   alias Ecto.Changeset
-  alias Phoenix.LiveView.Socket
-  alias PenguinMemories.Objects
   alias PenguinMemories.Auth
+  alias PenguinMemories.Objects
+  alias Phoenix.LiveView.Socket
 
   @impl true
   def mount(socket) do
@@ -66,10 +66,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     selected_ids = socket.assigns.selected_ids
     search_spec = socket.assigns.search_spec
 
-    {icon_size, video_size} = case socket.assigns.big do
-      false -> {"mid", "mid"}
-      true -> {"large", "large"}
-    end
+    {icon_size, video_size} =
+      case socket.assigns.big do
+        false -> {"mid", "mid"}
+        true -> {"large", "large"}
+      end
 
     {selected_object, selected_fields, icons, more_icons, prev_icon, next_icon, videos} =
       cond do

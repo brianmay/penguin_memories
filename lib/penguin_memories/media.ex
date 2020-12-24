@@ -2,8 +2,8 @@ defmodule PenguinMemories.Media do
   @moduledoc """
   Perform operations on an media object
   """
-  alias PenguinMemories.Media.Tools
   alias PenguinMemories.Media.Maths
+  alias PenguinMemories.Media.Tools
 
   @type t :: %__MODULE__{
           type: String.t(),
@@ -14,6 +14,7 @@ defmodule PenguinMemories.Media do
   defstruct [:type, :subtype, :path]
 
   defmodule Size do
+    @moduledoc "An image size in width and height."
     @type t :: %__MODULE__{
             width: integer(),
             height: integer()

@@ -1,4 +1,5 @@
 defmodule PenguinMemories.Accounts.Guardian do
+  @moduledoc "Guardian hook functions"
   use Guardian, otp_app: :penguin_memories
 
   alias PenguinMemories.Accounts

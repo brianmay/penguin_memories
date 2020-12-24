@@ -1,4 +1,5 @@
 defmodule PenguinMemories.Photos.File do
+  @moduledoc "A file for a photo"
   use Ecto.Schema
   import Ecto.Changeset
 

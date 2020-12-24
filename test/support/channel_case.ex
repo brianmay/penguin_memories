@@ -16,6 +16,7 @@ defmodule PenguinMemoriesWeb.ChannelCase do
   """
 
   use ExUnit.CaseTemplate
+  alias Ecto.Adapters.SQL.Sandbox
 
   using do
     quote do
@@ -29,10 +30,10 @@ defmodule PenguinMemoriesWeb.ChannelCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(PenguinMemories.Repo)
+    :ok = Sandbox.checkout(PenguinMemories.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(PenguinMemories.Repo, {:shared, self()})
+      Sandbox.mode(PenguinMemories.Repo, {:shared, self()})
     end
 
     :ok

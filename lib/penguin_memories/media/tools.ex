@@ -1,5 +1,5 @@
 defmodule PenguinMemories.Media.Tools do
-  @doc false
+  @moduledoc "External tools for media stuff"
 
   @spec exif(String.t()) :: map()
   def exif(path) do

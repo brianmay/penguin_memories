@@ -3,6 +3,6 @@ defmodule PenguinMemories.Media.Maths do
 
   @spec round(float(), integer()) :: integer()
   def round(x, base) do
-      base * round(x/base)
+    base * round(x / base)
   end
 end

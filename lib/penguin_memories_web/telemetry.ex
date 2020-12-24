@@ -1,4 +1,5 @@
 defmodule PenguinMemoriesWeb.Telemetry do
+  @moduledoc "Website telemetry"
   use Supervisor
   import Telemetry.Metrics
 

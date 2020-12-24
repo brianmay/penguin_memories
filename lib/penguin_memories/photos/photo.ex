@@ -1,14 +1,15 @@
 defmodule PenguinMemories.Photos.Photo do
+  @moduledoc "A single photo"
   use Ecto.Schema
   import Ecto.Changeset
   alias Ecto.Changeset
 
   import PenguinMemories.Photos.Private
   alias PenguinMemories.Photos.Album
-  alias PenguinMemories.Photos.PhotoAlbum
   alias PenguinMemories.Photos.File
-  alias PenguinMemories.Photos.Thumb
-  alias PenguinMemories.Photos.Video
+  alias PenguinMemories.Photos.PhotoAlbum
+
+  alias PenguinMemories.Objects.Photo
 
   @type t :: map()
   schema "spud_photo" do
@@ -40,8 +41,6 @@ defmodule PenguinMemories.Photos.Photo do
     field :view, :string
     has_many :cover_photo_albums, Album, foreign_key: :cover_photo_id
     has_many :files, File
-    has_many :thumbs, Thumb
-    has_many :videos, Video
 
     field :album_list, :string, virtual: true
     has_many :photo_albums, PhotoAlbum, on_replace: :delete
@@ -119,7 +118,7 @@ defmodule PenguinMemories.Photos.Photo do
     id = get_field(changeset, :id)
 
     if get_change(changeset, :action) == "D" do
-      case PenguinMemories.Objects.Photo.can_delete?(id) do
+      case Photo.can_delete?(id) do
         :yes -> changeset
         {:no, error} -> add_error(changeset, :action, error)
       end

@@ -1,4 +1,5 @@
 defmodule PenguinMemories.Accounts.User do
+  @moduledoc "A user how can login to the database."
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -12,7 +12,7 @@ defmodule PenguinMemories.MixProject do
       aliases: aliases(),
       deps: deps(),
       elixirc_options: [warnings_as_errors: true],
-      dialyzer: [plt_add_deps: :transitive]
+      dialyzer: dialyzer()
     ]
   end
 
@@ -51,15 +51,15 @@ defmodule PenguinMemories.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:guardian, "~> 2.1"},
       {:argon2_elixir, "~> 2.3"},
-      {:credo, "~> 0.5", only: [:dev, :test]},
       {:dogma, "~> 0.1", only: [:dev]},
-      {:dialyxir, "~> 0.5.0", only: [:dev], runtime: false},
       {:mox, "~> 0.5", only: :test},
       {:paginator, "~> 1.0.1"},
       {:earmark, "~> 1.4.10"},
       {:mogrify, "~> 0.8.0"},
       {:temp, "~> 0.4"},
       {:timex, "~> 3.5"},
+      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -75,6 +75,14 @@ defmodule PenguinMemories.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      ignore_warnings: "dialyzer.ignore-warnings",
+      plt_core_path: "priv/plts",
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
     ]
   end
 end

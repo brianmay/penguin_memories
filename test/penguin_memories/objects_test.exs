@@ -34,9 +34,10 @@ defmodule PenguinMemories.ObjectsTest do
   defp reverse_map(map) do
     Enum.reduce(map, %{}, fn {k, vs}, acc ->
       Enum.reduce(vs, acc, fn v, acc ->
+        # credo:disable-for-next-line Credo.Check.Refactor.Nesting
         update_in(acc[v], fn
           nil -> MapSet.new([k])
-          set -> set |> MapSet.put(k)
+          set -> MapSet.put(set, k)
         end)
       end)
     end)

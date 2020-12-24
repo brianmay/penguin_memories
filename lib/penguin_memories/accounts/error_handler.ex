@@ -1,4 +1,5 @@
 defmodule PenguinMemories.Accounts.ErrorHandler do
+  @moduledoc "Error handler"
   import Plug.Conn
   use PenguinMemoriesWeb, :controller
 

@@ -1,4 +1,5 @@
 defmodule PenguinMemoriesWeb.FormHelpers do
+  @moduledoc "Form field functions"
   use Phoenix.HTML
 
   def field_class(form, field, class) do

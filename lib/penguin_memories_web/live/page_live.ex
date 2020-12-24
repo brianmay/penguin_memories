@@ -1,4 +1,5 @@
 defmodule PenguinMemoriesWeb.PageLive do
+  @moduledoc "Default liveview page"
   use PenguinMemoriesWeb, :live_view
 
   @impl true

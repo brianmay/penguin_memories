@@ -5,8 +5,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   use PenguinMemoriesWeb, :live_view
 
   alias Elixir.Phoenix.LiveView.Socket
-  alias PenguinMemories.Objects
   alias PenguinMemories.Auth
+  alias PenguinMemories.Objects
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
@@ -192,6 +192,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     MapSet.size(mapset)
   end
 
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp toggle_range(mapset, icons, last_clicked_id, clicked_id) do
     new_state = MapSet.member?(mapset, last_clicked_id)
 

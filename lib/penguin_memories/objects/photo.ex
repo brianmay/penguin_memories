@@ -6,11 +6,11 @@ defmodule PenguinMemories.Objects.Photo do
   alias Ecto.Changeset
   alias Ecto.Multi
 
-  alias PenguinMemories.Repo
   alias PenguinMemories.Objects
   alias PenguinMemories.Photos.Album
-  alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.File
+  alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Repo
 
   @behaviour Objects
 
@@ -26,37 +26,30 @@ defmodule PenguinMemories.Objects.Photo do
     "photos"
   end
 
-  @spec query_common() :: Ecto.Query.t()
-  defp query_common() do
+  @spec query_common :: Ecto.Query.t()
+  defp query_common do
     from o in Photo,
       as: :object,
       select: %{id: o.id, datetime: o.datetime},
       order_by: [asc: o.datetime, asc: o.id]
   end
 
-  @spec query_objects(%{required(String.t()) => String.t()}) :: Ecto.Query.t()
-  defp query_objects(%{"ids" => id_mapset}) when not is_nil(id_mapset) do
-    id_list = MapSet.to_list(id_mapset)
+  @spec filter_album_id(Ecto.Query.t(), integer) :: Ecto.Query.t()
+  defp filter_album_id(query, album_id) do
+    case album_id do
+      nil ->
+        query
 
-    from [object: o] in query_common(),
-      where: o.id in ^id_list
+      id ->
+        from [object: o] in query,
+          join: album in assoc(o, :albums),
+          where: album.id == ^id
+    end
   end
 
-  defp query_objects(filter_spec) do
-    query = query_common()
-
-    query =
-      case filter_spec["album"] do
-        nil ->
-          query
-
-        id ->
-          from [object: o] in query,
-            join: album in assoc(o, :albums),
-            where: album.id == ^id
-      end
-
-    case filter_spec["query"] do
+  @spec filter_query(Ecto.Query.t(), String.t()) :: Ecto.Query.t()
+  defp filter_query(query, query_string) do
+    case query_string do
       nil ->
         query
 
@@ -74,6 +67,20 @@ defmodule PenguinMemories.Objects.Photo do
 
         from [object: o] in query, where: ^dynamic
     end
+  end
+
+  @spec query_objects(%{required(String.t()) => String.t()}) :: Ecto.Query.t()
+  defp query_objects(%{"ids" => id_mapset}) when not is_nil(id_mapset) do
+    id_list = MapSet.to_list(id_mapset)
+
+    from [object: o] in query_common(),
+      where: o.id in ^id_list
+  end
+
+  defp query_objects(filter_spec) do
+    query_common()
+    |> filter_album_id(filter_spec["album"])
+    |> filter_query(filter_spec["query"])
   end
 
   @spec query_object(integer) :: Ecto.Query.t()
@@ -530,8 +537,8 @@ defmodule PenguinMemories.Objects.Photo do
   end
 
   @impl Objects
-  @spec can_create?() :: boolean()
-  def can_create?(), do: false
+  @spec can_create? :: boolean()
+  def can_create?, do: false
 
   @impl Objects
   @spec get_create_child_changeset(Photo.t(), map()) :: Ecto.Changeset.t()

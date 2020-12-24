@@ -1,4 +1,5 @@
 defmodule PenguinMemories.Accounts.CheckAdmin do
+  @moduledoc "Check if user is administrator"
   import Plug.Conn
   use PenguinMemoriesWeb, :controller
 
@@ -8,13 +9,13 @@ defmodule PenguinMemories.Accounts.CheckAdmin do
   def call(conn, _params) do
     user = Guardian.Plug.current_resource(conn)
 
-    if not user.is_admin do
+    if user.is_admin do
+      conn
+    else
       conn
       |> put_flash(:error, "Permission denied: Not authorized")
       |> redirect(to: Routes.session_path(conn, :login))
       |> halt()
-    else
-      conn
     end
   end
 end

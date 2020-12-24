@@ -1,4 +1,5 @@
 defmodule PenguinMemories.Photos.Album do
+  @moduledoc "An album containing photos and subalbums"
   use Ecto.Schema
   import Ecto.Changeset
   alias Ecto.Changeset

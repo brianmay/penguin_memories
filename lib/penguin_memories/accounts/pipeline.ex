@@ -1,4 +1,5 @@
 defmodule PenguinMemories.Accounts.Pipeline do
+  @moduledoc "Guardian authentication pipeline"
   use Guardian.Plug.Pipeline,
     otp_app: :penguin_memories,
     error_handler: PenguinMemories.Accounts.ErrorHandler,

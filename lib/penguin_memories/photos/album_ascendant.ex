@@ -1,4 +1,5 @@
 defmodule PenguinMemories.Photos.AlbumAscendant do
+  @moduledoc "Index for albums"
   use Ecto.Schema
   import Ecto.Changeset
 

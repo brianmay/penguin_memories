@@ -140,17 +140,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     end
   end
 
-  @impl true
-  def handle_event("blur", _param, socket) do
-    # FIXME: This doesn't work
-    assigns = [
-      choices: []
-    ]
-
-    {:noreply, assign(socket, assigns)}
-  end
-
-  @spec add_selected(list(Objects.Icon.t()), Objects.Icon.t(), boolean()) :: list(Objects.Icon.t())
+  @spec add_selected(list(Objects.Icon.t()), Objects.Icon.t(), boolean()) ::
+          list(Objects.Icon.t())
   def add_selected(_selected, icon, true) do
     [icon]
   end
@@ -159,7 +150,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     [icon | selected]
   end
 
-  @spec remove_selected(list(Objects.Icon.t()), Objects.Icon.t(), boolean()) :: list(Objects.Icon.t())
+  @spec remove_selected(list(Objects.Icon.t()), Objects.Icon.t(), boolean()) ::
+          list(Objects.Icon.t())
   def remove_selected(_selected, _icon, true) do
     []
   end
