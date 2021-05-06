@@ -139,6 +139,8 @@ defmodule PenguinMemories.MediaTest do
       Media.delete(new_media)
     end
 
+    # requires newer version of ffmpeg then on github CI
+    @tag :skip
     test "resize works valid cr2 file" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       new_path = Temp.path!()
