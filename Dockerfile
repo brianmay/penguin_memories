@@ -1,8 +1,8 @@
 # The version of Alpine to use for the final image
 # This should match the version of Alpine that the `elixir:1.7.2-alpine` image uses
-ARG ALPINE_VERSION=3.11
+ARG ALPINE_VERSION=3.13
 
-FROM elixir:1.10-alpine AS builder
+FROM elixir:1.11-alpine AS builder
 
 # The version of the application we are building (required)
 ARG APP_VSN=0.1.0
@@ -42,8 +42,15 @@ RUN \
   cd .. && \
   mix phx.digest;
 
+# Setup access to version information
+ARG BUILD_DATE=date
+ARG VCS_REF=vcs
+ENV BUILD_DATE=${BUILD_DATE}
+ENV VCS_REF=${VCS_REF}
+
 WORKDIR /opt/app
 COPY lib /opt/app/lib/
+COPY priv /opt/app/priv/
 RUN mix compile
 RUN mix release
 
