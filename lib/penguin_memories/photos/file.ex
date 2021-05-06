@@ -5,6 +5,21 @@ defmodule PenguinMemories.Photos.File do
 
   alias PenguinMemories.Photos.Photo
 
+  @timestamps_opts [type: :utc_datetime]
+
+  @type t :: %__MODULE__{
+    dir: String.t(),
+    height: integer(),
+    is_video: boolean(),
+    mime_type: String.t(),
+    name: String.t(),
+    num_bytes: integer(),
+    sha256_hash: binary(),
+    size_key: String.t(),
+    width: integer(),
+    photo: Photo.t()
+  }
+
   schema "spud_photo_file" do
     field :dir, :string
     field :height, :integer
@@ -16,6 +31,7 @@ defmodule PenguinMemories.Photos.File do
     field :size_key, :string
     field :width, :integer
     belongs_to :photo, Photo
+    timestamps()
   end
 
   @doc false

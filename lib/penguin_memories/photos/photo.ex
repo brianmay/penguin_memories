@@ -11,6 +11,8 @@ defmodule PenguinMemories.Photos.Photo do
 
   alias PenguinMemories.Objects.Photo
 
+  @timestamps_opts [type: :utc_datetime]
+
   @type t :: map()
   schema "spud_photo" do
     field :action, :string
@@ -35,7 +37,6 @@ defmodule PenguinMemories.Photos.Photo do
     field :place_id, :integer
     field :rating, :float
     field :size, :integer
-    field :timestamp, :utc_datetime
     field :title, :string
     field :utc_offset, :integer
     field :view, :string
@@ -45,6 +46,8 @@ defmodule PenguinMemories.Photos.Photo do
     field :album_list, :string, virtual: true
     has_many :photo_albums, PhotoAlbum, on_replace: :delete
     many_to_many :albums, Album, join_through: PhotoAlbum
+
+    timestamps()
   end
 
   @doc false

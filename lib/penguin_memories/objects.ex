@@ -2,9 +2,13 @@ defmodule PenguinMemories.Objects do
   @moduledoc """
   Generic methods that apply to all object types
   """
+  import Ecto.Query
+
   alias Ecto.Changeset
   alias Ecto.Multi
 
+  alias PenguinMemories.Photos.File
+  alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Repo
 
   defmodule Icon do
@@ -352,5 +356,35 @@ defmodule PenguinMemories.Objects do
     datetime = DateTime.add(datetime, offset)
     datetime = %{datetime | utc_offset: offset}
     DateTime.to_string(datetime)
+  end
+
+  @spec get_photo_conflicts(String.t(), String.t()) :: list(integer())
+  def get_photo_conflicts(new_dir, new_name) do
+    name = Path.rootname(new_name)
+
+    photo_query =
+      from p in Photo,
+        where: p.path == ^new_dir and ilike(p.name, ^"#{name}.%")
+
+    results = Repo.all(photo_query)
+
+    Enum.map(results, fn result -> result.id end)
+  end
+
+  @spec get_file_conflicts(String.t(), String.t(), String.t(), integer(), binary()) ::
+          list(integer())
+  def get_file_conflicts(new_dir, new_name, size_key, num_bytes, new_sha256_hash) do
+    name = Path.rootname(new_name)
+
+    file_query =
+      from f in File,
+        where:
+          (f.size_key == ^size_key and f.num_bytes == ^num_bytes and
+             f.sha256_hash == ^new_sha256_hash) or
+            (f.dir == ^new_dir and ilike(f.name, ^"#{name}.%"))
+
+    results = Repo.all(file_query)
+
+    Enum.map(results, fn result -> result.id end)
   end
 end

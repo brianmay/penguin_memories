@@ -1,5 +1,8 @@
 use Mix.Config
 
+config :penguin_memories,
+  image_dir: "/tmp/images"
+
 # Configure your database
 #
 # The MIX_TEST_PARTITION environment variable can be used

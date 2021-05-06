@@ -8,7 +8,9 @@ defmodule PenguinMemories.Repo.Migrations.CreateUsers do
       add :password_hash, :string, null: false
       add :is_admin, :boolean, default: false, null: false
 
-      timestamps()
+      timestamps(type: :utc_datetime_usec)
     end
+
+    create(index(:users, [:username]))
   end
 end

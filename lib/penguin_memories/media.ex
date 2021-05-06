@@ -23,6 +23,16 @@ defmodule PenguinMemories.Media do
     defstruct [:width, :height]
   end
 
+  defmodule SizeRequirement do
+    @moduledoc "Requirement for new image size"
+    @type t :: %__MODULE__{
+            max_width: integer() | nil,
+            max_height: integer() | nil
+          }
+    @enforce_keys [:max_width, :max_height]
+    defstruct [:max_width, :max_height]
+  end
+
   defguardp guard_is_image(type) when type == "image"
   defguardp guard_is_video(type) when type == "video"
 
@@ -63,6 +73,11 @@ defmodule PenguinMemories.Media do
     validate_media(media)
   end
 
+  @spec get_format(t()) :: String.t()
+  def get_format(%__MODULE__{type: type, subtype: subtype}) do
+    "#{type}/#{subtype}"
+  end
+
   @spec get_size(t()) :: Size.t()
   def get_size(%__MODULE__{path: path, type: type, subtype: subtype})
       when guard_is_image(type) and subtype == "cr2" do
@@ -91,10 +106,10 @@ defmodule PenguinMemories.Media do
     %Size{width: video_stream["width"], height: video_stream["height"]}
   end
 
-  @spec get_new_size(t(), keyword()) :: Size.t()
-  def get_new_size(%__MODULE__{} = media, opts \\ []) do
-    max_width = Keyword.get(opts, :max_width)
-    max_height = Keyword.get(opts, :max_height)
+  @spec get_new_size(t(), SizeRequirement.t()) :: Size.t()
+  def get_new_size(%__MODULE__{} = media, %SizeRequirement{} = requirement) do
+    max_width = requirement.max_width
+    max_height = requirement.max_height
 
     size = get_size(media)
     width = size.width
@@ -134,12 +149,47 @@ defmodule PenguinMemories.Media do
     %Size{width: width, height: height}
   end
 
+  @spec resize(t(), String.t(), SizeRequirement.t()) :: {:ok, t()} | {:error, String.t()}
+  def resize(%__MODULE__{path: path, type: type} = media, new_path, requirement)
+      when guard_is_image(type) do
+    new_size = get_new_size(media, requirement)
+    new_path = "#{new_path}.jpg"
+
+    :ok =
+      Thumbnex.create_thumbnail(path, new_path,
+        format: "jpeg",
+        width: new_size.width,
+        height: new_size.height
+      )
+
+    # Mogrify.open(path)
+    # |> Mogrify.format("jpeg")
+    # |> Mogrify.resize("#{new_size.width}x#{new_size.height}")
+    # |> Mogrify.save(path: new_path)
+
+    get_media(new_path, "image/jpeg")
+  end
+
+  def resize(%__MODULE__{path: path, type: type} = media, new_path, requirement)
+      when guard_is_video(type) do
+    new_size = get_new_size(media, requirement)
+    new_path = "#{new_path}.gif"
+
+    :ok =
+      Thumbnex.animated_gif_thumbnail(path, new_path,
+        width: new_size.width,
+        height: new_size.height
+      )
+
+    get_media(new_path, "image/gif")
+  end
+
   @spec get_exif(t()) :: map()
   def get_exif(%__MODULE__{} = media) do
     Tools.exif(media.path)
   end
 
-  @spec get_datetime(t()) :: DateTime.t()
+  @spec get_datetime(t()) :: NaiveDateTime.t()
   def get_datetime(%__MODULE__{} = media) do
     exif = get_exif(media)
 
@@ -162,5 +212,13 @@ defmodule PenguinMemories.Media do
   def get_num_bytes(%__MODULE__{} = media) do
     %{size: size} = File.stat!(media.path)
     size
+  end
+
+  @spec delete(t()) :: :ok | {:error, String.t()}
+  def delete(%__MODULE__{} = media) do
+    case File.rm(media.path) do
+      :ok -> :ok
+      {:error, reason} -> {:error, "rm #{media.path} failed: #{inspect(reason)}"}
+    end
   end
 end

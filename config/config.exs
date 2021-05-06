@@ -8,7 +8,20 @@
 use Mix.Config
 
 config :penguin_memories,
-  ecto_repos: [PenguinMemories.Repo]
+  ecto_repos: [PenguinMemories.Repo],
+  image_dir: "/tmp/images",
+  cameras: %{
+    "Canon EOS R5" => "10:59:36"
+  },
+  image_sizes: %{
+    "thumb" => %{max_width: 120},
+    "mid" => %{max_width: 480},
+    "large" => %{max_width: 1920}
+  },
+  video_sizes: %{
+    "mid" => %{max_width: 480},
+    "large" => %{max_width: 1920}
+  }
 
 config :penguin_memories, PenguinMemories.Repo,
   url: System.get_env("DATABASE_URL"),

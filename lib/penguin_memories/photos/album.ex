@@ -8,6 +8,7 @@ defmodule PenguinMemories.Photos.Album do
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoAlbum
 
+  @timestamps_opts [type: :utc_datetime]
   @type t :: map()
   schema "spud_album" do
     field :description, :string
@@ -22,6 +23,7 @@ defmodule PenguinMemories.Photos.Album do
     has_many :ascendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :ascendant_id
     many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoAlbum
+    timestamps()
   end
 
   @spec validate_revised(Changeset.t()) :: Changeset.t()

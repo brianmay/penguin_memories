@@ -6,6 +6,8 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @timestamps_opts [type: :utc_datetime]
+
   @type t :: %__MODULE__{
           photo_id: integer,
           album_id: integer
@@ -14,6 +16,7 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
   schema "spud_photo_album" do
     belongs_to :photo, PenguinMemories.Photos.Photo
     belongs_to :album, PenguinMemories.Photos.Album
+    timestamps()
   end
 
   def changeset(photo_album, attrs) do

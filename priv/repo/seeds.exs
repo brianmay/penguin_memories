@@ -18,3 +18,5 @@
     password_confirmation: "testtest",
     name: "Test User"
   })
+
+PenguinMemories.Repo.insert!(%PenguinMemories.Photos.Album{title: "Uploads"})
