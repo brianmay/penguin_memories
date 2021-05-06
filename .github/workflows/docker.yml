@@ -63,10 +63,6 @@ jobs:
         mix local.rebar --force
         mix local.hex --force
         mix deps.get
-    - name: Work around https://github.com/riverrun/argon2_elixir/issues/39
-      run: |
-        ls -l deps/argon2_elixir/priv
-        rm -rf deps/argon2_elixir/priv
     - name: Build
       run: |
         mix compile
