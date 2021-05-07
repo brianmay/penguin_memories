@@ -23,7 +23,10 @@ defmodule PenguinMemories.ObjectsTest do
 
   use PenguinMemories.DataCase
 
+  alias PenguinMemories.Media
   alias PenguinMemories.Objects
+  alias PenguinMemories.Photos.File
+  alias PenguinMemories.Photos.Photo
   import Mox
 
   setup_all do
@@ -474,6 +477,50 @@ defmodule PenguinMemories.ObjectsTest do
              }
 
       verify!()
+    end
+  end
+
+  describe "check conflicts" do
+    test "get_photo_conflicts/2" do
+      photo =
+        %Photo{
+          path: "a/b/c",
+          name: "hello.jpg"
+        }
+        |> Repo.insert!()
+
+      conflicts = Objects.get_photo_conflicts("a/b/c", "hello.jpg")
+      assert conflicts == [photo.id]
+
+      conflicts = Objects.get_photo_conflicts("a/b/c", "hello.png")
+      assert conflicts == [photo.id]
+
+      conflicts = Objects.get_photo_conflicts("a/b/d", "hello.png")
+      assert conflicts == []
+
+      conflicts = Objects.get_photo_conflicts("a/b/c", "goodbye.png")
+      assert conflicts == []
+    end
+
+    test "get_file_conflicts/2" do
+      {:ok, media1} = Media.get_media("priv/tests/100x100.jpg")
+      {:ok, media2} = Media.get_media("priv/tests/100x100.png")
+
+      file =
+        %File{
+          dir: "a/b/c",
+          name: "hello.jpg",
+          size_key: "orig",
+          num_bytes: Media.get_num_bytes(media1),
+          sha256_hash: Media.get_sha256_hash(media1)
+        }
+        |> Repo.insert!()
+
+      conflicts = Objects.get_file_conflicts(media1, "orig")
+      assert conflicts == [file.id]
+
+      conflicts = Objects.get_file_conflicts(media2, "orig")
+      assert conflicts == []
     end
   end
 end

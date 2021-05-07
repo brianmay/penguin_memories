@@ -7,6 +7,7 @@ defmodule PenguinMemories.Objects do
   alias Ecto.Changeset
   alias Ecto.Multi
 
+  alias PenguinMemories.Media
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Repo
@@ -371,17 +372,16 @@ defmodule PenguinMemories.Objects do
     Enum.map(results, fn result -> result.id end)
   end
 
-  @spec get_file_conflicts(String.t(), String.t(), String.t(), integer(), binary()) ::
-          list(integer())
-  def get_file_conflicts(new_dir, new_name, size_key, num_bytes, new_sha256_hash) do
-    name = Path.rootname(new_name)
+  @spec get_file_conflicts(Media.t(), String.t()) :: list(integer())
+  def get_file_conflicts(media, size_key) do
+    num_bytes = Media.get_num_bytes(media)
+    sha256_hash = Media.get_sha256_hash(media)
 
     file_query =
       from f in File,
         where:
-          (f.size_key == ^size_key and f.num_bytes == ^num_bytes and
-             f.sha256_hash == ^new_sha256_hash) or
-            (f.dir == ^new_dir and ilike(f.name, ^"#{name}.%"))
+          f.size_key == ^size_key and f.num_bytes == ^num_bytes and
+            f.sha256_hash == ^sha256_hash
 
     results = Repo.all(file_query)
 

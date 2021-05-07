@@ -5,13 +5,11 @@ defmodule PenguinMemories.Upload do
   use Bitwise
 
   import Ecto.Query
-
-  alias File, as: OsFile
+  import File
 
   alias PenguinMemories.Media
   alias PenguinMemories.Objects
   alias PenguinMemories.Photos.Album
-  alias PenguinMemories.Photos.File, as: PFile
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Repo
   alias PenguinMemories.Storage
@@ -57,11 +55,6 @@ defmodule PenguinMemories.Upload do
         name -> name
       end
 
-    size = Media.get_size(media)
-    sha256_hash = Media.get_sha256_hash(media)
-    num_bytes = Media.get_num_bytes(media)
-    format = Media.get_format(media)
-    is_video = Media.is_video(media)
     exif = Media.get_exif(media)
     offset = get_camera_offset(exif["EXIF:Model"])
 
@@ -73,29 +66,8 @@ defmodule PenguinMemories.Upload do
 
     size_key = "orig"
     photo_dir = Storage.build_photo_dir(upload_date)
-    file_dir = Storage.build_file_dir(photo_dir, size_key, is_video)
-
     [] = Objects.get_photo_conflicts(photo_dir, name)
-    [] = Objects.get_file_conflicts(file_dir, name, size_key, num_bytes, sha256_hash)
-
-    dest_directory = Storage.build_directory(file_dir)
-    dest_path = Storage.build_filename(file_dir, name)
-    false = OsFile.exists?(dest_path)
-
-    OsFile.mkdir_p!(dest_directory)
-    OsFile.copy!(path, dest_path)
-
-    file = %PFile{
-      size_key: size_key,
-      width: size.width,
-      height: size.height,
-      dir: file_dir,
-      name: name,
-      is_video: is_video,
-      mime_type: format,
-      sha256_hash: sha256_hash,
-      num_bytes: num_bytes
-    }
+    [] = Objects.get_file_conflicts(media, size_key)
 
     flash_used = if (exif["EXIF:Flash"] &&& 1) != 0, do: "Y", else: "N"
 
@@ -117,6 +89,8 @@ defmodule PenguinMemories.Upload do
       action: "R",
       level: 0
     }
+
+    {:ok, file} = Storage.build_file_from_media(photo, media, size_key)
 
     photo
     |> Ecto.Changeset.change()
@@ -155,7 +129,7 @@ defmodule PenguinMemories.Upload do
     date = DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
     album = get_upload_album(date)
 
-    File.ls!(directory)
+    ls!(directory)
     |> Enum.map(fn filename ->
       IO.puts("---> #{filename}")
       path = Path.join(directory, filename)

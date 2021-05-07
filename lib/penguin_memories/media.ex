@@ -78,6 +78,14 @@ defmodule PenguinMemories.Media do
     "#{type}/#{subtype}"
   end
 
+  @spec get_extension(t()) :: String.t()
+  def get_extension(%__MODULE__{} = media) do
+    media
+    |> get_format()
+    |> MIME.extensions()
+    |> hd()
+  end
+
   @spec get_size(t()) :: Size.t()
   def get_size(%__MODULE__{path: path, type: type, subtype: subtype})
       when guard_is_image(type) and subtype == "cr2" do
@@ -153,7 +161,6 @@ defmodule PenguinMemories.Media do
   def resize(%__MODULE__{path: path, type: type} = media, new_path, requirement)
       when guard_is_image(type) do
     new_size = get_new_size(media, requirement)
-    new_path = "#{new_path}.jpg"
 
     :ok =
       Thumbnex.create_thumbnail(path, new_path,
@@ -173,7 +180,6 @@ defmodule PenguinMemories.Media do
   def resize(%__MODULE__{path: path, type: type} = media, new_path, requirement)
       when guard_is_video(type) do
     new_size = get_new_size(media, requirement)
-    new_path = "#{new_path}.gif"
 
     :ok =
       Thumbnex.animated_gif_thumbnail(path, new_path,
@@ -219,6 +225,19 @@ defmodule PenguinMemories.Media do
     case File.rm(media.path) do
       :ok -> :ok
       {:error, reason} -> {:error, "rm #{media.path} failed: #{inspect(reason)}"}
+    end
+  end
+
+  @spec copy(t(), String.t()) :: {:ok, t()} | {:error, String.t()}
+  def copy(%__MODULE__{} = media, dest_path) do
+    dest_directory = Path.dirname(dest_path)
+
+    with :ok <- File.mkdir_p(dest_directory),
+         {:ok, _} <- File.copy(media.path, dest_path) do
+      get_media(dest_path, get_format(media))
+    else
+      {:error, reason} ->
+        {:error, "copy #{media.path} to #{dest_path} failed: #{inspect(reason)}"}
     end
   end
 end
