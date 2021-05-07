@@ -7,7 +7,7 @@ defmodule PenguinMemories.Media.ToolsTest do
     test "exif works" do
       assert Tools.exif("priv/tests/100x100.jpg")["File:Comment"] == "Created with GIMP"
       assert Tools.exif("priv/tests/100x100.png")["PNG:BitDepth"] == 8
-      assert Tools.exif("priv/tests/100x100.xcf")["GIMP:Comment"] == "Created with GIMP"
+      assert Tools.exif("priv/tests/xcf/100x100.xcf")["GIMP:Comment"] == "Created with GIMP"
       assert Tools.exif("priv/tests/IMG_4706.CR2")["EXIF:ISO"] == 100
       assert Tools.exif("priv/tests/MVI_7254.mp4")["QuickTime:BitDepth"] == 24
       assert Tools.exif("priv/tests/MVI_7254.ogv")["Theora:NominalVideoBitrate"] == 400_000

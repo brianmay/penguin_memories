@@ -48,18 +48,23 @@ defmodule PenguinMemories.Media do
   @spec validate_media(t()) :: {:ok, t()} | {:error, String.t()}
   def validate_media(%__MODULE__{} = media) do
     cond do
-      not is_valid(media) -> {:error, "Invalid media type #{media.type}/#{media.subtype}"}
-      not File.exists?(media.path) -> {:error, "File #{media.path} does not exist"}
-      true -> {:ok, media}
+      not is_valid(media) ->
+        {:error, "Invalid media type #{media.type}/#{media.subtype} for #{media.path}"}
+
+      not File.exists?(media.path) ->
+        {:error, "File #{media.path} does not exist"}
+
+      true ->
+        {:ok, media}
     end
   end
 
   @spec get_media(String.t(), String.t() | nil) :: {:ok, t()} | {:error, String.t()}
   def get_media(path, format \\ nil) do
     format =
-      case format do
-        nil -> MIME.from_path(path)
-        format -> format
+      cond do
+        format != nil -> format
+        true -> MIME.from_path(path)
       end
 
     [type, subtype] = String.split(format, "/")
@@ -199,12 +204,25 @@ defmodule PenguinMemories.Media do
   def get_datetime(%__MODULE__{} = media) do
     exif = get_exif(media)
 
-    ["EXIF:DateTimeOriginal", "EXIF:DateTimeDigitized", "EXIF:CreateDate"]
-    |> Enum.map(fn name -> Map.get(exif, name, nil) end)
-    |> Enum.reject(fn value -> is_nil(value) end)
-    |> Enum.reject(fn value -> value == "    :  :     :  :  " end)
-    |> Enum.map(fn value -> Timex.parse!(value, "%Y:%m:%d %H:%M:%S", :strftime) end)
-    |> List.first()
+    datetime =
+      ["EXIF:DateTimeOriginal", "EXIF:DateTimeDigitized", "EXIF:CreateDate"]
+      |> Enum.map(fn name -> Map.get(exif, name, nil) end)
+      |> Enum.reject(fn value -> is_nil(value) end)
+      |> Enum.reject(fn value -> value == "    :  :     :  :  " end)
+      |> Enum.map(fn value -> Timex.parse!(value, "%Y:%m:%d %H:%M:%S", :strftime) end)
+      |> List.first()
+
+    case datetime do
+      nil ->
+        {:ok, datetime} =
+          File.stat!(media.path).mtime
+          |> NaiveDateTime.from_erl()
+
+        datetime
+
+      datetime ->
+        datetime
+    end
   end
 
   @spec get_sha256_hash(t()) :: binary()

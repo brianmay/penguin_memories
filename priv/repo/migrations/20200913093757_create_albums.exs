@@ -3,12 +3,12 @@ defmodule PenguinMemories.Repo.Migrations.CreateAlbums do
 
   def change do
     create table(:spud_album) do
-      add(:title, :string)
-      add(:revised, :utc_datetime)
-      add(:sort_name, :string)
+      add(:title, :string, null: false)
       add(:cover_photo_id, :integer)
       add(:description, :text)
-      add(:sort_order, :string)
+      add(:sort_order, :string, null: false)
+      add(:sort_name, :string, null: false)
+      add(:revised, :utc_datetime)
       add(:revised_utc_offset, :integer)
       add(:parent_id, references(:spud_album, on_delete: :nilify_all))
 

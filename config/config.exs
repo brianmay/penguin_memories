@@ -11,7 +11,8 @@ config :penguin_memories,
   ecto_repos: [PenguinMemories.Repo],
   image_dir: "/tmp/images",
   cameras: %{
-    "Canon EOS R5" => "10:59:36"
+    "Canon EOS R5" => "10:59:36",
+    "Canon EOS 350D DIGITAL" => "11:00:00"
   },
   image_sizes: %{
     "thumb" => %{max_width: 120},

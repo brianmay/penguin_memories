@@ -21,15 +21,30 @@ defmodule PenguinMemories.Actions do
 
   @spec process_photo(Photo.t()) :: :ok
   def process_photo(%Photo{action: "R"} = photo) do
-    sizes = Storage.get_image_sizes()
+    original_file = get_original_file(photo)
+    {:ok, original_media} = Storage.get_photo_file_media(original_file)
 
-    files =
-      Enum.map(sizes, fn {size_key, %Media.SizeRequirement{} = sr} ->
-        {:ok, original_media} =
-          photo
-          |> get_original_file()
-          |> Storage.get_photo_file_media()
+    image_sizes = Storage.get_image_sizes()
 
+    video_sizes =
+      case original_file.is_video do
+        true -> Storage.get_video_sizes()
+        false -> []
+      end
+
+    image_files =
+      Enum.map(image_sizes, fn {size_key, %Media.SizeRequirement{} = sr} ->
+        temp_path = Temp.path!()
+        {:ok, thumb} = Media.resize(original_media, temp_path, sr)
+        {:ok, file} = Storage.build_file_from_media(photo, thumb, size_key)
+
+        file
+      end)
+
+    image_files = [original_file | image_files]
+
+    video_files =
+      Enum.map(video_sizes, fn {size_key, %Media.SizeRequirement{} = sr} ->
         temp_path = Temp.path!()
         {:ok, thumb} = Media.resize(original_media, temp_path, sr)
         {:ok, file} = Storage.build_file_from_media(photo, thumb, size_key)
@@ -39,7 +54,8 @@ defmodule PenguinMemories.Actions do
 
     photo
     |> Ecto.Changeset.change()
-    |> Ecto.Changeset.put_assoc(:files, files)
+    |> Ecto.Changeset.put_assoc(:files, image_files)
+    |> Ecto.Changeset.put_assoc(:videos, video_files)
     |> Repo.update!()
   end
 

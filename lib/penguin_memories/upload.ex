@@ -10,13 +10,17 @@ defmodule PenguinMemories.Upload do
   alias PenguinMemories.Media
   alias PenguinMemories.Objects
   alias PenguinMemories.Photos.Album
+  alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Repo
   alias PenguinMemories.Storage
 
   @spec get_camera_offset(String.t()) :: integer()
+  defp get_camera_offset(nil), do: 0
+
   defp get_camera_offset(camera_model) do
-    string = Application.get_env(:penguin_memories, :cameras)[camera_model]
+    cameras = Application.get_env(:penguin_memories, :cameras)
+    string = Map.fetch!(cameras, camera_model)
 
     [hh, mm, ss] = String.split(string, ":")
 
@@ -27,7 +31,9 @@ defmodule PenguinMemories.Upload do
     (hh * 60 + mm) * 60 + ss
   end
 
-  @spec metering_mode(integer()) :: String.t()
+  @spec metering_mode(integer() | nil) :: String.t()
+  defp metering_mode(nil), do: nil
+
   defp metering_mode(mode) do
     modes = %{
       0 => "unknown",
@@ -43,7 +49,38 @@ defmodule PenguinMemories.Upload do
     Map.get(modes, mode, "reserved")
   end
 
-  @spec upload_file(String.t(), Album.t(), keyword()) :: Photo.t()
+  @spec flash_used(integer() | nil) :: boolean() | nil
+  defp flash_used(nil), do: nil
+
+  defp flash_used(mode) do
+    cond do
+      is_nil(mode) -> nil
+      (mode &&& 1) != 0 -> true
+      True -> false
+    end
+  end
+
+  @spec exposure(integer() | float() | nil) :: float() | nil
+  defp exposure(nil), do: nil
+
+  defp exposure(number) do
+    cond do
+      is_nil(number) -> nil
+      is_integer(number) -> number * 1.0
+      True -> number
+    end
+  end
+
+  @spec get(map(), String.t()) :: any() | nil
+  def get(exif, key) do
+    case Map.get(exif, key) do
+      "" -> nil
+      nil -> nil
+      value -> value
+    end
+  end
+
+  @spec upload_file(String.t(), Album.t(), keyword()) :: Photo.t() | nil
   def upload_file(path, album, attrs) do
     {:ok, media} = Media.get_media(path)
 
@@ -66,37 +103,43 @@ defmodule PenguinMemories.Upload do
 
     size_key = "orig"
     photo_dir = Storage.build_photo_dir(upload_date)
-    [] = Objects.get_photo_conflicts(photo_dir, name)
-    [] = Objects.get_file_conflicts(media, size_key)
+    photo_conflicts = Objects.get_photo_conflicts(photo_dir, name)
+    file_conflicts = Objects.get_file_conflicts(media, size_key)
 
-    flash_used = if (exif["EXIF:Flash"] &&& 1) != 0, do: "Y", else: "N"
+    case {photo_conflicts, file_conflicts} do
+      {[], []} ->
+        photo = %Photo{
+          camera_make: get(exif, "EXIF:Make"),
+          camera_model: get(exif, "EXIF:Model"),
+          flash_used: get(exif, "EXIF:Flash") |> flash_used(),
+          focal_length: get(exif, "EXIF:FocalLength"),
+          exposure: get(exif, "EXIF:ExposureTime"),
+          aperture: get(exif, "EXIF:FNumber") |> exposure,
+          iso_equiv: get(exif, "EXIF:ISO"),
+          metering_mode: get(exif, "EXIF:MeteringMode") |> metering_mode(),
+          focus_dist: get(exif, "Composite:HyperfocalDistance"),
+          path: photo_dir,
+          name: name,
+          datetime: datetime,
+          # FIXME
+          utc_offset: 660,
+          action: "R",
+          level: 0
+        }
 
-    photo = %Photo{
-      camera_make: exif["EXIF:Make"],
-      camera_model: exif["EXIF:Model"],
-      flash_used: flash_used,
-      focal_length: "#{exif["EXIF:FocalLength"]}",
-      exposure: "#{exif["EXIF:ExposureTime"]}",
-      aperture: "f/#{exif["EXIF:FNumber"]}",
-      iso_equiv: "#{exif["EXIF:ISO"]}",
-      metering_mode: metering_mode(exif["EXIF:MeteringMode"]),
-      focus_dist: "#{exif["Composite:HyperfocalDistance"]}",
-      path: photo_dir,
-      name: name,
-      datetime: datetime,
-      # FIXME
-      utc_offset: 660,
-      action: "R",
-      level: 0
-    }
+        {:ok, file} = Storage.build_file_from_media(photo, media, size_key)
 
-    {:ok, file} = Storage.build_file_from_media(photo, media, size_key)
+        photo
+        |> Ecto.Changeset.change()
+        |> Ecto.Changeset.put_assoc(:albums, [album])
+        |> Ecto.Changeset.put_assoc(:files, [file])
+        |> Repo.insert!()
 
-    photo
-    |> Ecto.Changeset.change()
-    |> Ecto.Changeset.put_assoc(:albums, [album])
-    |> Ecto.Changeset.put_assoc(:files, [file])
-    |> Repo.insert!()
+      {pc, fc} ->
+        IO.puts("Skipping #{path} due to photo conflict #{inspect(pc)}")
+        IO.puts("Skipping #{path} due to file conflict #{inspect(fc)}")
+        nil
+    end
   end
 
   @spec get_upload_album(Date.t()) :: Album.t()
@@ -125,14 +168,19 @@ defmodule PenguinMemories.Upload do
     end
   end
 
+  @spec upload_directory(String.t()) :: list(File.t() | nil)
   def upload_directory(directory) do
     date = DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
     album = get_upload_album(date)
 
     ls!(directory)
-    |> Enum.map(fn filename ->
-      IO.puts("---> #{filename}")
+    |> Enum.reject(fn filename ->
       path = Path.join(directory, filename)
+      dir?(path)
+    end)
+    |> Enum.map(fn filename ->
+      path = Path.join(directory, filename)
+      IO.puts("---> #{filename}")
       upload_file(path, album, date: date)
     end)
   end

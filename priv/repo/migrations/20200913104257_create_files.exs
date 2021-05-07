@@ -3,16 +3,16 @@ defmodule PenguinMemories.Repo.Migrations.CreateFiles do
 
   def change do
     create table(:spud_photo_file) do
-      add(:size_key, :string)
-      add(:width, :integer)
-      add(:height, :integer)
-      add(:dir, :string)
-      add(:name, :string)
-      add(:mime_type, :string)
+      add(:size_key, :string, null: false)
+      add(:width, :integer, null: false)
+      add(:height, :integer, null: false)
+      add(:dir, :string, null: false)
+      add(:name, :string, null: false)
+      add(:mime_type, :string, null: false)
       add(:is_video, :boolean, default: false, null: false)
-      add(:sha256_hash, :binary)
-      add(:num_bytes, :integer)
-      add(:photo_id, references(:spud_photo, on_delete: :delete_all))
+      add(:sha256_hash, :binary, null: false)
+      add(:num_bytes, :integer, null: false)
+      add(:photo_id, references(:spud_photo, on_delete: :delete_all), null: false)
 
       timestamps(type: :utc_datetime_usec)
     end

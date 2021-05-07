@@ -23,7 +23,7 @@ defmodule PenguinMemories.MediaTest do
       assert {:ok, %Media{type: "video", subtype: "webm"}} =
                Media.get_media("priv/tests/MVI_7254.webm")
 
-      assert {:error, _} = Media.get_media("priv/tests/100x100.xcf")
+      assert {:error, _} = Media.get_media("priv/tests/xcf/100x100.xcf")
     end
 
     test "get_media works fails for non-existant file" do
@@ -252,22 +252,22 @@ defmodule PenguinMemories.MediaTest do
   describe "get_datetime" do
     test "get_datetime works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
-      assert Media.get_datetime(media) == nil
+      %NaiveDateTime{} = Media.get_datetime(media)
 
       {:ok, media} = Media.get_media("priv/tests/100x100.png")
-      assert Media.get_datetime(media) == nil
+      %NaiveDateTime{} = Media.get_datetime(media)
 
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       assert Media.get_datetime(media) == ~N[2005-03-19 10:57:13]
 
       {:ok, media} = Media.get_media("priv/tests/MVI_7254.mp4")
-      assert Media.get_datetime(media) == nil
+      %NaiveDateTime{} = Media.get_datetime(media)
 
       {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
-      assert Media.get_datetime(media) == nil
+      %NaiveDateTime{} = Media.get_datetime(media)
 
       {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
-      assert Media.get_datetime(media) == nil
+      %NaiveDateTime{} = Media.get_datetime(media)
     end
   end
 

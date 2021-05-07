@@ -16,7 +16,7 @@ defmodule PenguinMemories.Photos.Photo do
   @type t :: map()
   schema "spud_photo" do
     field :action, :string
-    field :aperture, :string
+    field :aperture, :float
     field :camera_make, :string
     field :camera_model, :string
     field :ccd_width, :string
@@ -24,11 +24,11 @@ defmodule PenguinMemories.Photos.Photo do
     field :compression, :string
     field :datetime, :utc_datetime
     field :description, :string
-    field :exposure, :string
-    field :flash_used, :string
-    field :focal_length, :string
-    field :focus_dist, :string
-    field :iso_equiv, :string
+    field :exposure, :float
+    field :flash_used, :boolean
+    field :focal_length, :integer
+    field :focus_dist, :float
+    field :iso_equiv, :integer
     field :level, :integer
     field :metering_mode, :string
     field :name, :string
@@ -36,10 +36,9 @@ defmodule PenguinMemories.Photos.Photo do
     field :photographer_id, :integer
     field :place_id, :integer
     field :rating, :float
-    field :size, :integer
     field :title, :string
-    field :utc_offset, :integer
     field :view, :string
+    field :utc_offset, :integer
     has_many :cover_photo_albums, Album, foreign_key: :cover_photo_id
     has_many :files, File
 
@@ -59,7 +58,6 @@ defmodule PenguinMemories.Photos.Photo do
       :flash_used,
       :metering_mode,
       :datetime,
-      :size,
       :compression,
       :title,
       :photographer_id,
@@ -87,7 +85,6 @@ defmodule PenguinMemories.Photos.Photo do
       :flash_used,
       :metering_mode,
       :datetime,
-      :size,
       :compression,
       :title,
       :photographer_id,
