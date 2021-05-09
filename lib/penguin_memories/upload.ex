@@ -87,17 +87,8 @@ defmodule PenguinMemories.Upload do
 
     upload_date = opts[:date]
 
-    timezone =
-      case opts[:timezone] do
-        nil -> "Australia/Melbourne"
-        timezone -> timezone
-      end
-
-    name =
-      case opts[:name] do
-        nil -> Path.basename(path)
-        name -> name
-      end
+    timezone = Keyword.get(opts, :timezone, "Australia/Melbourne")
+    name = Keyword.get(opts, :name, Path.basename(path))
 
     exif = Media.get_exif(media)
     offset = get_camera_offset(exif["EXIF:Model"])
@@ -159,14 +150,13 @@ defmodule PenguinMemories.Upload do
         {:error, reason}
 
       [_ | _] ->
-        pc_string = Enum.map(photo_conflicts, fn p -> Photo.to_string(p) end) |> Enum.join(",")
-        fc_string = Enum.map(file_conflicts, fn f -> File.to_string(f) end) |> Enum.join(",")
-
         if photo_conflicts != [] and opts[:verbose] do
+          pc_string = Enum.map(photo_conflicts, fn p -> Photo.to_string(p) end) |> Enum.join(",")
           IO.puts("Skipping #{path} due to photo conflict #{pc_string}")
         end
 
         if file_conflicts != [] and opts[:verbose] do
+          fc_string = Enum.map(file_conflicts, fn f -> File.to_string(f) end) |> Enum.join(",")
           IO.puts("Skipping #{path} due to file conflict #{fc_string}")
         end
 
