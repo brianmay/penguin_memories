@@ -137,106 +137,416 @@ defmodule PenguinMemories.MediaTest do
     test "get_new_size works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
 
-      sr = %Media.SizeRequirement{max_width: nil, max_height: nil}
+      sr = %Media.SizeRequirement{max_width: nil, max_height: nil, format: "image/jpeg"}
       assert Media.get_new_size(media, sr) == %Media.Size{width: 100, height: 100}
 
-      sr = %Media.SizeRequirement{max_width: 80, max_height: nil}
+      sr = %Media.SizeRequirement{max_width: 80, max_height: nil, format: "image/jpeg"}
       assert Media.get_new_size(media, sr) == %Media.Size{width: 80, height: 80}
 
-      sr = %Media.SizeRequirement{max_width: nil, max_height: 80}
+      sr = %Media.SizeRequirement{max_width: nil, max_height: 80, format: "image/jpeg"}
       assert Media.get_new_size(media, sr) == %Media.Size{width: 80, height: 80}
 
-      sr = %Media.SizeRequirement{max_width: 90, max_height: 80}
+      sr = %Media.SizeRequirement{max_width: 90, max_height: 80, format: "image/jpeg"}
 
       assert Media.get_new_size(media, sr) == %Media.Size{
                width: 80,
                height: 80
              }
 
-      sr = %Media.SizeRequirement{max_width: 80, max_height: 90}
+      sr = %Media.SizeRequirement{max_width: 80, max_height: 90, format: "image/jpeg"}
 
       assert Media.get_new_size(media, sr) == %Media.Size{
                width: 80,
                height: 80
              }
     end
+  end
 
-    test "resize works valid png file" do
+  describe "resize png file" do
+    test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/100x100.png")
       new_path = Temp.path!()
 
-      sr = %Media.SizeRequirement{max_width: 20, max_height: 10}
+      sr = %Media.SizeRequirement{max_width: 20, max_height: 10, format: "image/jpeg"}
       {:ok, new_media} = Media.resize(media, new_path, sr)
       assert new_media.path == new_path
       assert new_media.type == "image"
       assert new_media.subtype == "jpeg"
+      assert Media.is_video(new_media) == false
       assert Media.get_size(new_media) == %Media.Size{width: 10, height: 10}
       Media.delete(new_media)
     end
 
-    test "resize works valid jpg file" do
+    test "to png" do
+      {:ok, media} = Media.get_media("priv/tests/100x100.png")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 20, max_height: 10, format: "image/png"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "png"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 10, height: 10}
+      Media.delete(new_media)
+    end
+
+    test "to gif" do
+      {:ok, media} = Media.get_media("priv/tests/100x100.png")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 20, max_height: 10, format: "image/gif"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "gif"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 10, height: 10}
+      Media.delete(new_media)
+    end
+  end
+
+  describe "resize jpeg file" do
+    test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
       new_path = Temp.path!()
 
-      sr = %Media.SizeRequirement{max_width: 20, max_height: 10}
+      sr = %Media.SizeRequirement{max_width: 20, max_height: 10, format: "image/jpeg"}
       {:ok, new_media} = Media.resize(media, new_path, sr)
       assert new_media.path == new_path
       assert new_media.type == "image"
       assert new_media.subtype == "jpeg"
+      assert Media.is_video(new_media) == false
       assert Media.get_size(new_media) == %Media.Size{width: 10, height: 10}
       Media.delete(new_media)
     end
 
-    # requires newer version of ffmpeg then on github CI
-    @tag :skip
-    test "resize works valid cr2 file" do
+    test "to png" do
+      {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 20, max_height: 10, format: "image/png"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "png"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 10, height: 10}
+      Media.delete(new_media)
+    end
+
+    test "to gif" do
+      {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 20, max_height: 10, format: "image/gif"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "gif"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 10, height: 10}
+      Media.delete(new_media)
+    end
+  end
+
+  describe "resize cr2 file" do
+    test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       new_path = Temp.path!()
 
-      sr = %Media.SizeRequirement{max_width: 100, max_height: 100}
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/jpeg"}
       {:ok, new_media} = Media.resize(media, new_path, sr)
       assert new_media.path == new_path
       assert new_media.type == "image"
       assert new_media.subtype == "jpeg"
+      assert Media.is_video(new_media) == false
       assert Media.get_size(new_media) == %Media.Size{width: 99, height: 66}
       Media.delete(new_media)
     end
 
-    test "resize works valid mp4 file" do
+    test "to png" do
+      {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/jpeg"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "jpeg"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 99, height: 66}
+      Media.delete(new_media)
+    end
+
+    test "to gif" do
+      {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/gif"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "gif"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 99, height: 66}
+      Media.delete(new_media)
+    end
+  end
+
+  describe "resize mp4 file" do
+    test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/MVI_7254.mp4")
       new_path = Temp.path!()
 
-      sr = %Media.SizeRequirement{max_width: 100, max_height: 100}
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/jpeg"}
       {:ok, new_media} = Media.resize(media, new_path, sr)
       assert new_media.path == new_path
       assert new_media.type == "image"
-      assert new_media.subtype == "gif"
-      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
-      # Media.delete(new_media)
-    end
-
-    test "resize works valid ogv file" do
-      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
-      new_path = Temp.path!()
-
-      sr = %Media.SizeRequirement{max_width: 100, max_height: 100}
-      {:ok, new_media} = Media.resize(media, new_path, sr)
-      assert new_media.path == new_path
-      assert new_media.type == "image"
-      assert new_media.subtype == "gif"
+      assert new_media.subtype == "jpeg"
+      assert Media.is_video(new_media) == false
       assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
       Media.delete(new_media)
     end
 
-    test "resize works valid webm file" do
-      {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
+    test "to png" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.mp4")
       new_path = Temp.path!()
 
-      sr = %Media.SizeRequirement{max_width: 100, max_height: 100}
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/png"}
       {:ok, new_media} = Media.resize(media, new_path, sr)
       assert new_media.path == new_path
       assert new_media.type == "image"
-      assert new_media.subtype == "gif"
+      assert new_media.subtype == "png"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to gif" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.mp4")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/png"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "png"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to mp4" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "video/mp4"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "video"
+      assert new_media.subtype == "mp4"
+      assert Media.is_video(new_media) == true
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to ogg" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "video/ogg"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "video"
+      assert new_media.subtype == "ogg"
+      assert Media.is_video(new_media) == true
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to webm" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "video/webm"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "video"
+      assert new_media.subtype == "webm"
+      assert Media.is_video(new_media) == true
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+  end
+
+  describe "resize ogg file" do
+    test "to jpeg" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/jpeg"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "jpeg"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to png" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/png"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "png"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to gif" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/png"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "png"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to mp4" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "video/mp4"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "video"
+      assert new_media.subtype == "mp4"
+      assert Media.is_video(new_media) == true
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to ogg" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "video/ogg"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "video"
+      assert new_media.subtype == "ogg"
+      assert Media.is_video(new_media) == true
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to webm" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "video/webm"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "video"
+      assert new_media.subtype == "webm"
+      assert Media.is_video(new_media) == true
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+  end
+
+  describe "resize webm file" do
+    test "to jpeg" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/jpeg"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "jpeg"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to png" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/png"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "png"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to gif" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "image/png"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "png"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to mp4" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "video/mp4"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "video"
+      assert new_media.subtype == "mp4"
+      assert Media.is_video(new_media) == true
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to ogg" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "video/ogg"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "video"
+      assert new_media.subtype == "ogg"
+      assert Media.is_video(new_media) == true
+      assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
+      Media.delete(new_media)
+    end
+
+    test "to webm" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
+      new_path = Temp.path!()
+
+      sr = %Media.SizeRequirement{max_width: 100, max_height: 100, format: "video/webm"}
+      {:ok, new_media} = Media.resize(media, new_path, sr)
+      assert new_media.path == new_path
+      assert new_media.type == "video"
+      assert new_media.subtype == "webm"
+      assert Media.is_video(new_media) == true
       assert Media.get_size(new_media) == %Media.Size{width: 100, height: 56}
       Media.delete(new_media)
     end

@@ -15,7 +15,7 @@ defmodule PenguinMemories.Uploadtest do
     Application.put_env(:penguin_memories, :image_dir, image_dir)
 
     on_exit(fn ->
-      rm_rf(image_dir)
+      rm_rf!(image_dir)
     end)
 
     {:ok, image_dir: image_dir}
@@ -47,7 +47,7 @@ defmodule PenguinMemories.Uploadtest do
       }
       |> Repo.insert!()
 
-    photo = Upload.upload_file("priv/tests/100x100.jpg", album, date: ~D[2000-01-01])
+    {:ok, photo} = Upload.upload_file("priv/tests/100x100.jpg", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
     assert length(photo.files) == 1
@@ -107,7 +107,7 @@ defmodule PenguinMemories.Uploadtest do
       }
       |> Repo.insert!()
 
-    photo = Upload.upload_file("priv/tests/2Y4A3211.JPG", album, date: ~D[2000-01-01])
+    {:ok, photo} = Upload.upload_file("priv/tests/2Y4A3211.JPG", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
     assert length(photo.files) == 1
@@ -167,7 +167,7 @@ defmodule PenguinMemories.Uploadtest do
       }
       |> Repo.insert!()
 
-    photo = Upload.upload_file("priv/tests/IMG_4706.CR2", album, date: ~D[2000-01-01])
+    {:ok, photo} = Upload.upload_file("priv/tests/IMG_4706.CR2", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
     assert length(photo.files) == 1
@@ -226,7 +226,7 @@ defmodule PenguinMemories.Uploadtest do
       }
       |> Repo.insert!()
 
-    photo = Upload.upload_file("priv/tests/MVI_7254.mp4", album, date: ~D[2000-01-01])
+    {:ok, photo} = Upload.upload_file("priv/tests/MVI_7254.mp4", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
     assert length(photo.files) == 1
@@ -285,7 +285,7 @@ defmodule PenguinMemories.Uploadtest do
       }
       |> Repo.insert!()
 
-    photo = Upload.upload_file("priv/tests/MVI_7254.ogv", album, date: ~D[2000-01-01])
+    {:ok, photo} = Upload.upload_file("priv/tests/MVI_7254.ogv", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
     assert length(photo.files) == 1
@@ -344,7 +344,7 @@ defmodule PenguinMemories.Uploadtest do
       }
       |> Repo.insert!()
 
-    photo = Upload.upload_file("priv/tests/MVI_7254.webm", album, date: ~D[2000-01-01])
+    {:ok, photo} = Upload.upload_file("priv/tests/MVI_7254.webm", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
     assert length(photo.files) == 1

@@ -19,4 +19,8 @@
     name: "Test User"
   })
 
-PenguinMemories.Repo.insert!(%PenguinMemories.Photos.Album{title: "Uploads"})
+PenguinMemories.Repo.insert!(%PenguinMemories.Photos.Album{
+  title: "Uploads",
+  sort_name: "Name",
+  sort_order: "Uploads"
+})

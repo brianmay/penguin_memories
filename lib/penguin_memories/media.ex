@@ -2,6 +2,7 @@ defmodule PenguinMemories.Media do
   @moduledoc """
   Perform operations on an media object
   """
+  alias File
   alias PenguinMemories.Media.Maths
   alias PenguinMemories.Media.Tools
 
@@ -27,10 +28,11 @@ defmodule PenguinMemories.Media do
     @moduledoc "Requirement for new image size"
     @type t :: %__MODULE__{
             max_width: integer() | nil,
-            max_height: integer() | nil
+            max_height: integer() | nil,
+            format: String.t()
           }
-    @enforce_keys [:max_width, :max_height]
-    defstruct [:max_width, :max_height]
+    @enforce_keys [:max_width, :max_height, :format]
+    defstruct [:max_width, :max_height, :format]
   end
 
   defguardp guard_is_image(type) when type == "image"
@@ -163,36 +165,81 @@ defmodule PenguinMemories.Media do
   end
 
   @spec resize(t(), String.t(), SizeRequirement.t()) :: {:ok, t()} | {:error, String.t()}
-  def resize(%__MODULE__{path: path, type: type} = media, new_path, requirement)
-      when guard_is_image(type) do
+  def resize(%__MODULE__{path: path} = media, new_path, %SizeRequirement{} = requirement) do
     new_size = get_new_size(media, requirement)
 
-    :ok =
-      Thumbnex.create_thumbnail(path, new_path,
-        format: "jpeg",
-        width: new_size.width,
-        height: new_size.height
-      )
+    [type, subtype] = String.split(requirement.format, "/")
 
-    # Mogrify.open(path)
-    # |> Mogrify.format("jpeg")
-    # |> Mogrify.resize("#{new_size.width}x#{new_size.height}")
-    # |> Mogrify.save(path: new_path)
+    case {type, subtype, is_video(media)} do
+      {"image", "gif", true} ->
+        :ok =
+          Thumbnex.animated_gif_thumbnail(path, new_path,
+            width: new_size.width,
+            height: new_size.height
+          )
 
-    get_media(new_path, "image/jpeg")
+      {"video", _, _} ->
+        :ok = resize_video(media, new_path, requirement)
+
+      {"image", _, _} ->
+        extension =
+          requirement.format
+          |> MIME.extensions()
+          |> hd()
+
+        :ok =
+          Thumbnex.create_thumbnail(path, new_path,
+            format: extension,
+            width: new_size.width,
+            height: new_size.height
+          )
+    end
+
+    get_media(new_path, requirement.format)
   end
 
-  def resize(%__MODULE__{path: path, type: type} = media, new_path, requirement)
+  @spec resize_video(t(), String.t(), SizeRequirement.t()) :: :ok | {:error, String.t()}
+  def resize_video(%__MODULE__{path: path, type: type} = media, new_path, requirement)
       when guard_is_video(type) do
     new_size = get_new_size(media, requirement)
+    format = requirement.format
 
-    :ok =
-      Thumbnex.animated_gif_thumbnail(path, new_path,
-        width: new_size.width,
-        height: new_size.height
-      )
+    cmd_common = [
+      "-y",
+      "-i",
+      path,
+      "-b:v",
+      "400k",
+      "-max_muxing_queue_size",
+      "1024",
+      "-filter:v",
+      "scale=#{new_size.width}:#{new_size.height}"
+    ]
 
-    get_media(new_path, "image/gif")
+    cmd_format =
+      case format do
+        "video/ogg" ->
+          ["-f", "ogg", "-codec:a", "libvorbis"]
+
+        "video/mp4" ->
+          ["-f", "mp4", "-strict", "experimental"]
+
+        "video/webm" ->
+          ["-f", "webm"]
+      end
+
+    cmd = cmd_common ++ cmd_format ++ [new_path]
+
+    case System.cmd("ffmpeg", cmd, stderr_to_stdout: true) do
+      {_, 0} ->
+        :ok
+
+      {text, rc} ->
+        IO.puts(inspect(["ffmpeg" | cmd]))
+        IO.puts(text)
+        File.rm(new_path)
+        {:error, "ffmpeg returned #{rc}"}
+    end
   end
 
   @spec get_exif(t()) :: map()

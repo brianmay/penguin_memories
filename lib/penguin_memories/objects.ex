@@ -359,8 +359,8 @@ defmodule PenguinMemories.Objects do
     DateTime.to_string(datetime)
   end
 
-  @spec get_photo_conflicts(String.t(), String.t()) :: list(Photo.t())
-  def get_photo_conflicts(new_dir, new_name) do
+  @spec get_photo_path_conflicts(String.t(), String.t()) :: list(Photo.t())
+  def get_photo_path_conflicts(new_dir, new_name) do
     name = Path.rootname(new_name)
 
     photo_query =
@@ -370,8 +370,19 @@ defmodule PenguinMemories.Objects do
     Repo.all(photo_query)
   end
 
-  @spec get_file_conflicts(Media.t(), String.t()) :: list(File.t())
-  def get_file_conflicts(media, size_key) do
+  @spec get_file_path_conflicts(String.t(), String.t()) :: list(Photo.t())
+  def get_file_path_conflicts(new_dir, new_name) do
+    name = Path.rootname(new_name)
+
+    file_query =
+      from f in File,
+        where: f.dir == ^new_dir and ilike(f.name, ^"#{name}.%")
+
+    Repo.all(file_query)
+  end
+
+  @spec get_file_hash_conflicts(Media.t(), String.t()) :: list(File.t())
+  def get_file_hash_conflicts(media, size_key) do
     num_bytes = Media.get_num_bytes(media)
     sha256_hash = Media.get_sha256_hash(media)
 

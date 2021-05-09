@@ -80,14 +80,15 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  @spec upload_file(String.t(), Album.t(), keyword()) :: Photo.t() | nil
-  def upload_file(path, album, attrs) do
+  @spec upload_file(String.t(), Album.t(), keyword()) ::
+          {:ok, Photo.t() | :skipped} | {:error, String.t()}
+  def upload_file(path, album, opts \\ []) do
     {:ok, media} = Media.get_media(path)
 
-    upload_date = attrs[:date]
+    upload_date = opts[:date]
 
     name =
-      case attrs[:name] do
+      case opts[:name] do
         nil -> Path.basename(path)
         name -> name
       end
@@ -103,42 +104,66 @@ defmodule PenguinMemories.Upload do
 
     size_key = "orig"
     photo_dir = Storage.build_photo_dir(upload_date)
-    photo_conflicts = Objects.get_photo_conflicts(photo_dir, name)
-    file_conflicts = Objects.get_file_conflicts(media, size_key)
 
-    case {photo_conflicts, file_conflicts} do
-      {[], []} ->
-        photo = %Photo{
-          camera_make: get(exif, "EXIF:Make"),
-          camera_model: get(exif, "EXIF:Model"),
-          flash_used: get(exif, "EXIF:Flash") |> flash_used(),
-          focal_length: get(exif, "EXIF:FocalLength"),
-          exposure: get(exif, "EXIF:ExposureTime"),
-          aperture: get(exif, "EXIF:FNumber") |> exposure,
-          iso_equiv: get(exif, "EXIF:ISO"),
-          metering_mode: get(exif, "EXIF:MeteringMode") |> metering_mode(),
-          focus_dist: get(exif, "Composite:HyperfocalDistance"),
-          path: photo_dir,
-          name: name,
-          datetime: datetime,
-          # FIXME
-          utc_offset: 660,
-          action: "R",
-          level: 0
-        }
+    photo = %Photo{
+      camera_make: get(exif, "EXIF:Make"),
+      camera_model: get(exif, "EXIF:Model"),
+      flash_used: get(exif, "EXIF:Flash") |> flash_used(),
+      focal_length: get(exif, "EXIF:FocalLength"),
+      exposure: get(exif, "EXIF:ExposureTime"),
+      aperture: get(exif, "EXIF:FNumber") |> exposure,
+      iso_equiv: get(exif, "EXIF:ISO"),
+      metering_mode: get(exif, "EXIF:MeteringMode") |> metering_mode(),
+      focus_dist: get(exif, "Composite:HyperfocalDistance"),
+      path: photo_dir,
+      name: name,
+      datetime: datetime,
+      # FIXME
+      utc_offset: 660,
+      action: "R",
+      level: 0
+    }
 
-        {:ok, file} = Storage.build_file_from_media(photo, media, size_key)
+    photo_conflicts = Objects.get_photo_path_conflicts(photo_dir, name)
+    file_conflicts = Objects.get_file_hash_conflicts(media, size_key)
 
+    with [] <- photo_conflicts,
+         [] <- file_conflicts,
+         {:ok, file} <-
+           Storage.build_file_from_media(photo, media, size_key, check_conflicts: true) do
+      photo =
         photo
         |> Ecto.Changeset.change()
         |> Ecto.Changeset.put_assoc(:albums, [album])
         |> Ecto.Changeset.put_assoc(:files, [file])
         |> Repo.insert!()
 
-      {pc, fc} ->
-        IO.puts("Skipping #{path} due to photo conflict #{inspect(pc)}")
-        IO.puts("Skipping #{path} due to file conflict #{inspect(fc)}")
-        nil
+      if opts[:verbose] do
+        IO.puts("Done #{Photo.to_string(photo)}")
+
+        Enum.each(photo.files, fn file ->
+          IO.puts("     #{File.to_string(file)}")
+        end)
+      end
+
+      {:ok, photo}
+    else
+      {:error, reason} ->
+        {:error, reason}
+
+      [_ | _] ->
+        pc_string = Enum.map(photo_conflicts, fn p -> Photo.to_string(p) end) |> Enum.join(",")
+        fc_string = Enum.map(file_conflicts, fn f -> File.to_string(f) end) |> Enum.join(",")
+
+        if photo_conflicts != [] and opts[:verbose] do
+          IO.puts("Skipping #{path} due to photo conflict #{pc_string}")
+        end
+
+        if file_conflicts != [] and opts[:verbose] do
+          IO.puts("Skipping #{path} due to file conflict #{fc_string}")
+        end
+
+        {:ok, :skipped}
     end
   end
 
@@ -168,9 +193,14 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  @spec upload_directory(String.t()) :: list(File.t() | nil)
-  def upload_directory(directory) do
-    date = DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
+  @spec upload_directory(String.t(), keyword()) :: list(File.t() | nil)
+  def upload_directory(directory, opts \\ []) do
+    date =
+      case opts[:date] do
+        nil -> DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
+        date -> date
+      end
+
     album = get_upload_album(date)
 
     ls!(directory)
@@ -180,8 +210,13 @@ defmodule PenguinMemories.Upload do
     end)
     |> Enum.map(fn filename ->
       path = Path.join(directory, filename)
-      IO.puts("---> #{filename}")
-      upload_file(path, album, date: date)
+
+      if opts[:verbose] do
+        IO.puts("---> #{filename}")
+      end
+
+      opts = Keyword.put(opts, :date, date)
+      {:ok, _} = upload_file(path, album, opts)
     end)
   end
 end

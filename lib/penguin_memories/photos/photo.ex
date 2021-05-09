@@ -40,7 +40,7 @@ defmodule PenguinMemories.Photos.Photo do
     field :view, :string
     field :utc_offset, :integer
     has_many :cover_photo_albums, Album, foreign_key: :cover_photo_id
-    has_many :files, File
+    has_many :files, File, on_replace: :delete
 
     field :album_list, :string, virtual: true
     has_many :photo_albums, PhotoAlbum, on_replace: :delete
@@ -213,5 +213,10 @@ defmodule PenguinMemories.Photos.Photo do
     else
       changeset
     end
+  end
+
+  @spec to_string(t()) :: String.t()
+  def to_string(%__MODULE__{} = photo) do
+    "#{photo.id}:#{photo.path}/#{photo.name}"
   end
 end

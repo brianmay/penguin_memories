@@ -60,4 +60,9 @@ defmodule PenguinMemories.Photos.File do
       :num_bytes
     ])
   end
+
+  @spec to_string(t()) :: String.t()
+  def to_string(%__MODULE__{} = file) do
+    "#{file.id}:#{file.dir}/#{file.name}"
+  end
 end

@@ -481,7 +481,7 @@ defmodule PenguinMemories.ObjectsTest do
   end
 
   describe "check conflicts" do
-    test "get_photo_conflicts/2" do
+    test "get_photo_path_conflicts/2" do
       photo =
         %Photo{
           path: "a/b/c",
@@ -491,22 +491,63 @@ defmodule PenguinMemories.ObjectsTest do
         }
         |> Repo.insert!()
 
-      conflicts = Objects.get_photo_conflicts("a/b/c", "hello.jpg")
+      conflicts = Objects.get_photo_path_conflicts("a/b/c", "hello.jpg")
       assert length(conflicts) == 1
       assert Enum.at(conflicts, 0).id == photo.id
 
-      conflicts = Objects.get_photo_conflicts("a/b/c", "hello.png")
+      conflicts = Objects.get_photo_path_conflicts("a/b/c", "hello.png")
       assert length(conflicts) == 1
       assert Enum.at(conflicts, 0).id == photo.id
 
-      conflicts = Objects.get_photo_conflicts("a/b/d", "hello.png")
+      conflicts = Objects.get_photo_path_conflicts("a/b/d", "hello.png")
       assert conflicts == []
 
-      conflicts = Objects.get_photo_conflicts("a/b/c", "goodbye.png")
+      conflicts = Objects.get_photo_path_conflicts("a/b/c", "goodbye.png")
       assert conflicts == []
     end
 
-    test "get_file_conflicts/2" do
+    test "get_file_path_conflicts/2" do
+      {:ok, media1} = Media.get_media("priv/tests/100x100.jpg")
+
+      photo =
+        %Photo{
+          path: "d/e/f",
+          name: "goodbye.jpg",
+          datetime: ~U[2000-01-01 12:00:00Z],
+          utc_offset: 0
+        }
+        |> Repo.insert!()
+
+      file =
+        %File{
+          dir: "a/b/c",
+          name: "hello.jpg",
+          size_key: "orig",
+          num_bytes: Media.get_num_bytes(media1),
+          sha256_hash: Media.get_sha256_hash(media1),
+          width: 10,
+          height: 10,
+          mime_type: "penguin/cute",
+          photo_id: photo.id
+        }
+        |> Repo.insert!()
+
+      conflicts = Objects.get_file_path_conflicts("a/b/c", "hello.jpg")
+      assert length(conflicts) == 1
+      assert Enum.at(conflicts, 0).id == file.id
+
+      conflicts = Objects.get_file_path_conflicts("a/b/c", "hello.png")
+      assert length(conflicts) == 1
+      assert Enum.at(conflicts, 0).id == file.id
+
+      conflicts = Objects.get_file_path_conflicts("a/b/d", "hello.png")
+      assert conflicts == []
+
+      conflicts = Objects.get_file_path_conflicts("a/b/c", "goodbye.png")
+      assert conflicts == []
+    end
+
+    test "get_file_hash_conflicts/2" do
       {:ok, media1} = Media.get_media("priv/tests/100x100.jpg")
       {:ok, media2} = Media.get_media("priv/tests/100x100.png")
 
@@ -533,11 +574,11 @@ defmodule PenguinMemories.ObjectsTest do
         }
         |> Repo.insert!()
 
-      conflicts = Objects.get_file_conflicts(media1, "orig")
+      conflicts = Objects.get_file_hash_conflicts(media1, "orig")
       assert length(conflicts) == 1
       assert Enum.at(conflicts, 0).id == file.id
 
-      conflicts = Objects.get_file_conflicts(media2, "orig")
+      conflicts = Objects.get_file_hash_conflicts(media2, "orig")
       assert conflicts == []
     end
   end

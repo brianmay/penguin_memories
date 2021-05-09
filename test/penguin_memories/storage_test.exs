@@ -13,7 +13,7 @@ defmodule PenguinMemories.StorageTest do
     Application.put_env(:penguin_memories, :image_dir, image_dir)
 
     on_exit(fn ->
-      rm_rf(image_dir)
+      rm_rf!(image_dir)
     end)
 
     {:ok, image_dir: image_dir}
@@ -23,17 +23,12 @@ defmodule PenguinMemories.StorageTest do
     assert Storage.get_image_dir() == context[:image_dir]
   end
 
-  test "get_image_sizes works" do
+  test "get_sizes works" do
     Enum.each(
-      Storage.get_image_sizes(),
-      fn {_, %Media.SizeRequirement{}} -> :ok end
-    )
-  end
-
-  test "get_video_sizes works" do
-    Enum.each(
-      Storage.get_video_sizes(),
-      fn {_, %Media.SizeRequirement{}} -> :ok end
+      Storage.get_sizes(),
+      fn {_, sizes} ->
+        Enum.each(sizes, fn %Media.SizeRequirement{} -> :ok end)
+      end
     )
   end
 

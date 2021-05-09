@@ -5,6 +5,7 @@ defmodule PenguinMemories.Storage do
   import File
   alias PenguinMemories.Media
   alias PenguinMemories.Media.SizeRequirement
+  alias PenguinMemories.Objects
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
 
@@ -13,17 +14,13 @@ defmodule PenguinMemories.Storage do
     Application.get_env(:penguin_memories, :image_dir)
   end
 
-  @spec get_image_sizes() :: %{required(String.t()) => SizeRequirement.t()}
-  def get_image_sizes do
-    Application.get_env(:penguin_memories, :image_sizes)
-    |> Enum.map(fn {key, %{} = value} -> {key, struct(SizeRequirement, value)} end)
-    |> Enum.into(%{})
-  end
-
-  @spec get_video_sizes() :: %{required(String.t()) => SizeRequirement.t()}
-  def get_video_sizes do
-    Application.get_env(:penguin_memories, :video_sizes)
-    |> Enum.map(fn {key, %{} = value} -> {key, struct(SizeRequirement, value)} end)
+  @spec get_sizes() :: %{required(String.t()) => list(SizeRequirement.t())}
+  def get_sizes do
+    Application.get_env(:penguin_memories, :sizes)
+    |> Enum.map(fn {key, list} ->
+      r = Enum.map(list, fn v -> struct(SizeRequirement, v) end)
+      {key, r}
+    end)
     |> Enum.into(%{})
   end
 
@@ -36,8 +33,8 @@ defmodule PenguinMemories.Storage do
   def build_file_dir(photo_dir, size_key, is_video) do
     cond do
       size_key == "orig" -> ["orig", photo_dir]
-      not is_video and Map.has_key?(get_image_sizes(), size_key) -> ["thumb", size_key, photo_dir]
-      is_video and Map.has_key?(get_video_sizes(), size_key) -> ["video", size_key, photo_dir]
+      not is_video and Map.has_key?(get_sizes(), size_key) -> ["thumb", size_key, photo_dir]
+      is_video and Map.has_key?(get_sizes(), size_key) -> ["video", size_key, photo_dir]
     end
     |> Path.join()
   end
@@ -78,8 +75,24 @@ defmodule PenguinMemories.Storage do
     |> add_extension(extension)
   end
 
-  @spec build_file_from_media(Photo.t(), Media.t(), String.t()) :: {:ok, File.t()}
-  def build_file_from_media(%Photo{} = photo, %Media{} = media, size_key) do
+  @spec check_conflicts(boolean, String.t(), String.t()) :: :ok | {:error, String.t()}
+  defp check_conflicts(false, _, _), do: :ok
+
+  defp check_conflicts(true, file_dir, name) do
+    path = build_path(file_dir, name)
+
+    with [] <- Objects.get_file_path_conflicts(file_dir, name),
+         {:error, _} <- stat(path) do
+      :ok
+    else
+      [_conflicts] -> {:error, "Path #{path} already exists in database"}
+      {:ok, _} -> {:error, "Path #{path} already exists on filesystem"}
+    end
+  end
+
+  @spec build_file_from_media(Photo.t(), Media.t(), String.t(), keyword()) ::
+          {:ok, File.t()} | {:error, String.t()}
+  def build_file_from_media(%Photo{} = photo, %Media{} = media, size_key, opts \\ []) do
     name = build_new_name(photo, media)
     size = Media.get_size(media)
     sha256_hash = Media.get_sha256_hash(media)
@@ -88,25 +101,29 @@ defmodule PenguinMemories.Storage do
     is_video = Media.is_video(media)
 
     file_dir = build_file_dir(photo.path, size_key, is_video)
-
     dest_path = build_path(file_dir, name)
-    false = exists?(dest_path)
 
-    {:ok, _} = Media.copy(media, dest_path)
+    check_conflicts = Keyword.get(opts, :check_conflicts, false)
 
-    file = %File{
-      size_key: size_key,
-      width: size.width,
-      height: size.height,
-      dir: file_dir,
-      name: name,
-      is_video: is_video,
-      mime_type: format,
-      sha256_hash: sha256_hash,
-      num_bytes: num_bytes,
-      photo_id: photo.id
-    }
+    with :ok <- check_conflicts(check_conflicts, file_dir, name),
+         {:ok, _} <- Media.copy(media, dest_path) do
+      file = %File{
+        size_key: size_key,
+        width: size.width,
+        height: size.height,
+        dir: file_dir,
+        name: name,
+        is_video: is_video,
+        mime_type: format,
+        sha256_hash: sha256_hash,
+        num_bytes: num_bytes,
+        photo_id: photo.id
+      }
 
-    {:ok, file}
+      {:ok, file}
+    else
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end

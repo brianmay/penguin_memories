@@ -10,7 +10,7 @@ defmodule PenguinMemories.Actions do
   alias PenguinMemories.Repo
   alias PenguinMemories.Storage
 
-  @spec get_original_file(Photo.t()) :: File.t()
+  @spec get_original_file(Photo.t()) :: Photo.t()
   defp get_original_file(%Photo{} = photo) do
     [original] =
       photo.files
@@ -19,53 +19,97 @@ defmodule PenguinMemories.Actions do
     original
   end
 
-  @spec process_photo(Photo.t()) :: :ok
-  def process_photo(%Photo{action: "R"} = photo) do
+  @spec create_file(Photo.t(), Media.t(), Media.SizeRequirement.t(), String.t()) :: File.t() | nil
+  defp create_file(
+         %Photo{} = photo,
+         %Media{} = original_media,
+         %Media.SizeRequirement{} = sr,
+         size_key
+       ) do
+    is_video? = Media.is_video(original_media)
+
+    if String.starts_with?(sr.format, "video") and not is_video? do
+      nil
+    else
+      temp_path = Temp.path!()
+      {:ok, thumb} = Media.resize(original_media, temp_path, sr)
+      {:ok, file} = Storage.build_file_from_media(photo, thumb, size_key)
+      file
+    end
+  end
+
+  @spec process_photo(Photo.t(), keyword()) :: Photo.t()
+  def process_photo(photo, opts \\ [])
+
+  def process_photo(%Photo{action: "R"} = photo, opts) do
     original_file = get_original_file(photo)
     {:ok, original_media} = Storage.get_photo_file_media(original_file)
 
-    image_sizes = Storage.get_image_sizes()
+    sizes = Storage.get_sizes()
 
-    video_sizes =
-      case original_file.is_video do
-        true -> Storage.get_video_sizes()
-        false -> []
+    files =
+      Enum.map(sizes, fn {size_key, requirement} ->
+        Enum.map(requirement, fn %Media.SizeRequirement{} = sr ->
+          create_file(photo, original_media, sr, size_key)
+        end)
+      end)
+      |> List.flatten()
+      |> Enum.reject(fn file -> is_nil(file) end)
+
+    files = [original_file | files]
+
+    old_filenames =
+      photo.files
+      |> Enum.map(fn file -> {file.dir, file.name} end)
+      |> MapSet.new()
+
+    new_filenames =
+      files
+      |> Enum.map(fn file -> {file.dir, file.name} end)
+      |> MapSet.new()
+
+    MapSet.difference(old_filenames, new_filenames)
+    |> Enum.each(fn {dir, name} ->
+      path = Storage.build_path(dir, name)
+      {:ok, media} = Media.get_media(path)
+
+      if opts[:verbose] do
+        IO.puts("Deleting #{path}")
       end
 
-    image_files =
-      Enum.map(image_sizes, fn {size_key, %Media.SizeRequirement{} = sr} ->
-        temp_path = Temp.path!()
-        {:ok, thumb} = Media.resize(original_media, temp_path, sr)
-        {:ok, file} = Storage.build_file_from_media(photo, thumb, size_key)
+      :ok = Media.delete(media)
+    end)
 
-        file
+    photo =
+      photo
+      |> Ecto.Changeset.change(action: nil)
+      |> Ecto.Changeset.put_assoc(:files, files)
+      |> Repo.update!()
+
+    if opts[:verbose] do
+      IO.puts("Done #{Photo.to_string(photo)}")
+
+      Enum.each(photo.files, fn file ->
+        IO.puts("     #{File.to_string(file)}")
       end)
-
-    image_files = [original_file | image_files]
-
-    video_files =
-      Enum.map(video_sizes, fn {size_key, %Media.SizeRequirement{} = sr} ->
-        temp_path = Temp.path!()
-        {:ok, thumb} = Media.resize(original_media, temp_path, sr)
-        {:ok, file} = Storage.build_file_from_media(photo, thumb, size_key)
-
-        file
-      end)
+    end
 
     photo
-    |> Ecto.Changeset.change()
-    |> Ecto.Changeset.put_assoc(:files, image_files)
-    |> Ecto.Changeset.put_assoc(:videos, video_files)
-    |> Repo.update!()
   end
 
-  def process_photo(_) do
+  def process_photo(_, _) do
     :ok
   end
 
-  @spec process_pending() :: :ok
-  def process_pending do
+  @spec process_pending(keyword()) :: list(Photo.t())
+  def process_pending(opts \\ []) do
     Repo.all(from p in Photo, where: not is_nil(p.action), preload: :files)
-    |> Enum.each(fn photo -> process_photo(photo) end)
+    |> Enum.map(fn photo ->
+      if opts[:verbose] do
+        IO.puts("---> #{Photo.to_string(photo)}")
+      end
+
+      process_photo(photo, opts)
+    end)
   end
 end
