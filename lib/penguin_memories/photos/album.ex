@@ -10,7 +10,7 @@ defmodule PenguinMemories.Photos.Album do
 
   @timestamps_opts [type: :utc_datetime]
   @type t :: map()
-  schema "spud_album" do
+  schema "pm_album" do
     field :description, :string
     field :revised, :utc_datetime
     field :revised_utc_offset, :integer

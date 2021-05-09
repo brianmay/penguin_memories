@@ -2,7 +2,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
   use Ecto.Migration
 
   def change do
-    create table(:spud_photo) do
+    create table(:pm_photo) do
       add(:comment, :text)
       add(:rating, :float)
       add(:flash_used, :boolean)
@@ -31,9 +31,9 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:spud_photo, [:dir, :name], unique: true))
-    create(index(:spud_photo, [:place_id]))
-    create(index(:spud_photo, [:datetime]))
-    create(index(:spud_photo, [:action]))
+    create(index(:pm_photo, [:dir, :name], unique: true))
+    create(index(:pm_photo, [:place_id]))
+    create(index(:pm_photo, [:datetime]))
+    create(index(:pm_photo, [:action]))
   end
 end

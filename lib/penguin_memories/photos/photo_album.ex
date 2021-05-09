@@ -13,7 +13,7 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
           album_id: integer
         }
 
-  schema "spud_photo_album" do
+  schema "pm_photo_album" do
     belongs_to :photo, PenguinMemories.Photos.Photo
     belongs_to :album, PenguinMemories.Photos.Album
     timestamps()

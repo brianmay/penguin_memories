@@ -14,7 +14,7 @@ defmodule PenguinMemories.Photos.Photo do
   @timestamps_opts [type: :utc_datetime]
 
   @type t :: map()
-  schema "spud_photo" do
+  schema "pm_photo" do
     field :action, :string
     field :aperture, :float
     field :camera_make, :string

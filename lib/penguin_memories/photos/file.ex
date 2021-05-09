@@ -20,7 +20,7 @@ defmodule PenguinMemories.Photos.File do
           photo: Photo.t()
         }
 
-  schema "spud_photo_file" do
+  schema "pm_photo_file" do
     field :dir, :string
     field :height, :integer
     field :is_video, :boolean, default: false
