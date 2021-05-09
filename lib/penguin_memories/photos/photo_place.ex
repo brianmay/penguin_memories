@@ -1,13 +1,13 @@
-defmodule PenguinMemories.Photos.PhotoAlbum do
+defmodule PenguinMemories.Photos.PhotoPlace do
   @moduledoc """
-  A relationship between a photo and an album.
+  A relationship between a photo and an place.
   """
 
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Photos.Place
 
   @timestamps_opts [type: :utc_datetime]
 
@@ -16,20 +16,20 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
           photo_id: integer | nil,
           photo: Photo.t() | Ecto.Association.NotLoaded.t() | nil,
           album_id: integer | nil,
-          album: Album.t() | Ecto.Association.NotLoaded.t() | nil
+          album: Place.t() | Ecto.Association.NotLoaded.t() | nil
         }
 
   schema "pm_photo_album" do
     belongs_to :photo, Photo
-    belongs_to :album, Album
+    belongs_to :album, Place
     timestamps()
   end
 
   def changeset(photo_album, attrs) do
     photo_album
-    |> cast(attrs, [:photo_id, :album_id])
-    |> validate_required([:photo_id, :album_id])
+    |> cast(attrs, [:photo_id, :place_id])
+    |> validate_required([:photo_id, :place_id])
     |> foreign_key_constraint(:photo_id)
-    |> foreign_key_constraint(:album_id)
+    |> foreign_key_constraint(:place_id)
   end
 end

@@ -1,13 +1,13 @@
-defmodule PenguinMemories.Photos.Album do
+defmodule PenguinMemories.Photos.Category do
   @moduledoc "An album containing photos and subalbums"
   use Ecto.Schema
   import Ecto.Changeset
   alias Ecto.Changeset
 
   import PenguinMemories.Photos.Private
-  alias PenguinMemories.Photos.AlbumAscendant
+  alias PenguinMemories.Photos.CategoryAscendant
   alias PenguinMemories.Photos.Photo
-  alias PenguinMemories.Photos.PhotoAlbum
+  alias PenguinMemories.Photos.PhotoCategory
 
   @timestamps_opts [type: :utc_datetime]
 
@@ -23,8 +23,8 @@ defmodule PenguinMemories.Photos.Album do
           parent_id: integer() | nil,
           parent: t() | Ecto.Association.NotLoaded.t() | nil,
           children: list(t()) | Ecto.Association.NotLoaded.t(),
-          ascendants: list(AlbumAscendant.t()) | Ecto.Association.NotLoaded.t(),
-          descendants: list(AlbumAscendant.t()) | Ecto.Association.NotLoaded.t(),
+          ascendants: list(CategoryAscendant.t()) | Ecto.Association.NotLoaded.t(),
+          descendants: list(CategoryAscendant.t()) | Ecto.Association.NotLoaded.t(),
           photos: list(Photo.t()) | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
@@ -37,11 +37,11 @@ defmodule PenguinMemories.Photos.Album do
     field :sort_name, :string
     field :sort_order, :string
     field :revised, :utc_datetime
-    belongs_to :parent, PenguinMemories.Photos.Album
-    has_many :children, PenguinMemories.Photos.Album, foreign_key: :parent_id
-    has_many :ascendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :descendant_id
-    has_many :descendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :ascendant_id
-    many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoAlbum
+    belongs_to :parent, PenguinMemories.Photos.Category
+    has_many :children, PenguinMemories.Photos.Category, foreign_key: :parent_id
+    has_many :ascendants, PenguinMemories.Photos.CategoryAscendant, foreign_key: :descendant_id
+    has_many :descendants, PenguinMemories.Photos.CategoryAscendant, foreign_key: :ascendant_id
+    many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoCategory
     timestamps()
   end
 
