@@ -10,7 +10,7 @@ defmodule PenguinMemories.Actions do
   alias PenguinMemories.Repo
   alias PenguinMemories.Storage
 
-  @spec get_original_file(Photo.t()) :: Photo.t()
+  @spec get_original_file(Photo.t()) :: File.t()
   defp get_original_file(%Photo{} = photo) do
     [original] =
       photo.files

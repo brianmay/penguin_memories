@@ -4,6 +4,16 @@ defmodule PenguinMemories.Photos.AlbumAscendant do
   import Ecto.Changeset
   @timestamps_opts [type: :utc_datetime]
 
+  @type t :: %__MODULE__{
+          position: integer(),
+          ascendant_id: integer(),
+          ascendant: t(),
+          descendant_id: integer(),
+          descendant: t(),
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   schema "pm_album_ascendant" do
     field :position, :integer
     belongs_to :ascendant, PenguinMemories.Photos.Album

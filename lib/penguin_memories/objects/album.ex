@@ -468,8 +468,8 @@ defmodule PenguinMemories.Objects.Album do
   end
 
   @impl Objects
-  @spec get_edit_changeset(map(), map()) :: Ecto.Changeset.t()
-  def get_edit_changeset(album, attrs) do
+  @spec get_edit_changeset(Album.t(), map()) :: Ecto.Changeset.t()
+  def get_edit_changeset(%Album{} = album, attrs) do
     Album.edit_changeset(album, attrs)
   end
 

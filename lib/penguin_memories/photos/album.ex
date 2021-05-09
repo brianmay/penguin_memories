@@ -5,11 +5,31 @@ defmodule PenguinMemories.Photos.Album do
   alias Ecto.Changeset
 
   import PenguinMemories.Photos.Private
+  alias PenguinMemories.Photos.AlbumAscendant
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoAlbum
 
   @timestamps_opts [type: :utc_datetime]
-  @type t :: map()
+
+  @type t :: %__MODULE__{
+          description: String.t() | nil,
+          revised: DateTime.t() | nil,
+          revised_utc_offset: integer() | nil,
+          sort_name: String.t() | nil,
+          sort_order: String.t() | nil,
+          title: String.t() | nil,
+          parent_id: integer() | nil,
+          parent: t() | Ecto.Association.NotLoaded.t() | nil,
+          children: list(t()) | Ecto.Association.NotLoaded.t(),
+          cover_photo_id: integer() | nil,
+          cover_photo: Photo.t() | Ecto.Association.NotLoaded.t(),
+          ascendants: list(AlbumAscendant.t()) | Ecto.Association.NotLoaded.t(),
+          descendants: list(AlbumAscendant.t()) | Ecto.Association.NotLoaded.t(),
+          photos: list(Photo.t()) | Ecto.Association.NotLoaded.t(),
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   schema "pm_album" do
     field :description, :string
     field :revised, :utc_datetime

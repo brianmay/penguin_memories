@@ -17,7 +17,10 @@ defmodule PenguinMemories.Photos.File do
           sha256_hash: binary(),
           size_key: String.t(),
           width: integer(),
-          photo: Photo.t()
+          photo_id: integer(),
+          photo: Photo.t(),
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
         }
 
   schema "pm_photo_file" do
