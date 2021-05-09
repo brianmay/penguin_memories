@@ -6,11 +6,17 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias PenguinMemories.Photos.Album
+  alias PenguinMemories.Photos.Photo
+
   @timestamps_opts [type: :utc_datetime]
 
   @type t :: %__MODULE__{
-          photo_id: integer,
-          album_id: integer
+          id: integer | nil,
+          photo_id: integer | nil,
+          photo: Photo.t() | Ecto.Association.NotLoaded.t() | nil,
+          album_id: integer | nil,
+          album: Album.t() | Ecto.Association.NotLoaded.t() | nil
         }
 
   schema "pm_photo_album" do

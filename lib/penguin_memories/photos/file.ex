@@ -8,17 +8,18 @@ defmodule PenguinMemories.Photos.File do
   @timestamps_opts [type: :utc_datetime]
 
   @type t :: %__MODULE__{
-          dir: String.t(),
-          height: integer(),
-          is_video: boolean(),
-          mime_type: String.t(),
-          name: String.t(),
-          num_bytes: integer(),
-          sha256_hash: binary(),
-          size_key: String.t(),
-          width: integer(),
-          photo_id: integer(),
-          photo: Photo.t(),
+          id: integer() | nil,
+          dir: String.t() | nil,
+          height: integer() | nil,
+          is_video: boolean() | nil,
+          mime_type: String.t() | nil,
+          name: String.t() | nil,
+          num_bytes: integer() | nil,
+          sha256_hash: binary() | nil,
+          size_key: String.t() | nil,
+          width: integer() | nil,
+          photo_id: integer() | nil,
+          photo: Photo.t() | Ecto.Association.NotLoaded.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }

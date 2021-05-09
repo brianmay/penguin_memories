@@ -12,6 +12,7 @@ defmodule PenguinMemories.Photos.Album do
   @timestamps_opts [type: :utc_datetime]
 
   @type t :: %__MODULE__{
+          id: integer() | nil,
           description: String.t() | nil,
           revised: DateTime.t() | nil,
           revised_utc_offset: integer() | nil,
