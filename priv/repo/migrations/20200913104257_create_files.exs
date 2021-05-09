@@ -11,7 +11,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateFiles do
       add(:mime_type, :string, null: false)
       add(:is_video, :boolean, default: false, null: false)
       add(:sha256_hash, :binary, null: false)
-      add(:num_bytes, :integer, null: false)
+      add(:num_bytes, :bigint, null: false)
       add(:photo_id, references(:spud_photo, on_delete: :delete_all), null: false)
 
       timestamps(type: :utc_datetime_usec)
