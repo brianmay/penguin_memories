@@ -55,7 +55,7 @@ defmodule PenguinMemories.MixProject do
       {:mox, "~> 1.0.0", only: :test},
       {:paginator, "~> 1.0.1"},
       {:earmark, "~> 1.4.10"},
-      {:mogrify, "~> 0.8.0", override: true},
+      {:mogrify, "~> 0.8.0"},
       {:thumbnex, "~> 0.3.3"},
       {:temp, "~> 0.4"},
       {:timex, "~> 3.5"},
