@@ -481,37 +481,37 @@ defmodule PenguinMemories.ObjectsTest do
   end
 
   describe "check conflicts" do
-    test "get_photo_path_conflicts/2" do
+    test "get_photo_dir_conflicts/2" do
       photo =
         %Photo{
-          path: "a/b/c",
+          dir: "a/b/c",
           name: "hello.jpg",
           datetime: ~U[2000-01-01 12:00:00Z],
           utc_offset: 0
         }
         |> Repo.insert!()
 
-      conflicts = Objects.get_photo_path_conflicts("a/b/c", "hello.jpg")
+      conflicts = Objects.get_photo_dir_conflicts("a/b/c", "hello.jpg")
       assert length(conflicts) == 1
       assert Enum.at(conflicts, 0).id == photo.id
 
-      conflicts = Objects.get_photo_path_conflicts("a/b/c", "hello.png")
+      conflicts = Objects.get_photo_dir_conflicts("a/b/c", "hello.png")
       assert length(conflicts) == 1
       assert Enum.at(conflicts, 0).id == photo.id
 
-      conflicts = Objects.get_photo_path_conflicts("a/b/d", "hello.png")
+      conflicts = Objects.get_photo_dir_conflicts("a/b/d", "hello.png")
       assert conflicts == []
 
-      conflicts = Objects.get_photo_path_conflicts("a/b/c", "goodbye.png")
+      conflicts = Objects.get_photo_dir_conflicts("a/b/c", "goodbye.png")
       assert conflicts == []
     end
 
-    test "get_file_path_conflicts/2" do
+    test "get_file_dir_conflicts/2" do
       {:ok, media1} = Media.get_media("priv/tests/100x100.jpg")
 
       photo =
         %Photo{
-          path: "d/e/f",
+          dir: "d/e/f",
           name: "goodbye.jpg",
           datetime: ~U[2000-01-01 12:00:00Z],
           utc_offset: 0
@@ -532,18 +532,18 @@ defmodule PenguinMemories.ObjectsTest do
         }
         |> Repo.insert!()
 
-      conflicts = Objects.get_file_path_conflicts("a/b/c", "hello.jpg")
+      conflicts = Objects.get_file_dir_conflicts("a/b/c", "hello.jpg")
       assert length(conflicts) == 1
       assert Enum.at(conflicts, 0).id == file.id
 
-      conflicts = Objects.get_file_path_conflicts("a/b/c", "hello.png")
+      conflicts = Objects.get_file_dir_conflicts("a/b/c", "hello.png")
       assert length(conflicts) == 1
       assert Enum.at(conflicts, 0).id == file.id
 
-      conflicts = Objects.get_file_path_conflicts("a/b/d", "hello.png")
+      conflicts = Objects.get_file_dir_conflicts("a/b/d", "hello.png")
       assert conflicts == []
 
-      conflicts = Objects.get_file_path_conflicts("a/b/c", "goodbye.png")
+      conflicts = Objects.get_file_dir_conflicts("a/b/c", "goodbye.png")
       assert conflicts == []
     end
 
@@ -553,7 +553,7 @@ defmodule PenguinMemories.ObjectsTest do
 
       photo =
         %Photo{
-          path: "a/b/c",
+          dir: "a/b/c",
           name: "hello.jpg",
           datetime: ~U[2000-01-01 12:00:00Z],
           utc_offset: 0

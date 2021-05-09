@@ -115,7 +115,7 @@ defmodule PenguinMemories.Upload do
       iso_equiv: get(exif, "EXIF:ISO"),
       metering_mode: get(exif, "EXIF:MeteringMode") |> metering_mode(),
       focus_dist: get(exif, "Composite:HyperfocalDistance"),
-      path: photo_dir,
+      dir: photo_dir,
       name: name,
       datetime: datetime,
       # FIXME
@@ -124,7 +124,7 @@ defmodule PenguinMemories.Upload do
       level: 0
     }
 
-    photo_conflicts = Objects.get_photo_path_conflicts(photo_dir, name)
+    photo_conflicts = Objects.get_photo_dir_conflicts(photo_dir, name)
     file_conflicts = Objects.get_file_hash_conflicts(media, size_key)
 
     with [] <- photo_conflicts,

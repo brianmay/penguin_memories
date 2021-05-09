@@ -32,7 +32,7 @@ defmodule PenguinMemories.Photos.Photo do
     field :level, :integer
     field :metering_mode, :string
     field :name, :string
-    field :path, :string
+    field :dir, :string
     field :photographer_id, :integer
     field :place_id, :integer
     field :rating, :float
@@ -68,7 +68,7 @@ defmodule PenguinMemories.Photos.Photo do
       :timestamp,
       :iso_equiv,
       :focal_length,
-      :path,
+      :dir,
       :exposure,
       :namer,
       :level,
@@ -95,7 +95,7 @@ defmodule PenguinMemories.Photos.Photo do
       :timestamp,
       :iso_equiv,
       :focal_length,
-      :path,
+      :dir,
       :exposure,
       :namer,
       :level,
@@ -217,6 +217,6 @@ defmodule PenguinMemories.Photos.Photo do
 
   @spec to_string(t()) :: String.t()
   def to_string(%__MODULE__{} = photo) do
-    "#{photo.id}:#{photo.path}/#{photo.name}"
+    "#{photo.id}:#{photo.dir}/#{photo.name}"
   end
 end

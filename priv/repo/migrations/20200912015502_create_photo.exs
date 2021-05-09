@@ -17,7 +17,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       add(:description, :string)
       add(:iso_equiv, :integer)
       add(:focal_length, :integer)
-      add(:path, :string, null: false)
+      add(:dir, :string, null: false)
       add(:exposure, :float)
       add(:name, :string, null: false)
       add(:level, :integer)
@@ -31,7 +31,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:spud_photo, [:path, :name], unique: true))
+    create(index(:spud_photo, [:dir, :name], unique: true))
     create(index(:spud_photo, [:place_id]))
     create(index(:spud_photo, [:datetime]))
     create(index(:spud_photo, [:action]))

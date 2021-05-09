@@ -87,7 +87,7 @@ defmodule PenguinMemories.StorageTest do
 
     photo = %Photo{
       name: "test.wot",
-      path: "1/2/3"
+      dir: "1/2/3"
     }
 
     {:ok, media} = Media.get_media("priv/tests/100x100.jpg")

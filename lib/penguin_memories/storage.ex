@@ -81,7 +81,7 @@ defmodule PenguinMemories.Storage do
   defp check_conflicts(true, file_dir, name) do
     path = build_path(file_dir, name)
 
-    with [] <- Objects.get_file_path_conflicts(file_dir, name),
+    with [] <- Objects.get_file_dir_conflicts(file_dir, name),
          {:error, _} <- stat(path) do
       :ok
     else
@@ -100,7 +100,7 @@ defmodule PenguinMemories.Storage do
     format = Media.get_format(media)
     is_video = Media.is_video(media)
 
-    file_dir = build_file_dir(photo.path, size_key, is_video)
+    file_dir = build_file_dir(photo.dir, size_key, is_video)
     dest_path = build_path(file_dir, name)
 
     check_conflicts = Keyword.get(opts, :check_conflicts, false)

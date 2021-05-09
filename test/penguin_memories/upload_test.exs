@@ -81,7 +81,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.level == 0
     assert photo.metering_mode == nil
     assert photo.name == "100x100.jpg"
-    assert photo.path == "2000/01/01"
+    assert photo.dir == "2000/01/01"
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
@@ -141,7 +141,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.level == 0
     assert photo.metering_mode == "pattern"
     assert photo.name == "2Y4A3211.JPG"
-    assert photo.path == "2000/01/01"
+    assert photo.dir == "2000/01/01"
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
@@ -201,7 +201,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.level == 0
     assert photo.metering_mode == "pattern"
     assert photo.name == "IMG_4706.CR2"
-    assert photo.path == "2000/01/01"
+    assert photo.dir == "2000/01/01"
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
@@ -260,7 +260,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.level == 0
     assert photo.metering_mode == nil
     assert photo.name == "MVI_7254.mp4"
-    assert photo.path == "2000/01/01"
+    assert photo.dir == "2000/01/01"
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
@@ -319,7 +319,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.level == 0
     assert photo.metering_mode == nil
     assert photo.name == "MVI_7254.ogv"
-    assert photo.path == "2000/01/01"
+    assert photo.dir == "2000/01/01"
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
@@ -378,7 +378,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.level == 0
     assert photo.metering_mode == nil
     assert photo.name == "MVI_7254.webm"
-    assert photo.path == "2000/01/01"
+    assert photo.dir == "2000/01/01"
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil

@@ -359,19 +359,19 @@ defmodule PenguinMemories.Objects do
     DateTime.to_string(datetime)
   end
 
-  @spec get_photo_path_conflicts(String.t(), String.t()) :: list(Photo.t())
-  def get_photo_path_conflicts(new_dir, new_name) do
+  @spec get_photo_dir_conflicts(String.t(), String.t()) :: list(Photo.t())
+  def get_photo_dir_conflicts(new_dir, new_name) do
     name = Path.rootname(new_name)
 
     photo_query =
       from p in Photo,
-        where: p.path == ^new_dir and ilike(p.name, ^"#{name}.%")
+        where: p.dir == ^new_dir and ilike(p.name, ^"#{name}.%")
 
     Repo.all(photo_query)
   end
 
-  @spec get_file_path_conflicts(String.t(), String.t()) :: list(Photo.t())
-  def get_file_path_conflicts(new_dir, new_name) do
+  @spec get_file_dir_conflicts(String.t(), String.t()) :: list(Photo.t())
+  def get_file_dir_conflicts(new_dir, new_name) do
     name = Path.rootname(new_name)
 
     file_query =
