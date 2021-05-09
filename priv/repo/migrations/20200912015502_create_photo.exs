@@ -13,7 +13,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       add(:photographer_id, :integer)
       add(:place_id, :integer)
       add(:aperture, :float)
-      add(:ccd_width, :string)
+      add(:ccd_width, :integer)
       add(:description, :string)
       add(:iso_equiv, :integer)
       add(:focal_length, :integer)

@@ -13,13 +13,44 @@ defmodule PenguinMemories.Photos.Photo do
 
   @timestamps_opts [type: :utc_datetime]
 
-  @type t :: map()
+  @type t :: %__MODULE__{
+          action: String.t() | nil,
+          aperture: float | nil,
+          camera_make: String.t() | nil,
+          camera_model: String.t() | nil,
+          ccd_width: any,
+          comment: any,
+          compression: any,
+          datetime: any,
+          description: any,
+          exposure: any,
+          flash_used: any,
+          focal_length: any,
+          focus_dist: any,
+          iso_equiv: any,
+          level: any,
+          metering_mode: any,
+          name: any,
+          dir: any,
+          photographer_id: any,
+          place_id: any,
+          rating: any,
+          title: any,
+          view: any,
+          utc_offset: any,
+          cover_photo_albums: any,
+          files: any,
+          album_list: any,
+          photo_albums: any,
+          albums: any
+        }
+
   schema "pm_photo" do
     field :action, :string
     field :aperture, :float
     field :camera_make, :string
     field :camera_model, :string
-    field :ccd_width, :string
+    field :ccd_width, :integer
     field :comment, :string
     field :compression, :string
     field :datetime, :utc_datetime
