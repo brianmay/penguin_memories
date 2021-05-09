@@ -87,6 +87,12 @@ defmodule PenguinMemories.Upload do
 
     upload_date = opts[:date]
 
+    timezone =
+      case opts[:timezone] do
+        nil -> "Australia/Melbourne"
+        timezone -> timezone
+      end
+
     name =
       case opts[:name] do
         nil -> Path.basename(path)
@@ -96,11 +102,13 @@ defmodule PenguinMemories.Upload do
     exif = Media.get_exif(media)
     offset = get_camera_offset(exif["EXIF:Model"])
 
-    datetime =
+    utc_datetime =
       media
       |> Media.get_datetime()
       |> DateTime.from_naive!("Etc/UTC")
       |> DateTime.add(-offset)
+
+    local_datetime = DateTime.shift_zone!(utc_datetime, timezone)
 
     size_key = "orig"
     photo_dir = Storage.build_photo_dir(upload_date)
@@ -117,9 +125,8 @@ defmodule PenguinMemories.Upload do
       focus_dist: get(exif, "Composite:HyperfocalDistance"),
       dir: photo_dir,
       name: name,
-      datetime: datetime,
-      # FIXME
-      utc_offset: 660,
+      datetime: utc_datetime,
+      utc_offset: trunc(local_datetime.utc_offset / 60),
       action: "R",
       level: 0
     }

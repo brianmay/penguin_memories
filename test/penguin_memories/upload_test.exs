@@ -71,6 +71,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.comment == nil
     assert photo.compression == nil
     %DateTime{} = photo.datetime
+    assert is_integer(photo.utc_offset)
     assert photo.description == nil
     assert photo.exposure == nil
     assert photo.flash_used == nil
@@ -87,8 +88,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.rating == nil
     assert photo.title == nil
     %DateTime{} = photo.updated_at
-    # FIXME
-    assert photo.utc_offset == 660
     assert photo.view == nil
 
     {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/100x100.jpg")
@@ -131,6 +130,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.comment == nil
     assert photo.compression == nil
     assert photo.datetime == ~U[2021-04-01 03:32:00Z]
+    assert photo.utc_offset == 600
     assert photo.description == nil
     assert_in_delta(photo.exposure, 0.01666666667, 0.0001)
     assert photo.flash_used == false
@@ -147,8 +147,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.rating == nil
     assert photo.title == nil
     %DateTime{} = photo.updated_at
-    # FIXME
-    assert photo.utc_offset == 660
     assert photo.view == nil
 
     {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/2Y4A3211.jpg")
@@ -191,6 +189,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.comment == nil
     assert photo.compression == nil
     assert photo.datetime == ~U[2005-03-18 23:57:13Z]
+    assert photo.utc_offset == 600
     assert photo.description == nil
     assert_in_delta(photo.exposure, 0.01, 0.0001)
     assert photo.flash_used == false
@@ -207,7 +206,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.rating == nil
     assert photo.title == nil
     %DateTime{} = photo.updated_at
-    assert is_integer(photo.utc_offset)
     assert photo.view == nil
 
     {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/IMG_4706.cr2")
@@ -250,6 +248,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.comment == nil
     assert photo.compression == nil
     %DateTime{} = photo.datetime
+    assert is_integer(photo.utc_offset)
     assert photo.description == nil
     assert photo.exposure == nil
     assert photo.flash_used == nil
@@ -266,7 +265,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.rating == nil
     assert photo.title == nil
     %DateTime{} = photo.updated_at
-    assert is_integer(photo.utc_offset)
     assert photo.view == nil
 
     {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/MVI_7254.mp4")
@@ -309,6 +307,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.comment == nil
     assert photo.compression == nil
     %DateTime{} = photo.datetime
+    assert is_integer(photo.utc_offset)
     assert photo.description == nil
     assert photo.exposure == nil
     assert photo.flash_used == nil
@@ -325,7 +324,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.rating == nil
     assert photo.title == nil
     %DateTime{} = photo.updated_at
-    assert is_integer(photo.utc_offset)
     assert photo.view == nil
 
     {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/MVI_7254.ogv")
@@ -368,6 +366,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.comment == nil
     assert photo.compression == nil
     %DateTime{} = photo.datetime
+    assert is_integer(photo.utc_offset)
     assert photo.description == nil
     assert photo.exposure == nil
     assert photo.flash_used == nil
@@ -384,7 +383,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.rating == nil
     assert photo.title == nil
     %DateTime{} = photo.updated_at
-    assert is_integer(photo.utc_offset)
     assert photo.view == nil
 
     {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/MVI_7254.webm")
