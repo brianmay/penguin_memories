@@ -10,8 +10,8 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       add(:datetime, :utc_datetime, null: false)
       add(:compression, :string)
       add(:title, :string)
-      add(:photographer_id, :integer)
-      add(:place_id, :integer)
+      #add(:photographer_id, :integer)
+      #add(:place_id, :integer)
       add(:aperture, :float)
       add(:ccd_width, :integer)
       add(:description, :string)
@@ -32,7 +32,6 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
     end
 
     create(index(:pm_photo, [:dir, :name], unique: true))
-    create(index(:pm_photo, [:place_id]))
     create(index(:pm_photo, [:datetime]))
     create(index(:pm_photo, [:action]))
   end

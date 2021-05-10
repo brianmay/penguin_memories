@@ -3,7 +3,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateAlbums do
 
   def change do
     create table(:pm_album) do
-      add(:cover_photo_id, :integer)
+      add(:cover_photo_id, references(:pm_photo, on_delete: :nilify_all))
       add(:title, :string, null: false)
       add(:description, :text)
       add(:sort_order, :string, null: false)
