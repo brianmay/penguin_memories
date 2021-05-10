@@ -66,6 +66,12 @@ jobs:
     - name: Build
       run: |
         mix compile
+    - name: Install assets
+      run: |
+        npm install --prefix assets
+    - name: Build assets
+      run: |
+        npm run deploy --prefix assets
     - name: Check Formatting
       run: mix format --check-formatted
     - name: Run Credo
