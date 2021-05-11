@@ -4,8 +4,8 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
   def change do
     create table(:pm_person) do
       add(:cover_photo_id, references(:pm_photo, on_delete: :nilify_all))
-      add(:title, :string, null: false)
-      add(:called, :string)
+      add(:title, :text, null: false)
+      add(:called, :text)
       add(:date_of_birth, :date)
       add(:date_of_death, :date)
       add(:home_id, references(:pm_place, on_delete: :nilify_all))

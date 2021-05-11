@@ -51,8 +51,7 @@ defmodule PenguinMemories.Storage do
 
   @spec get_photo_file_path(File.t()) :: String.t()
   def get_photo_file_path(%File{} = file) do
-    image_dir = get_image_dir()
-    Path.join([image_dir, file.dir, file.name])
+    build_path(file.dir, file.name)
   end
 
   @spec get_photo_file_media(File.t()) :: {:ok, Media.t()} | {:error, String.t()}

@@ -414,21 +414,9 @@ defmodule PenguinMemories.Objects.Photo do
             type: :readonly
           },
           %Objects.Field{
-            id: :compression,
-            title: "Compression",
-            display: o.compression,
-            type: :readonly
-          },
-          %Objects.Field{
             id: :aperture,
             title: "Aperture",
             display: o.aperture,
-            type: :readonly
-          },
-          %Objects.Field{
-            id: :level,
-            title: "Level",
-            display: o.level,
             type: :readonly
           },
           %Objects.Field{

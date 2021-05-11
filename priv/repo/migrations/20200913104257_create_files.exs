@@ -3,12 +3,12 @@ defmodule PenguinMemories.Repo.Migrations.CreateFiles do
 
   def change do
     create table(:pm_photo_file) do
-      add(:size_key, :string, null: false)
+      add(:size_key, :text, null: false)
       add(:width, :integer, null: false)
       add(:height, :integer, null: false)
-      add(:dir, :string, null: false)
-      add(:name, :string, null: false)
-      add(:mime_type, :string, null: false)
+      add(:dir, :text, null: false)
+      add(:name, :text, null: false)
+      add(:mime_type, :text, null: false)
       add(:is_video, :boolean, default: false, null: false)
       add(:sha256_hash, :binary, null: false)
       add(:num_bytes, :bigint, null: false)

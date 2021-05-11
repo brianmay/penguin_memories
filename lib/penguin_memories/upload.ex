@@ -60,14 +60,15 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  @spec exposure(integer() | float() | nil) :: float() | nil
-  defp exposure(nil), do: nil
+  @spec float(String.t() | integer() | float() | nil) :: float() | nil
+  defp float(nil), do: nil
 
-  defp exposure(number) do
+  defp float(number) do
     cond do
+      number == "inf" -> nil
       is_nil(number) -> nil
       is_integer(number) -> number * 1.0
-      True -> number
+      is_float(number) -> number
     end
   end
 
@@ -78,6 +79,25 @@ defmodule PenguinMemories.Upload do
       nil -> nil
       value -> value
     end
+  end
+
+  @spec add_exif_to_photo(Photo.t(), Media.t()) :: Photo.t()
+  def add_exif_to_photo(%Photo{} = photo, %Media{} = media) do
+    exif = Media.get_exif(media)
+
+    %Photo{
+      photo
+      | camera_make: get(exif, "EXIF:Make"),
+        camera_model: get(exif, "EXIF:Model"),
+        flash_used: get(exif, "EXIF:Flash") |> flash_used(),
+        focal_length: get(exif, "EXIF:FocalLength") |> float(),
+        exposure: get(exif, "EXIF:ExposureTime") |> float(),
+        aperture: get(exif, "EXIF:FNumber") |> float(),
+        iso_equiv: get(exif, "EXIF:ISO"),
+        metering_mode: get(exif, "EXIF:MeteringMode") |> metering_mode(),
+        focus_dist: get(exif, "Composite:HyperfocalDistance") |> float(),
+        ccd_width: nil
+    }
   end
 
   @spec upload_file(String.t(), Album.t(), keyword()) ::
@@ -105,22 +125,14 @@ defmodule PenguinMemories.Upload do
     photo_dir = Storage.build_photo_dir(upload_date)
 
     photo = %Photo{
-      camera_make: get(exif, "EXIF:Make"),
-      camera_model: get(exif, "EXIF:Model"),
-      flash_used: get(exif, "EXIF:Flash") |> flash_used(),
-      focal_length: get(exif, "EXIF:FocalLength"),
-      exposure: get(exif, "EXIF:ExposureTime"),
-      aperture: get(exif, "EXIF:FNumber") |> exposure,
-      iso_equiv: get(exif, "EXIF:ISO"),
-      metering_mode: get(exif, "EXIF:MeteringMode") |> metering_mode(),
-      focus_dist: get(exif, "Composite:HyperfocalDistance"),
       dir: photo_dir,
       name: name,
       datetime: utc_datetime,
       utc_offset: trunc(local_datetime.utc_offset / 60),
-      action: "R",
-      level: 0
+      action: "R"
     }
+
+    photo = add_exif_to_photo(photo, media)
 
     photo_conflicts = Objects.get_photo_dir_conflicts(photo_dir, name)
     file_conflicts = Objects.get_file_hash_conflicts(media, size_key)

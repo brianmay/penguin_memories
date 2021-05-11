@@ -3,30 +3,34 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
 
   def change do
     create table(:pm_photo) do
+      add(:title, :text)
+      add(:description, :text)
       add(:comment, :text)
       add(:rating, :float)
-      add(:flash_used, :boolean)
-      add(:metering_mode, :text)
-      add(:datetime, :utc_datetime, null: false)
-      add(:compression, :string)
-      add(:title, :string)
+      add(:action, :text)
+      add(:view, :text)
       # add(:photographer_id, :integer)
       # add(:place_id, :integer)
-      add(:aperture, :float)
-      add(:ccd_width, :integer)
-      add(:description, :string)
-      add(:iso_equiv, :integer)
-      add(:focal_length, :integer)
-      add(:dir, :string, null: false)
-      add(:exposure, :float)
-      add(:name, :string, null: false)
-      add(:level, :integer)
-      add(:camera_make, :string)
-      add(:camera_model, :string)
-      add(:focus_dist, :float)
-      add(:action, :string)
-      add(:view, :string)
+
+      # date/time
+      add(:datetime, :utc_datetime, null: false)
       add(:utc_offset, :integer, null: false)
+
+      # filesystem - used for creating new image files
+      add(:dir, :text, null: false)
+      add(:name, :text, null: false)
+
+      # exif values
+      add(:aperture, :float)
+      add(:flash_used, :boolean)
+      add(:metering_mode, :text)
+      add(:ccd_width, :integer)
+      add(:iso_equiv, :integer)
+      add(:focal_length, :float)
+      add(:exposure, :float)
+      add(:camera_make, :text)
+      add(:camera_model, :text)
+      add(:focus_dist, :float)
 
       timestamps(type: :utc_datetime_usec)
     end

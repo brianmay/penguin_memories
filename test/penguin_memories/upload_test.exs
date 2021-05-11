@@ -21,6 +21,23 @@ defmodule PenguinMemories.Uploadtest do
     {:ok, image_dir: image_dir}
   end
 
+  test "add_exif_to_photo/1" do
+    {:ok, media} = Media.get_media("priv/tests/2Y4A3211.JPG")
+    photo = %Photo{}
+
+    photo = Upload.add_exif_to_photo(photo, media)
+    assert photo.aperture == 4.0
+    assert photo.camera_make == "Canon"
+    assert photo.camera_model == "Canon EOS R5"
+    assert photo.ccd_width == nil
+    assert_in_delta(photo.exposure, 0.01666666667, 0.0001)
+    assert photo.flash_used == false
+    assert photo.focal_length == 45
+    assert_in_delta(photo.focus_dist, 16.823630030011, 0.0001)
+    assert photo.iso_equiv == 2500
+    assert photo.metering_mode == "pattern"
+  end
+
   test "get_upload_album/1" do
     root_album =
       %Album{
@@ -69,7 +86,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.camera_model == nil
     assert photo.ccd_width == nil
     assert photo.comment == nil
-    assert photo.compression == nil
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
@@ -79,7 +95,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.focus_dist == nil
     %DateTime{} = photo.inserted_at
     assert photo.iso_equiv == nil
-    assert photo.level == 0
     assert photo.metering_mode == nil
     assert photo.name == "100x100.jpg"
     assert photo.dir == "2000/01/01"
@@ -126,9 +141,8 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.aperture == 4.0
     assert photo.camera_make == "Canon"
     assert photo.camera_model == "Canon EOS R5"
-    # assert photo.ccd_width == 35
+    assert photo.ccd_width == nil
     assert photo.comment == nil
-    assert photo.compression == nil
     assert photo.datetime == ~U[2021-04-01 03:32:00Z]
     assert photo.utc_offset == 600
     assert photo.description == nil
@@ -138,7 +152,6 @@ defmodule PenguinMemories.Uploadtest do
     assert_in_delta(photo.focus_dist, 16.823630030011, 0.0001)
     %DateTime{} = photo.inserted_at
     assert photo.iso_equiv == 2500
-    assert photo.level == 0
     assert photo.metering_mode == "pattern"
     assert photo.name == "2Y4A3211.JPG"
     assert photo.dir == "2000/01/01"
@@ -185,9 +198,8 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.aperture == 16.0
     assert photo.camera_make == "Canon"
     assert photo.camera_model == "Canon EOS 350D DIGITAL"
-    # assert photo.ccd_width == 35
+    assert photo.ccd_width == nil
     assert photo.comment == nil
-    assert photo.compression == nil
     assert photo.datetime == ~U[2005-03-18 23:57:13Z]
     assert photo.utc_offset == 600
     assert photo.description == nil
@@ -197,7 +209,6 @@ defmodule PenguinMemories.Uploadtest do
     assert_in_delta(photo.focus_dist, 81.0705641337023, 0.0001)
     %DateTime{} = photo.inserted_at
     assert photo.iso_equiv == 100
-    assert photo.level == 0
     assert photo.metering_mode == "pattern"
     assert photo.name == "IMG_4706.CR2"
     assert photo.dir == "2000/01/01"
@@ -244,9 +255,8 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.aperture == nil
     assert photo.camera_make == nil
     assert photo.camera_model == nil
-    # assert photo.ccd_width == 35
+    assert photo.ccd_width == nil
     assert photo.comment == nil
-    assert photo.compression == nil
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
@@ -256,7 +266,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.focus_dist == nil
     %DateTime{} = photo.inserted_at
     assert photo.iso_equiv == nil
-    assert photo.level == 0
     assert photo.metering_mode == nil
     assert photo.name == "MVI_7254.mp4"
     assert photo.dir == "2000/01/01"
@@ -303,9 +312,8 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.aperture == nil
     assert photo.camera_make == nil
     assert photo.camera_model == nil
-    # assert photo.ccd_width == 35
+    assert photo.ccd_width == nil
     assert photo.comment == nil
-    assert photo.compression == nil
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
@@ -315,7 +323,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.focus_dist == nil
     %DateTime{} = photo.inserted_at
     assert photo.iso_equiv == nil
-    assert photo.level == 0
     assert photo.metering_mode == nil
     assert photo.name == "MVI_7254.ogv"
     assert photo.dir == "2000/01/01"
@@ -362,9 +369,8 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.aperture == nil
     assert photo.camera_make == nil
     assert photo.camera_model == nil
-    # assert photo.ccd_width == 35
+    assert photo.ccd_width == nil
     assert photo.comment == nil
-    assert photo.compression == nil
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
@@ -374,7 +380,6 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.focus_dist == nil
     %DateTime{} = photo.inserted_at
     assert photo.iso_equiv == nil
-    assert photo.level == 0
     assert photo.metering_mode == nil
     assert photo.name == "MVI_7254.webm"
     assert photo.dir == "2000/01/01"

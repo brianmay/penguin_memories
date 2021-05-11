@@ -21,7 +21,6 @@ defmodule PenguinMemories.Photos.Photo do
           camera_model: String.t() | nil,
           ccd_width: integer | nil,
           comment: String.t() | nil,
-          compression: String.t() | nil,
           datetime: DateTime.t() | nil,
           description: String.t() | nil,
           exposure: float | nil,
@@ -29,7 +28,6 @@ defmodule PenguinMemories.Photos.Photo do
           focal_length: integer | nil,
           focus_dist: float | nil,
           iso_equiv: integer | nil,
-          level: integer | nil,
           metering_mode: String.t() | nil,
           name: String.t() | nil,
           dir: String.t() | nil,
@@ -53,15 +51,13 @@ defmodule PenguinMemories.Photos.Photo do
     field :camera_model, :string
     field :ccd_width, :integer
     field :comment, :string
-    field :compression, :string
     field :datetime, :utc_datetime
     field :description, :string
     field :exposure, :float
     field :flash_used, :boolean
-    field :focal_length, :integer
+    field :focal_length, :float
     field :focus_dist, :float
     field :iso_equiv, :integer
-    field :level, :integer
     field :metering_mode, :string
     field :name, :string
     field :dir, :string
@@ -90,7 +86,6 @@ defmodule PenguinMemories.Photos.Photo do
       :flash_used,
       :metering_mode,
       :datetime,
-      :compression,
       :title,
       :photographer_id,
       :place_id,
@@ -103,7 +98,6 @@ defmodule PenguinMemories.Photos.Photo do
       :dir,
       :exposure,
       :namer,
-      :level,
       :camera_make,
       :camera_model,
       :focus_dist,
@@ -117,7 +111,6 @@ defmodule PenguinMemories.Photos.Photo do
       :flash_used,
       :metering_mode,
       :datetime,
-      :compression,
       :title,
       :photographer_id,
       :place_id,
@@ -130,7 +123,6 @@ defmodule PenguinMemories.Photos.Photo do
       :dir,
       :exposure,
       :namer,
-      :level,
       :camera_make,
       :camera_model,
       :focus_dist,
