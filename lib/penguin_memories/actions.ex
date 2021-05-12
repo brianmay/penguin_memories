@@ -101,15 +101,29 @@ defmodule PenguinMemories.Actions do
     :ok
   end
 
+  @spec internal_process_pending(list(Photo.t()), keyword()) :: list(Photo.t())
+  defp internal_process_pending(photos, opts) do
+    photo =
+      Repo.one(
+        from p in Photo,
+          where: not is_nil(p.action),
+          preload: :files,
+          limit: 1,
+          order_by: :id
+      )
+
+    case photo do
+      nil ->
+        photos
+
+      photo ->
+        photos = [process_photo(photo, opts) | photos]
+        internal_process_pending(photos, opts)
+    end
+  end
+
   @spec process_pending(keyword()) :: list(Photo.t())
   def process_pending(opts \\ []) do
-    Repo.all(from p in Photo, where: not is_nil(p.action), preload: :files)
-    |> Enum.map(fn photo ->
-      if opts[:verbose] do
-        IO.puts("---> #{Photo.to_string(photo)}")
-      end
-
-      process_photo(photo, opts)
-    end)
+    internal_process_pending([], opts)
   end
 end
