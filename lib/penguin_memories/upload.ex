@@ -92,7 +92,7 @@ defmodule PenguinMemories.Upload do
         camera_model: get(exif, "EXIF:Model"),
         flash_used: get(exif, "EXIF:Flash") |> flash_used(),
         focal_length: get(exif, "EXIF:FocalLength") |> float(),
-        exposure: get(exif, "EXIF:ExposureTime") |> float(),
+        exposure_time: get(exif, "EXIF:ExposureTime") |> float(),
         aperture: get(exif, "EXIF:FNumber") |> float(),
         iso_equiv: get(exif, "EXIF:ISO"),
         metering_mode: get(exif, "EXIF:MeteringMode") |> metering_mode(),

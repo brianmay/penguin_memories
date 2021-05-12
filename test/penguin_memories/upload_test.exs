@@ -30,7 +30,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.camera_make == "Canon"
     assert photo.camera_model == "Canon EOS R5"
     assert photo.ccd_width == nil
-    assert_in_delta(photo.exposure, 0.01666666667, 0.0001)
+    assert_in_delta(photo.exposure_time, 0.01666666667, 0.0001)
     assert photo.flash_used == false
     assert photo.focal_length == 45
     assert_in_delta(photo.focus_dist, 16.823630030011, 0.0001)
@@ -85,7 +85,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
-    assert photo.exposure == nil
+    assert photo.exposure_time == nil
     assert photo.flash_used == nil
     assert photo.focal_length == nil
     assert photo.focus_dist == nil
@@ -140,7 +140,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.datetime == ~U[2021-04-01 03:32:00Z]
     assert photo.utc_offset == 600
     assert photo.description == nil
-    assert_in_delta(photo.exposure, 0.01666666667, 0.0001)
+    assert_in_delta(photo.exposure_time, 0.01666666667, 0.0001)
     assert photo.flash_used == false
     assert photo.focal_length == 45
     assert_in_delta(photo.focus_dist, 16.823630030011, 0.0001)
@@ -195,7 +195,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.datetime == ~U[2005-03-18 23:57:13Z]
     assert photo.utc_offset == 600
     assert photo.description == nil
-    assert_in_delta(photo.exposure, 0.01, 0.0001)
+    assert_in_delta(photo.exposure_time, 0.01, 0.0001)
     assert photo.flash_used == false
     assert photo.focal_length == 155
     assert_in_delta(photo.focus_dist, 81.0705641337023, 0.0001)
@@ -250,7 +250,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
-    assert photo.exposure == nil
+    assert photo.exposure_time == nil
     assert photo.flash_used == nil
     assert photo.focal_length == nil
     assert photo.focus_dist == nil
@@ -305,7 +305,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
-    assert photo.exposure == nil
+    assert photo.exposure_time == nil
     assert photo.flash_used == nil
     assert photo.focal_length == nil
     assert photo.focus_dist == nil
@@ -360,7 +360,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
-    assert photo.exposure == nil
+    assert photo.exposure_time == nil
     assert photo.flash_used == nil
     assert photo.focal_length == nil
     assert photo.focus_dist == nil

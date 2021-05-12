@@ -27,7 +27,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       add(:ccd_width, :integer)
       add(:iso_equiv, :integer)
       add(:focal_length, :float)
-      add(:exposure, :float)
+      add(:exposure_time, :float)
       add(:camera_make, :text)
       add(:camera_model, :text)
       add(:focus_dist, :float)

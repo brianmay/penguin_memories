@@ -23,7 +23,7 @@ defmodule PenguinMemories.Photos.Photo do
           comment: String.t() | nil,
           datetime: DateTime.t() | nil,
           description: String.t() | nil,
-          exposure: float | nil,
+          exposure_time: float | nil,
           flash_used: boolean | nil,
           focal_length: integer | nil,
           focus_dist: float | nil,
@@ -53,7 +53,7 @@ defmodule PenguinMemories.Photos.Photo do
     field :comment, :string
     field :datetime, :utc_datetime
     field :description, :string
-    field :exposure, :float
+    field :exposure_time, :float
     field :flash_used, :boolean
     field :focal_length, :float
     field :focus_dist, :float
@@ -96,7 +96,7 @@ defmodule PenguinMemories.Photos.Photo do
       :iso_equiv,
       :focal_length,
       :dir,
-      :exposure,
+      :exposure_time,
       :namer,
       :camera_make,
       :camera_model,
@@ -121,7 +121,7 @@ defmodule PenguinMemories.Photos.Photo do
       :iso_equiv,
       :focal_length,
       :dir,
-      :exposure,
+      :exposure_time,
       :namer,
       :camera_make,
       :camera_model,

@@ -408,9 +408,9 @@ defmodule PenguinMemories.Objects.Photo do
             type: :readonly
           },
           %Objects.Field{
-            id: :exposure,
-            title: "Exposure",
-            display: o.exposure,
+            id: :exposure_time,
+            title: "Exposure Time",
+            display: o.exposure_time,
             type: :readonly
           },
           %Objects.Field{
