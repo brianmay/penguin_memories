@@ -223,7 +223,9 @@ defmodule PenguinMemories.Upload do
       end
 
       opts = Keyword.put(opts, :date, upload_date)
-      {:ok, _} = upload_file(path, album, opts)
+      {:ok, file} = upload_file(path, album, opts)
+
+      file
     end)
   end
 end
