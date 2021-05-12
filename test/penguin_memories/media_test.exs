@@ -176,7 +176,7 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "resize png file" do
+  describe "resize/3 png file" do
     test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/100x100.png")
       new_path = Temp.path!()
@@ -220,7 +220,7 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "resize jpeg file" do
+  describe "resize/3 jpeg file" do
     test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
       new_path = Temp.path!()
@@ -264,7 +264,7 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "resize cr2 file" do
+  describe "resize/3 cr2 file" do
     @tag :broken
     test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
@@ -311,7 +311,7 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "resize mp4 file" do
+  describe "resize/3 mp4 file" do
     test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/MVI_7254.mp4")
       new_path = Temp.path!()
@@ -397,7 +397,7 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "resize ogg file" do
+  describe "resize/3 ogg file" do
     test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
       new_path = Temp.path!()
@@ -483,7 +483,7 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "resize webm file" do
+  describe "resize/3 webm file" do
     test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
       new_path = Temp.path!()
@@ -569,15 +569,15 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "get_exif" do
-    test "get_exif works valid file" do
+  describe "get_exif/1" do
+    test "works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
       assert Media.get_exif(media)["File:Comment"] == "Created with GIMP"
     end
   end
 
-  describe "get_datetime" do
-    test "get_datetime works valid file" do
+  describe "get_datetime/1" do
+    test "works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
       %NaiveDateTime{} = Media.get_datetime(media)
 
@@ -599,7 +599,7 @@ defmodule PenguinMemories.MediaTest do
   end
 
   describe "get file details" do
-    test "get file details works valid file" do
+    test "works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
 
       assert Media.get_sha256_hash(media) == <<
@@ -641,8 +641,8 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "copy and delete" do
-    test "test copy and delete works valid file" do
+  describe "copy/1 and delete/1" do
+    test "works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
       new_path = Temp.path!()
 
