@@ -101,12 +101,12 @@ defmodule PenguinMemories.Actions do
     :ok
   end
 
-  @spec internal_process_pending(list(Photo.t()), keyword()) :: list(Photo.t())
-  defp internal_process_pending(photos, opts) do
+  @spec internal_process_pending(list(Photo.t()), integer, keyword()) :: list(Photo.t())
+  defp internal_process_pending(photos, start_id, opts) do
     photo =
       Repo.one(
         from p in Photo,
-          where: not is_nil(p.action),
+          where: not is_nil(p.action) and p.id > ^start_id,
           preload: :files,
           limit: 1,
           order_by: :id
@@ -118,12 +118,12 @@ defmodule PenguinMemories.Actions do
 
       photo ->
         photos = [process_photo(photo, opts) | photos]
-        internal_process_pending(photos, opts)
+        internal_process_pending(photos, photo.id + 1, opts)
     end
   end
 
   @spec process_pending(keyword()) :: list(Photo.t())
   def process_pending(opts \\ []) do
-    internal_process_pending([], opts)
+    internal_process_pending([], 0, opts)
   end
 end
