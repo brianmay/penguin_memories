@@ -32,8 +32,8 @@ defmodule PenguinMemories.Objects.Album do
   defp query_common do
     from o in Album,
       as: :object,
-      select: %{sort_name: o.sort_name, sort_order: o.sort_order, id: o.id, title: o.title},
-      order_by: [asc: o.sort_name, asc: o.sort_order, asc: o.id]
+      select: %{id: o.id, title: o.title},
+      order_by: [asc: o.title, asc: o.id]
   end
 
   @spec filter_photo_id(Ecto.Query.t(), integer) :: Ecto.Query.t()
@@ -152,10 +152,7 @@ defmodule PenguinMemories.Objects.Album do
         "https://photos.linuxpenguins.xyz/images/#{result.icon.dir}/#{result.icon.name}"
       end
 
-    subtitle =
-      if result.sort_name != "" and result.sort_order != "" do
-        "#{result.sort_name}: #{result.sort_order}"
-      end
+    subtitle = "FIXME"
 
     %Objects.Icon{
       id: result.id,
@@ -251,28 +248,10 @@ defmodule PenguinMemories.Objects.Album do
         type: :album
       },
       %Objects.Field{
-        id: :sort_name,
-        title: "Sort Name",
-        display: nil,
-        type: :string
-      },
-      %Objects.Field{
-        id: :sort_order,
-        title: "Sort Order",
-        display: nil,
-        type: :string
-      },
-      %Objects.Field{
         id: :revised,
         title: "Revised time",
         display: nil,
         type: :datetime
-      },
-      %Objects.Field{
-        id: :revised,
-        title: "Revised UTC offset",
-        display: nil,
-        type: :string
       }
     ]
   end
@@ -350,33 +329,14 @@ defmodule PenguinMemories.Objects.Album do
             type: :photo
           },
           %Objects.Field{
-            id: :sort_name,
-            title: "Sort Name",
-            display: result.o.sort_name,
-            type: :string
-          },
-          %Objects.Field{
-            id: :sort_order,
-            title: "Sort Order",
-            display: result.o.sort_order,
-            type: :string
-          },
-          %Objects.Field{
             id: :revised,
             title: "Revised time",
-            display:
-              Objects.display_datetime_offset(result.o.revised, result.o.revised_utc_offset),
+            display: Objects.display_datetime(result.o.revised),
             type: :datetime
-          },
-          %Objects.Field{
-            id: :revised_utc_offset,
-            title: "Revised UTC offset",
-            display: result.o.revised_utc_offset,
-            type: :string
           }
         ]
 
-        cursor = Paginator.cursor_for_record(result, [:sort_name, :sort_order, :id])
+        cursor = Paginator.cursor_for_record(result, [:title, :id])
         {result.o, icon, [], fields, cursor}
     end
   end
@@ -399,7 +359,7 @@ defmodule PenguinMemories.Objects.Album do
         query,
         before: before_key,
         after: after_key,
-        cursor_fields: [:sort_name, :sort_order, :id],
+        cursor_fields: [:title, :id],
         limit: limit
       )
 
@@ -428,7 +388,7 @@ defmodule PenguinMemories.Objects.Album do
         query,
         before: before_key,
         after: after_key,
-        cursor_fields: [:sort_name, :sort_order, :id],
+        cursor_fields: [:title, :id],
         limit: 1,
         include_total_count: false
       )

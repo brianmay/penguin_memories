@@ -359,6 +359,15 @@ defmodule PenguinMemories.Objects do
     DateTime.to_string(datetime)
   end
 
+  @spec display_datetime(DateTime.t() | nil) :: String.t() | nil
+  def display_datetime(nil), do: nil
+
+  def display_datetime(datetime) do
+    datetime
+    |> DateTime.shift_zone!("Australia/Melbourne")
+    |> DateTime.to_string()
+  end
+
   @spec get_photo_dir_conflicts(String.t(), String.t()) :: list(Photo.t())
   def get_photo_dir_conflicts(new_dir, new_name) do
     name = Path.rootname(new_name)

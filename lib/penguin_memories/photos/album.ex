@@ -17,8 +17,6 @@ defmodule PenguinMemories.Photos.Album do
           cover_photo: Photo.t() | Ecto.Association.NotLoaded.t(),
           title: String.t() | nil,
           description: String.t() | nil,
-          sort_name: String.t() | nil,
-          sort_order: String.t() | nil,
           revised: DateTime.t() | nil,
           parent_id: integer() | nil,
           parent: t() | Ecto.Association.NotLoaded.t() | nil,
@@ -34,8 +32,6 @@ defmodule PenguinMemories.Photos.Album do
     belongs_to :cover_photo, Photo
     field :title, :string
     field :description, :string
-    field :sort_name, :string
-    field :sort_order, :string
     field :revised, :utc_datetime
     belongs_to :parent, PenguinMemories.Photos.Album
     has_many :children, PenguinMemories.Photos.Album, foreign_key: :parent_id
@@ -57,22 +53,20 @@ defmodule PenguinMemories.Photos.Album do
       :cover_photo_id,
       :title,
       :description,
-      :sort_name,
-      :sort_order,
       :revised,
       :parent_id
     ])
-    |> validate_required([:title, :sort_name, :sort_order])
+    |> validate_required([:title])
     |> validate_revised()
   end
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
   def update_changeset(%__MODULE__{} = album, enabled, attrs) do
-    allowed_list = [:title, :parent_id, :sort_name, :sort_order, :revised]
+    allowed_list = [:title, :parent_id, :revised]
     allowed = MapSet.new(allowed_list)
     enabled = MapSet.intersection(enabled, allowed)
     enabled_list = MapSet.to_list(enabled)
-    required = MapSet.new([:title, :sort_name, :sort_order])
+    required = MapSet.new([:title])
     required_list = MapSet.to_list(MapSet.intersection(enabled, required))
 
     album

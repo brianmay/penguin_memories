@@ -187,8 +187,6 @@ defmodule PenguinMemories.Upload do
         album =
           %Album{
             title: title,
-            sort_name: "Date",
-            sort_order: title,
             parent_id: parent.id
           }
           |> Ecto.Changeset.change()

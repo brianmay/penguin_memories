@@ -94,11 +94,11 @@ defmodule PenguinMemories.Photos.Person do
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
   def update_changeset(%__MODULE__{} = album, enabled, attrs) do
-    allowed_list = [:title, :parent_id, :sort_name, :sort_order, :revised]
+    allowed_list = [:title, :parent_id, :revised]
     allowed = MapSet.new(allowed_list)
     enabled = MapSet.intersection(enabled, allowed)
     enabled_list = MapSet.to_list(enabled)
-    required = MapSet.new([:title, :sort_name, :sort_order])
+    required = MapSet.new([:title])
     required_list = MapSet.to_list(MapSet.intersection(enabled, required))
 
     album

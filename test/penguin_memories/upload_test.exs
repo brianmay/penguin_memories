@@ -41,9 +41,7 @@ defmodule PenguinMemories.Uploadtest do
   test "get_upload_album/1" do
     root_album =
       %Album{
-        title: "Uploads",
-        sort_name: "a",
-        sort_order: "a"
+        title: "Uploads"
       }
       |> Repo.insert!()
 
@@ -58,9 +56,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 
@@ -115,9 +111,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 
@@ -172,9 +166,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 
@@ -229,9 +221,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 
@@ -286,9 +276,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 
@@ -343,9 +331,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 
@@ -397,9 +383,7 @@ defmodule PenguinMemories.Uploadtest do
 
   test "upload_directory/2 exif works" do
     %Album{
-      title: "Uploads",
-      sort_name: "a",
-      sort_order: "a"
+      title: "Uploads"
     }
     |> Repo.insert!()
 

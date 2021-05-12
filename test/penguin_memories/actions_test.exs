@@ -28,9 +28,7 @@ defmodule PenguinMemories.Actionstest do
 
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 
@@ -121,9 +119,7 @@ defmodule PenguinMemories.Actionstest do
 
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 
@@ -301,9 +297,7 @@ defmodule PenguinMemories.Actionstest do
 
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 
@@ -341,9 +335,7 @@ defmodule PenguinMemories.Actionstest do
   test "process_pending/2 works" do
     album =
       %Album{
-        title: "test",
-        sort_name: "a",
-        sort_order: "a"
+        title: "test"
       }
       |> Repo.insert!()
 

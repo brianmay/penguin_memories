@@ -6,8 +6,6 @@ defmodule PenguinMemories.Repo.Migrations.CreateCategorys do
       add(:cover_photo_id, references(:pm_photo, on_delete: :nilify_all))
       add(:title, :text, null: false)
       add(:description, :text)
-      add(:sort_order, :text, null: false)
-      add(:sort_name, :text, null: false)
       add(:revised, :utc_datetime)
       add(:parent_id, references(:pm_category, on_delete: :nilify_all))
 
