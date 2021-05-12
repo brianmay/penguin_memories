@@ -4,10 +4,10 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
   def change do
     create table(:pm_photo) do
       add(:title, :text)
-      add(:description, :text)
-      add(:comment, :text)
       add(:rating, :float)
       add(:action, :text)
+      add(:description, :text)
+      add(:comment, :text)
       add(:view, :text)
       # add(:photographer_id, :integer)
       # add(:place_id, :integer)
@@ -35,8 +35,29 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:pm_photo, [:dir, :name], unique: true))
-    create(index(:pm_photo, [:datetime]))
+
+    create(index(:pm_photo, [:title]))
+    create(index(:pm_photo, [:rating]))
     create(index(:pm_photo, [:action]))
+
+    # date/time
+    create(index(:pm_photo, [:datetime]))
+    create(index(:pm_photo, [:utc_offset]))
+
+    # filesystem - used for creating new image files
+    create(index(:pm_photo, [:dir, :name], unique: true))
+    create(index(:pm_photo, [:name]))
+
+    # exif values
+    create(index(:pm_photo, [:aperture]))
+    create(index(:pm_photo, [:flash_used]))
+    create(index(:pm_photo, [:metering_mode]))
+    create(index(:pm_photo, [:ccd_width]))
+    create(index(:pm_photo, [:iso_equiv]))
+    create(index(:pm_photo, [:focal_length]))
+    create(index(:pm_photo, [:exposure_time]))
+    create(index(:pm_photo, [:camera_make]))
+    create(index(:pm_photo, [:camera_model]))
+    create(index(:pm_photo, [:focus_dist]))
   end
 end
