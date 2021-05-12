@@ -35,7 +35,6 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       timestamps(type: :utc_datetime_usec)
     end
 
-
     create(index(:pm_photo, [:title]))
     create(index(:pm_photo, [:rating]))
     create(index(:pm_photo, [:action]))
