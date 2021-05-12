@@ -24,7 +24,7 @@ defmodule PenguinMemories.Actionstest do
   end
 
   @tag :slow
-  test "upload_file/2 works jpg", context do
+  test "process_photo/1 works jpg", context do
     image_dir = context[:image_dir]
 
     album =
@@ -115,7 +115,8 @@ defmodule PenguinMemories.Actionstest do
     {:ok, _media} = Media.get_media("#{image_dir}/thumb/large/2000/01/01/2Y4A3211.gif")
   end
 
-  test "upload_file/2 works webm", context do
+  @tag :slow
+  test "process_photo/1 works webm", context do
     image_dir = context[:image_dir]
 
     album =
@@ -293,7 +294,8 @@ defmodule PenguinMemories.Actionstest do
     {:ok, _media} = Media.get_media("#{image_dir}/video/large/2000/01/01/MVI_7254.webm")
   end
 
-  test "upload_file/2 deletes jpg", context do
+  @tag :slow
+  test "process_photo/1 deletes jpg", context do
     image_dir = context[:image_dir]
 
     album =

@@ -3,8 +3,8 @@ defmodule PenguinMemories.MediaTest do
 
   alias PenguinMemories.Media
 
-  describe "get_media" do
-    test "get_media works for valid file" do
+  describe "get_media/1" do
+    test "works for valid file" do
       assert {:ok, %Media{type: "image", subtype: "jpeg"}} =
                Media.get_media("priv/tests/100x100.jpg")
 
@@ -26,7 +26,7 @@ defmodule PenguinMemories.MediaTest do
       assert {:error, _} = Media.get_media("priv/tests/xcf/100x100.xcf")
     end
 
-    test "get_media works fails for non-existant file" do
+    test "fails for non-existant file" do
       assert {:error, _} = Media.get_media("priv/tests/1000x1000.jpg")
       assert {:error, _} = Media.get_media("priv/tests/1000x1000.png")
       assert {:error, _} = Media.get_media("priv/tests/1000x1000.mp4")
@@ -35,7 +35,7 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "get_format" do
+  describe "get_format/1" do
     test "get_media works for valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
       assert Media.get_format(media) == "image/jpeg"
@@ -71,8 +71,8 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "get image type" do
-    test "is_image works valid file" do
+  describe "is_image/1" do
+    test "works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
       assert Media.is_image(media) == true
 
@@ -91,7 +91,9 @@ defmodule PenguinMemories.MediaTest do
       {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
       assert Media.is_image(media) == false
     end
+  end
 
+  describe "is_video/1" do
     test "is_video works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
       assert Media.is_video(media) == false
@@ -113,28 +115,40 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
-  describe "get_size" do
-    test "get_size works valid file" do
+  describe "get_size/1" do
+    test "works valid jpg file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
       assert Media.get_size(media) == %Media.Size{width: 100, height: 100}
+    end
 
+    test "works valid png file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.png")
       assert Media.get_size(media) == %Media.Size{width: 100, height: 100}
+    end
 
+    test "works valid cr2 file" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       assert Media.get_size(media) == %Media.Size{width: 3474, height: 2314}
+    end
 
+    test "works valid mp4 file" do
       {:ok, media} = Media.get_media("priv/tests/MVI_7254.mp4")
-      assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
-
-      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
-      assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
-
-      {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
       assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
     end
 
-    test "get_new_size works valid file" do
+    test "works valid ogv file" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.ogv")
+      assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
+    end
+
+    test "works valid webm file" do
+      {:ok, media} = Media.get_media("priv/tests/MVI_7254.webm")
+      assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
+    end
+  end
+
+  describe "get_new_size/2" do
+    test "works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
 
       sr = %Media.SizeRequirement{max_width: nil, max_height: nil, format: "image/jpeg"}
@@ -251,7 +265,7 @@ defmodule PenguinMemories.MediaTest do
   end
 
   describe "resize cr2 file" do
-    @tag :skip
+    @tag :broken
     test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       new_path = Temp.path!()
@@ -266,7 +280,7 @@ defmodule PenguinMemories.MediaTest do
       Media.delete(new_media)
     end
 
-    @tag :skip
+    @tag :broken
     test "to png" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       new_path = Temp.path!()
@@ -281,7 +295,7 @@ defmodule PenguinMemories.MediaTest do
       Media.delete(new_media)
     end
 
-    @tag :skip
+    @tag :broken
     test "to gif" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       new_path = Temp.path!()

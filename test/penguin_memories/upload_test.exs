@@ -51,6 +51,7 @@ defmodule PenguinMemories.Uploadtest do
     assert album.parent_id == root_album.id
   end
 
+  @tag :slow
   test "upload_file/2 simply jpg works", context do
     image_dir = context[:image_dir]
 
@@ -106,6 +107,7 @@ defmodule PenguinMemories.Uploadtest do
     assert Media.get_size(media) == %Media.Size{width: 100, height: 100}
   end
 
+  @tag :slow
   test "upload_file/2 exif jpg works", context do
     image_dir = context[:image_dir]
 
@@ -161,6 +163,7 @@ defmodule PenguinMemories.Uploadtest do
     assert Media.get_size(media) == %Media.Size{width: 8192, height: 5464}
   end
 
+  @tag :slow
   test "upload_file/2 exif cr2 works", context do
     image_dir = context[:image_dir]
 
@@ -216,6 +219,7 @@ defmodule PenguinMemories.Uploadtest do
     assert Media.get_size(media) == %Media.Size{width: 3474, height: 2314}
   end
 
+  @tag :slow
   test "upload_file/2 exif mp4 works", context do
     image_dir = context[:image_dir]
 
@@ -271,6 +275,7 @@ defmodule PenguinMemories.Uploadtest do
     assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
   end
 
+  @tag :slow
   test "upload_file/2 exif ogv works", context do
     image_dir = context[:image_dir]
 
@@ -326,6 +331,7 @@ defmodule PenguinMemories.Uploadtest do
     assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
   end
 
+  @tag :slow
   test "upload_file/2 exif webm works", context do
     image_dir = context[:image_dir]
 
@@ -381,6 +387,7 @@ defmodule PenguinMemories.Uploadtest do
     assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
   end
 
+  @tag :slow
   test "upload_directory/2 exif works" do
     %Album{
       title: "Uploads"
