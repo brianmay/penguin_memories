@@ -45,9 +45,9 @@ defmodule PenguinMemories.Uploadtest do
       }
       |> Repo.insert!()
 
-    album = Upload.get_upload_album(~D[2000-01-01])
+    album = Upload.get_upload_album("test")
     %Album{} = album
-    assert album.title == "2000-01-01"
+    assert album.title == "test"
     assert album.parent_id == root_album.id
   end
 

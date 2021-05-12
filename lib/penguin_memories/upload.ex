@@ -106,7 +106,8 @@ defmodule PenguinMemories.Upload do
   def upload_file(path, album, opts \\ []) do
     {:ok, media} = Media.get_media(path)
 
-    upload_date = opts[:date]
+    default_date = DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
+    upload_date = Keyword.get(opts, :date, default_date)
 
     timezone = Keyword.get(opts, :timezone, "Australia/Melbourne")
     name = Keyword.get(opts, :name, Path.basename(path))
@@ -177,11 +178,9 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  @spec get_upload_album(Date.t()) :: Album.t()
-  def get_upload_album(date) do
+  @spec get_upload_album(String.t()) :: Album.t()
+  def get_upload_album(title) do
     parent = Repo.one!(from a in Album, where: a.title == "Uploads")
-
-    title = Date.to_iso8601(date)
 
     case Repo.one(from a in Album, where: a.parent_id == ^parent.id and a.title == ^title) do
       nil ->
@@ -203,13 +202,13 @@ defmodule PenguinMemories.Upload do
 
   @spec upload_directory(String.t(), keyword()) :: list(File.t() | nil)
   def upload_directory(directory, opts \\ []) do
-    date =
-      case opts[:date] do
-        nil -> DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
-        date -> date
-      end
+    default_date = DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
+    upload_date = Keyword.get(opts, :date, default_date)
 
-    album = get_upload_album(date)
+    album =
+      directory
+      |> Path.basename()
+      |> get_upload_album()
 
     ls!(directory)
     |> Enum.reject(fn filename ->
@@ -223,7 +222,7 @@ defmodule PenguinMemories.Upload do
         IO.puts("---> #{filename}")
       end
 
-      opts = Keyword.put(opts, :date, date)
+      opts = Keyword.put(opts, :date, upload_date)
       {:ok, _} = upload_file(path, album, opts)
     end)
   end
