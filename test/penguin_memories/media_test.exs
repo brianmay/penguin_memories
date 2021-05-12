@@ -251,6 +251,7 @@ defmodule PenguinMemories.MediaTest do
   end
 
   describe "resize cr2 file" do
+    @tag :skip
     test "to jpeg" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       new_path = Temp.path!()
@@ -265,6 +266,7 @@ defmodule PenguinMemories.MediaTest do
       Media.delete(new_media)
     end
 
+    @tag :skip
     test "to png" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       new_path = Temp.path!()
@@ -279,6 +281,7 @@ defmodule PenguinMemories.MediaTest do
       Media.delete(new_media)
     end
 
+    @tag :skip
     test "to gif" do
       {:ok, media} = Media.get_media("priv/tests/IMG_4706.CR2")
       new_path = Temp.path!()
