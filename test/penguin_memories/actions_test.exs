@@ -23,6 +23,7 @@ defmodule PenguinMemories.Actionstest do
     {:ok, image_dir: image_dir}
   end
 
+  @tag :slow
   test "upload_file/2 works jpg", context do
     image_dir = context[:image_dir]
 
