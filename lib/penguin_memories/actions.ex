@@ -106,7 +106,7 @@ defmodule PenguinMemories.Actions do
     photo =
       Repo.one(
         from p in Photo,
-          where: not is_nil(p.action) and p.id > ^start_id,
+          where: not is_nil(p.action) and p.id >= ^start_id,
           preload: :files,
           limit: 1,
           order_by: :id
