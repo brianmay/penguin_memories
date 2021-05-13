@@ -254,8 +254,8 @@ defmodule PenguinMemories.Objects.Photo do
         type: :string
       },
       %Objects.Field{
-        id: :comment,
-        title: "Comment",
+        id: :private_notes,
+        title: "Private Notes",
         display: nil,
         type: :string
       },
@@ -360,9 +360,9 @@ defmodule PenguinMemories.Objects.Photo do
             type: :markdown
           },
           %Objects.Field{
-            id: :comment,
-            title: "Comment",
-            display: o.comment,
+            id: :private_notes,
+            title: "Private Notes",
+            display: o.private_notes,
             type: :markdown
           },
           %Objects.Field{

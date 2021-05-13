@@ -7,7 +7,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       add(:rating, :float)
       add(:action, :text)
       add(:description, :text)
-      add(:comment, :text)
+      add(:private_notes, :text)
       add(:view, :text)
       # add(:photographer_id, :integer)
       # add(:place_id, :integer)

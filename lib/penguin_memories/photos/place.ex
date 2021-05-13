@@ -6,7 +6,6 @@ defmodule PenguinMemories.Photos.Place do
 
   import PenguinMemories.Photos.Private
   alias PenguinMemories.Photos.Photo
-  alias PenguinMemories.Photos.PhotoPlace
   alias PenguinMemories.Photos.PlaceAscendant
 
   @timestamps_opts [type: :utc_datetime]
@@ -24,7 +23,7 @@ defmodule PenguinMemories.Photos.Place do
           postcode: String.t() | nil,
           country: String.t() | nil,
           url: String.t() | nil,
-          notes: String.t() | nil,
+          private_notes: String.t() | nil,
           revised: DateTime.t() | nil,
           parent_id: integer() | nil,
           parent: t() | Ecto.Association.NotLoaded.t() | nil,
@@ -47,13 +46,13 @@ defmodule PenguinMemories.Photos.Place do
     field :postcode, :string
     field :country, :string
     field :url, :string
-    field :notes, :string
+    field :private_notes, :string
     field :revised, :utc_datetime
     belongs_to :parent, PenguinMemories.Photos.Place
     has_many :children, PenguinMemories.Photos.Place, foreign_key: :parent_id
     has_many :ascendants, PenguinMemories.Photos.PlaceAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.PlaceAscendant, foreign_key: :ascendant_id
-    many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoPlace
+    has_many :photos, PenguinMemories.Photos.Photo, foreign_key: :place_id
     timestamps()
   end
 
@@ -76,7 +75,7 @@ defmodule PenguinMemories.Photos.Place do
       :postcode,
       :country,
       :url,
-      :notes,
+      :private_notes,
       :parent_id,
       :revised,
       :revised_utc_offset

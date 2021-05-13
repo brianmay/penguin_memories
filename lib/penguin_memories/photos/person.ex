@@ -29,7 +29,8 @@ defmodule PenguinMemories.Photos.Person do
           mother: t() | Ecto.Association.NotLoaded.t() | nil,
           spouse_id: integer() | nil,
           spouse: t() | Ecto.Association.NotLoaded.t() | nil,
-          notes: String.t() | nil,
+          description: String.t() | nil,
+          private_notes: String.t() | nil,
           email: String.t() | nil,
           revised: DateTime.t() | nil,
           parent_id: integer() | nil,
@@ -53,7 +54,8 @@ defmodule PenguinMemories.Photos.Person do
     belongs_to :father, PenguinMemories.Photos.Person
     belongs_to :mother, PenguinMemories.Photos.Person
     belongs_to :spouse, PenguinMemories.Photos.Person
-    field :notes, :string
+    field :description, :string
+    field :private_notes, :string
     field :email, :string
     field :revised, :utc_datetime
     belongs_to :parent, PenguinMemories.Photos.Person
@@ -83,7 +85,8 @@ defmodule PenguinMemories.Photos.Person do
       :father_id,
       :mother_id,
       :spouse_id,
-      :notes,
+      :description,
+      :private_notes,
       :email,
       :revised,
       :parent_id

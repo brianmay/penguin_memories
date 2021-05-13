@@ -5,6 +5,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhotoRelation do
     create table(:pm_relation) do
       add(:title, :text, null: false)
       add(:description, :text)
+      add(:private_notes, :text)
       timestamps(type: :utc_datetime_usec)
     end
 

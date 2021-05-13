@@ -20,7 +20,7 @@ defmodule PenguinMemories.Photos.Photo do
           camera_make: String.t() | nil,
           camera_model: String.t() | nil,
           ccd_width: integer | nil,
-          comment: String.t() | nil,
+          private_notes: String.t() | nil,
           datetime: DateTime.t() | nil,
           description: String.t() | nil,
           exposure_time: float | nil,
@@ -50,7 +50,7 @@ defmodule PenguinMemories.Photos.Photo do
     field :camera_make, :string
     field :camera_model, :string
     field :ccd_width, :integer
-    field :comment, :string
+    field :private_notes, :string
     field :datetime, :utc_datetime
     field :description, :string
     field :exposure_time, :float
@@ -81,7 +81,7 @@ defmodule PenguinMemories.Photos.Photo do
   def delete_changeset(photo, attrs) do
     photo
     |> cast(attrs, [
-      :comment,
+      :private_notes,
       :rating,
       :flash_used,
       :metering_mode,
@@ -106,7 +106,7 @@ defmodule PenguinMemories.Photos.Photo do
       :utc_offset
     ])
     |> validate_required([
-      :comment,
+      :private_notes,
       :rating,
       :flash_used,
       :metering_mode,
@@ -200,7 +200,7 @@ defmodule PenguinMemories.Photos.Photo do
       :datetime,
       :utc_offset,
       :action,
-      :comment,
+      :private_notes,
       :album_list
     ])
     |> validate_action()

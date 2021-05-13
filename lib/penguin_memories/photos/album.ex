@@ -17,6 +17,7 @@ defmodule PenguinMemories.Photos.Album do
           cover_photo: Photo.t() | Ecto.Association.NotLoaded.t(),
           title: String.t() | nil,
           description: String.t() | nil,
+          private_notes: String.t() | nil,
           revised: DateTime.t() | nil,
           parent_id: integer() | nil,
           parent: t() | Ecto.Association.NotLoaded.t() | nil,
@@ -32,6 +33,7 @@ defmodule PenguinMemories.Photos.Album do
     belongs_to :cover_photo, Photo
     field :title, :string
     field :description, :string
+    field :private_notes, :string
     field :revised, :utc_datetime
     belongs_to :parent, PenguinMemories.Photos.Album
     has_many :children, PenguinMemories.Photos.Album, foreign_key: :parent_id
@@ -53,6 +55,7 @@ defmodule PenguinMemories.Photos.Album do
       :cover_photo_id,
       :title,
       :description,
+      :private_notes,
       :revised,
       :parent_id
     ])

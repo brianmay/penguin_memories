@@ -82,7 +82,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.camera_make == nil
     assert photo.camera_model == nil
     assert photo.ccd_width == nil
-    assert photo.comment == nil
+    assert photo.private_notes == nil
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
@@ -138,7 +138,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.camera_make == "Canon"
     assert photo.camera_model == "Canon EOS R5"
     assert photo.ccd_width == nil
-    assert photo.comment == nil
+    assert photo.private_notes == nil
     assert photo.datetime == ~U[2021-04-01 03:32:00Z]
     assert photo.utc_offset == 600
     assert photo.description == nil
@@ -194,7 +194,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.camera_make == "Canon"
     assert photo.camera_model == "Canon EOS 350D DIGITAL"
     assert photo.ccd_width == nil
-    assert photo.comment == nil
+    assert photo.private_notes == nil
     assert photo.datetime == ~U[2005-03-18 23:57:13Z]
     assert photo.utc_offset == 600
     assert photo.description == nil
@@ -250,7 +250,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.camera_make == nil
     assert photo.camera_model == nil
     assert photo.ccd_width == nil
-    assert photo.comment == nil
+    assert photo.private_notes == nil
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
@@ -306,7 +306,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.camera_make == nil
     assert photo.camera_model == nil
     assert photo.ccd_width == nil
-    assert photo.comment == nil
+    assert photo.private_notes == nil
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
@@ -362,7 +362,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.camera_make == nil
     assert photo.camera_model == nil
     assert photo.ccd_width == nil
-    assert photo.comment == nil
+    assert photo.private_notes == nil
     %DateTime{} = photo.datetime
     assert is_integer(photo.utc_offset)
     assert photo.description == nil
