@@ -1,7 +1,30 @@
 use Mix.Config
 
 config :penguin_memories,
-  image_dir: "/tmp/images"
+  image_dir: "/tmp/images",
+  sizes: %{
+    "thumb" => [
+      %{max_width: 120, max_height: 90, format: "image/jpeg"},
+      %{max_width: 120, max_height: 90, format: "image/gif"},
+      %{max_width: 120, max_height: 90, format: "video/mp4"},
+      %{max_width: 120, max_height: 90, format: "video/ogg"},
+      %{max_width: 120, max_height: 90, format: "video/webm"}
+    ],
+    "mid" => [
+      %{max_width: 480, format: "image/jpeg"},
+      %{max_width: 480, format: "image/gif"},
+      %{max_width: 480, format: "video/mp4"},
+      %{max_width: 480, format: "video/ogg"},
+      %{max_width: 480, format: "video/webm"}
+    ],
+    "large" => [
+      %{max_width: 1920, format: "image/jpeg"},
+      %{max_width: 1920, format: "image/gif"},
+      %{max_width: 1920, format: "video/mp4"},
+      %{max_width: 1920, format: "video/ogg"},
+      %{max_width: 1920, format: "video/webm"}
+    ]
+  }
 
 # Configure your database
 #
