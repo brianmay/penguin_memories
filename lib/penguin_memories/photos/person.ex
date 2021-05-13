@@ -17,6 +17,7 @@ defmodule PenguinMemories.Photos.Person do
           cover_photo: Photo.t() | Ecto.Association.NotLoaded.t(),
           title: String.t() | nil,
           called: String.t() | nil,
+          sort_name: String.t() | nil,
           date_of_birth: Date.t() | nil,
           date_of_death: Date.t() | nil,
           home_id: integer() | nil,
@@ -47,6 +48,7 @@ defmodule PenguinMemories.Photos.Person do
     belongs_to :cover_photo, Photo
     field :title, :string
     field :called, :string
+    field :sort_name, :string
     field :date_of_birth, :date
     field :date_of_death, :date
     belongs_to :home, PenguinMemories.Photos.Place
@@ -78,6 +80,7 @@ defmodule PenguinMemories.Photos.Person do
       :cover_photo_id,
       :title,
       :called,
+      :sort_name,
       :date_of_birth,
       :date_of_death,
       :home_id,

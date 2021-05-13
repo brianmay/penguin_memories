@@ -6,6 +6,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
       add(:cover_photo_id, references(:pm_photo, on_delete: :nilify_all))
       add(:title, :text, null: false)
       add(:called, :text)
+      add(:sort_name, :text, null: false)
       add(:date_of_birth, :date)
       add(:date_of_death, :date)
       add(:home_id, references(:pm_place, on_delete: :nilify_all))
