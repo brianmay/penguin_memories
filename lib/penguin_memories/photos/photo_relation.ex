@@ -5,23 +5,20 @@ defmodule PenguinMemories.Photos.PhotoRelation do
   use Ecto.Schema
 
   alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Photos.Relation
 
   @timestamps_opts [type: :utc_datetime]
 
   @type t :: %__MODULE__{
-          desc_1: String.t() | nil,
-          desc_2: String.t() | nil,
-          photo_1_id: integer | nil,
-          photo_2_id: integer | nil,
-          photo_1: Photo.t() | Ecto.Association.NotLoaded.t() | nil,
-          photo_2: Photo.t() | Ecto.Association.NotLoaded.t() | nil
+          photo_id: Photo.t() | Ecto.Association.NotLoaded.t() | nil,
+          relation_id: Relation.t() | Ecto.Association.NotLoaded.t() | nil,
+          title: String.t() | nil
         }
 
   schema "pm_photo_relation" do
-    field :desc_1, :string
-    field :desc_2, :string
-    belongs_to :photo_1, Photo
-    belongs_to :photo_2, Photo
+    belongs_to :photo, Photo
+    belongs_to :relation, Relation
+    field :title, :string
     timestamps()
   end
 end
