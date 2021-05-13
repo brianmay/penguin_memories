@@ -94,7 +94,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
           limit = 5
           icons = type.search_icons(%{"ids" => selected_ids}, limit)
           fields = type.get_update_fields()
-          {nil, fields, icons, length(icons) >= limit, nil, nil}
+          {nil, fields, icons, length(icons) >= limit, nil, nil, []}
       end
 
     assigns = [

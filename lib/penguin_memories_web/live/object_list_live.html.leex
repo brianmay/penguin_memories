@@ -30,15 +30,15 @@
     </div>
 <% end %>
 
-<%
-selected_ids = cond do
-num_selected > 0 -> @selected_ids
-not is_nil(@parent_id) -> MapSet.new([@parent_id])
-true -> MapSet.new()
-end
-%>
 
-<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: selected_ids, type: @type, search_spec: search_spec, id: :detail) %>
+<%= if @parent_id != nil do %>
+<%
+parent_ids = MapSet.new([@parent_id])
+%>
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: parent_ids, type: @type, search_spec: search_spec, id: :parent_detail) %>
+<% end %>
+
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: @selected_ids, type: @type, search_spec: search_spec, id: :detail) %>
 
 <div class="photo_list_with_controls">
     <div class="buttons">

@@ -40,7 +40,7 @@ defmodule PenguinMemories.Photos.Photo do
           cover_photo_albums: list(Album.t()) | Ecto.Association.NotLoaded.t() | nil,
           files: list(File.t()) | Ecto.Association.NotLoaded.t() | nil,
           album_list: list(Album.t()) | Ecto.Association.NotLoaded.t() | nil,
-          photo_albums: list(PhotoAlbum.t()) | Ecto.Association.NotLoaded.t() | nil,
+          # photo_albums: list(PhotoAlbum.t()) | Ecto.Association.NotLoaded.t() | nil,
           albums: list(Album.t()) | Ecto.Association.NotLoaded.t() | nil
         }
 
@@ -71,7 +71,7 @@ defmodule PenguinMemories.Photos.Photo do
     has_many :files, File, on_replace: :delete
 
     field :album_list, :string, virtual: true
-    has_many :photo_albums, PhotoAlbum, on_replace: :delete
+    # has_many :photo_albums, PhotoAlbum, on_replace: :delete
     many_to_many :albums, Album, join_through: PhotoAlbum
 
     timestamps()

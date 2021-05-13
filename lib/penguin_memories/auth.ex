@@ -21,6 +21,10 @@ defmodule PenguinMemories.Auth do
   def can_edit(nil), do: false
   def can_edit(_), do: true
 
+  @spec can_see_private(User.t() | nil) :: boolean
+  def can_see_private(nil), do: false
+  def can_see_private(_), do: true
+
   @token_key "guardian_default_token"
   @spec load_user(map()) :: {:ok, User.t()} | {:error, atom()} | :not_logged_in
   def load_user(%{@token_key => token}) do

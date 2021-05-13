@@ -9,6 +9,7 @@ defmodule PenguinMemories.Objects.Photo do
   alias PenguinMemories.Objects
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.File
+  alias PenguinMemories.Photos.FileOrder
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Repo
 
@@ -94,8 +95,10 @@ defmodule PenguinMemories.Objects.Photo do
     file_query =
       from f in File,
         where: f.size_key == ^size and f.is_video == false,
+        join: j in FileOrder,
+        on: j.size_key == ^size and j.mime_type == f.mime_type,
         distinct: f.photo_id,
-        order_by: [asc: :id]
+        order_by: [asc: j.order]
 
     query =
       from [object: o] in query,
@@ -122,7 +125,9 @@ defmodule PenguinMemories.Objects.Photo do
     file_query =
       from f in File,
         where: f.size_key == ^size and f.is_video == true and f.photo_id == ^photo_id,
-        order_by: [asc: :id],
+        join: j in FileOrder,
+        on: j.size_key == ^size and j.mime_type == f.mime_type,
+        order_by: [asc: j.order],
         select_merge: %{
           dir: f.dir,
           name: f.name,
@@ -296,7 +301,8 @@ defmodule PenguinMemories.Objects.Photo do
       |> query_object()
       |> query_icons(icon_size)
       |> select_merge([object: o], %{o: o})
-      |> preload([:photo_albums])
+
+    # |> preload([:photo_albums])
 
     case Repo.one(query) do
       nil ->
