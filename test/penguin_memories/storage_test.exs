@@ -86,6 +86,7 @@ defmodule PenguinMemories.StorageTest do
     image_dir = context[:image_dir]
 
     photo = %Photo{
+      id: 1,
       name: "test.wot",
       dir: "1/2/3"
     }
@@ -96,7 +97,8 @@ defmodule PenguinMemories.StorageTest do
     {:ok, file} = Storage.build_file_from_media(photo, media, "thumb")
 
     assert %File{
-             name: "test.jpg",
+             photo_id: 1,
+             name: "00000001.jpg",
              dir: "thumb/thumb/1/2/3",
              height: 100,
              width: 100,
@@ -106,7 +108,7 @@ defmodule PenguinMemories.StorageTest do
              sha256_hash: sha256_hash
            } == file
 
-    {:ok, new_media} = Media.get_media("#{image_dir}/thumb/thumb/1/2/3/test.jpg")
+    {:ok, new_media} = Media.get_media("#{image_dir}/thumb/thumb/1/2/3/00000001.jpg")
     assert Media.get_size(new_media) == %Media.Size{width: 100, height: 100}
     assert Media.get_num_bytes(new_media) == 2917
     assert Media.get_sha256_hash(new_media) == sha256_hash

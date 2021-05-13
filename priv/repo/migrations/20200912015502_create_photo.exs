@@ -44,7 +44,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
     create(index(:pm_photo, [:utc_offset]))
 
     # filesystem - used for creating new image files
-    create(index(:pm_photo, [:dir, :name], unique: true))
+    create(index(:pm_photo, [:dir, :name]))
     create(index(:pm_photo, [:name]))
 
     # exif values

@@ -101,6 +101,115 @@ defmodule PenguinMemories.Upload do
     }
   end
 
+  @type rc :: {:ok, Photo.t()} | {:error, String.t()} | {:skipped, String.t()}
+
+  @spec changeset_error_to_string(Ecto.Changeset.t()) :: String.t()
+  defp changeset_error_to_string(%Ecto.Changeset{} = changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
+    end)
+    |> Enum.reduce("", fn {k, v}, acc ->
+      joined_errors = Enum.join(v, "; ")
+      "#{acc}#{k}: #{joined_errors}\n"
+    end)
+  end
+
+  @spec save_photo(rc(), Album.t()) :: rc()
+  # defp save_photo({:error, _} = rc, _), do: rc
+  defp save_photo({:skipped, _} = rc, _), do: rc
+
+  defp save_photo({:ok, %Photo{} = photo}, %Album{} = album) do
+    rc =
+      photo
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:albums, [album])
+      |> Ecto.Changeset.put_assoc(:files, [])
+      |> Repo.insert()
+
+    case rc do
+      {:ok, %Photo{}} = rc -> rc
+      {:error, %Ecto.Changeset{} = cs} -> {:error, changeset_error_to_string(cs)}
+    end
+  end
+
+  # @spec check_photo_conflicts(rc(), list(Photo.t())) :: rc()
+  # # defp check_photo_conflicts({:error, _} = rc, _), do: rc
+  # # defp check_photo_conflicts({:skipped, _} = rc, _), do: rc
+  # defp check_photo_conflicts({:ok, _} = rc, []), do: rc
+
+  # defp check_photo_conflicts({:ok, %Photo{}}, photo_conflicts) do
+  #   pc_string = Enum.map(photo_conflicts, fn p -> Photo.to_string(p) end) |> Enum.join(",")
+  #   {:skipped, "Photo conflict #{pc_string}"}
+  # end
+
+  @spec check_file_conflicts(rc(), list(File.t())) :: rc()
+  # defp check_file_conflicts({:error, _} = rc, _), do: rc
+  # defp check_file_conflicts({:skipped, _} = rc, _), do: rc
+  defp check_file_conflicts({:ok, _} = rc, []), do: rc
+
+  defp check_file_conflicts({:ok, %Photo{}}, photo_conflicts) do
+    fc_string = Enum.map(photo_conflicts, fn f -> File.to_string(f) end) |> Enum.join(",")
+    {:skipped, "File conflict #{fc_string}"}
+  end
+
+  @spec create_file(rc(), Media.t(), String.t()) :: rc()
+  defp create_file({:error, _} = rc, _, _), do: rc
+  defp create_file({:skipped, _} = rc, _, _), do: rc
+
+  defp create_file({:ok, %Photo{} = photo}, %Media{} = media, size_key) do
+    rc = Storage.build_file_from_media(photo, media, size_key, check_conflicts: true)
+
+    case rc do
+      {:ok, file} ->
+        photo =
+          photo
+          |> Ecto.Changeset.change()
+          |> Ecto.Changeset.put_assoc(:files, [file])
+          |> Repo.update!()
+
+        {:ok, photo}
+
+      {:error, _} = rc ->
+        rc
+    end
+  end
+
+  @spec print_status(rc(), boolean(), String.t()) :: rc()
+  defp print_status({:ok, %Photo{} = photo} = rc, true, _) do
+    IO.puts("Done #{Photo.to_string(photo)}")
+
+    Enum.each(photo.files, fn file ->
+      IO.puts("     #{File.to_string(file)}")
+    end)
+
+    rc
+  end
+
+  defp print_status({:skipped, reason} = rc, true, path) do
+    IO.puts("Skipped #{path}: #{reason}")
+    rc
+  end
+
+  defp print_status({:error, reason} = rc, true, path) do
+    IO.puts("Error #{path}: #{reason}")
+    rc
+  end
+
+  defp print_status(rc, _, _), do: rc
+
+  @spec rollback_if_error(rc()) :: Photo.t()
+  defp rollback_if_error({:error, _} = rc) do
+    Repo.rollback(rc)
+  end
+
+  defp rollback_if_error({:skipped, _} = rc) do
+    Repo.rollback(rc)
+  end
+
+  defp rollback_if_error({:ok, %Photo{} = photo}), do: photo
+
   @spec upload_file(String.t(), Album.t(), keyword()) ::
           {:ok, Photo.t() | :skipped} | {:error, String.t()}
   def upload_file(path, album, opts \\ []) do
@@ -136,44 +245,28 @@ defmodule PenguinMemories.Upload do
 
     photo = add_exif_to_photo(photo, media)
 
-    photo_conflicts = Objects.get_photo_dir_conflicts(photo_dir, name)
+    # photo_conflicts = Objects.get_photo_dir_conflicts(photo_dir, name)
     file_conflicts = Objects.get_file_hash_conflicts(media, size_key)
 
-    with [] <- photo_conflicts,
-         [] <- file_conflicts,
-         {:ok, file} <-
-           Storage.build_file_from_media(photo, media, size_key, check_conflicts: true) do
-      photo =
-        photo
-        |> Ecto.Changeset.change()
-        |> Ecto.Changeset.put_assoc(:albums, [album])
-        |> Ecto.Changeset.put_assoc(:files, [file])
-        |> Repo.insert!()
+    rc =
+      Repo.transaction(fn ->
+        {:ok, photo}
+        # |> check_photo_conflicts(photo_conflicts)
+        |> check_file_conflicts(file_conflicts)
+        |> save_photo(album)
+        |> create_file(media, size_key)
+        |> print_status(opts[:verbose], path)
+        |> rollback_if_error()
+      end)
 
-      if opts[:verbose] do
-        IO.puts("Done #{Photo.to_string(photo)}")
+    case rc do
+      {:ok, %Photo{}} = rc ->
+        rc
 
-        Enum.each(photo.files, fn file ->
-          IO.puts("     #{File.to_string(file)}")
-        end)
-      end
+      {:error, {:error, reason}} ->
+        {:error, "Error processing #{path}: #{reason}"}
 
-      {:ok, photo}
-    else
-      {:error, reason} ->
-        {:error, reason}
-
-      [_ | _] ->
-        if photo_conflicts != [] and opts[:verbose] do
-          pc_string = Enum.map(photo_conflicts, fn p -> Photo.to_string(p) end) |> Enum.join(",")
-          IO.puts("Skipping #{path} due to photo conflict #{pc_string}")
-        end
-
-        if file_conflicts != [] and opts[:verbose] do
-          fc_string = Enum.map(file_conflicts, fn f -> File.to_string(f) end) |> Enum.join(",")
-          IO.puts("Skipping #{path} due to file conflict #{fc_string}")
-        end
-
+      {:error, {:skipped, _reason}} ->
         {:ok, :skipped}
     end
   end

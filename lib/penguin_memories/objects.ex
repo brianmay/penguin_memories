@@ -370,22 +370,18 @@ defmodule PenguinMemories.Objects do
 
   @spec get_photo_dir_conflicts(String.t(), String.t()) :: list(Photo.t())
   def get_photo_dir_conflicts(new_dir, new_name) do
-    name = Path.rootname(new_name)
-
     photo_query =
       from p in Photo,
-        where: p.dir == ^new_dir and ilike(p.name, ^"#{name}.%")
+        where: p.dir == ^new_dir and p.name == ^new_name
 
     Repo.all(photo_query)
   end
 
   @spec get_file_dir_conflicts(String.t(), String.t()) :: list(Photo.t())
   def get_file_dir_conflicts(new_dir, new_name) do
-    name = Path.rootname(new_name)
-
     file_query =
       from f in File,
-        where: f.dir == ^new_dir and ilike(f.name, ^"#{name}.%")
+        where: f.dir == ^new_dir and f.name == ^new_name
 
     Repo.all(file_query)
   end

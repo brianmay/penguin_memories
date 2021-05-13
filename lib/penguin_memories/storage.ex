@@ -69,8 +69,9 @@ defmodule PenguinMemories.Storage do
   defp build_new_name(%Photo{} = photo, %Media{} = media) do
     extension = Media.get_extension(media)
 
-    photo.name
-    |> Path.rootname()
+    photo.id
+    |> Integer.to_string()
+    |> String.pad_leading(8, "0")
     |> add_extension(extension)
   end
 

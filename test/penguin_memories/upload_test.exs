@@ -64,11 +64,16 @@ defmodule PenguinMemories.Uploadtest do
     {:ok, photo} = Upload.upload_file("priv/tests/100x100.jpg", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
+    name =
+      photo.id
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+
     assert length(photo.files) == 1
     file = Enum.at(photo.files, 0)
     %File{} = file
     assert file.dir == "orig/2000/01/01"
-    assert file.name == "100x100.jpg"
+    assert file.name == "#{name}.jpg"
     assert file.size_key == "orig"
     assert file.is_video == false
     assert file.width == 100
@@ -102,7 +107,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
-    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/100x100.jpg")
+    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{name}.jpg")
     %Media{} = media
     assert Media.get_size(media) == %Media.Size{width: 100, height: 100}
   end
@@ -120,11 +125,16 @@ defmodule PenguinMemories.Uploadtest do
     {:ok, photo} = Upload.upload_file("priv/tests/2Y4A3211.JPG", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
+    name =
+      photo.id
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+
     assert length(photo.files) == 1
     file = Enum.at(photo.files, 0)
     %File{} = file
     assert file.dir == "orig/2000/01/01"
-    assert file.name == "2Y4A3211.jpg"
+    assert file.name == "#{name}.jpg"
     assert file.size_key == "orig"
     assert file.is_video == false
     assert file.width == 8192
@@ -158,7 +168,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
-    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/2Y4A3211.jpg")
+    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{name}.jpg")
     %Media{} = media
     assert Media.get_size(media) == %Media.Size{width: 8192, height: 5464}
   end
@@ -176,11 +186,16 @@ defmodule PenguinMemories.Uploadtest do
     {:ok, photo} = Upload.upload_file("priv/tests/IMG_4706.CR2", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
+    name =
+      photo.id
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+
     assert length(photo.files) == 1
     file = Enum.at(photo.files, 0)
     %File{} = file
     assert file.dir == "orig/2000/01/01"
-    assert file.name == "IMG_4706.cr2"
+    assert file.name == "#{name}.cr2"
     assert file.size_key == "orig"
     assert file.is_video == false
     assert file.width == 3474
@@ -214,7 +229,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
-    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/IMG_4706.cr2")
+    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{name}.cr2")
     %Media{} = media
     assert Media.get_size(media) == %Media.Size{width: 3474, height: 2314}
   end
@@ -232,11 +247,16 @@ defmodule PenguinMemories.Uploadtest do
     {:ok, photo} = Upload.upload_file("priv/tests/MVI_7254.mp4", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
+    name =
+      photo.id
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+
     assert length(photo.files) == 1
     file = Enum.at(photo.files, 0)
     %File{} = file
     assert file.dir == "orig/2000/01/01"
-    assert file.name == "MVI_7254.mp4"
+    assert file.name == "#{name}.mp4"
     assert file.size_key == "orig"
     assert file.is_video == true
     assert file.width == 480
@@ -270,7 +290,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
-    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/MVI_7254.mp4")
+    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{name}.mp4")
     %Media{} = media
     assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
   end
@@ -288,11 +308,16 @@ defmodule PenguinMemories.Uploadtest do
     {:ok, photo} = Upload.upload_file("priv/tests/MVI_7254.ogv", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
+    name =
+      photo.id
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+
     assert length(photo.files) == 1
     file = Enum.at(photo.files, 0)
     %File{} = file
     assert file.dir == "orig/2000/01/01"
-    assert file.name == "MVI_7254.ogv"
+    assert file.name == "#{name}.ogv"
     assert file.size_key == "orig"
     assert file.is_video == true
     assert file.width == 480
@@ -326,7 +351,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
-    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/MVI_7254.ogv")
+    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{name}.ogv")
     %Media{} = media
     assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
   end
@@ -344,11 +369,16 @@ defmodule PenguinMemories.Uploadtest do
     {:ok, photo} = Upload.upload_file("priv/tests/MVI_7254.webm", album, date: ~D[2000-01-01])
     %Photo{} = photo
 
+    name =
+      photo.id
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+
     assert length(photo.files) == 1
     file = Enum.at(photo.files, 0)
     %File{} = file
     assert file.dir == "orig/2000/01/01"
-    assert file.name == "MVI_7254.webm"
+    assert file.name == "#{name}.webm"
     assert file.size_key == "orig"
     assert file.is_video == true
     assert file.width == 480
@@ -382,7 +412,7 @@ defmodule PenguinMemories.Uploadtest do
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
-    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/MVI_7254.webm")
+    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{name}.webm")
     %Media{} = media
     assert Media.get_size(media) == %Media.Size{width: 480, height: 270}
   end

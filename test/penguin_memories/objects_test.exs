@@ -495,9 +495,11 @@ defmodule PenguinMemories.ObjectsTest do
       assert length(conflicts) == 1
       assert Enum.at(conflicts, 0).id == photo.id
 
+      conflicts = Objects.get_photo_dir_conflicts("a/b/c", "HELLO.JPG")
+      assert conflicts == []
+
       conflicts = Objects.get_photo_dir_conflicts("a/b/c", "hello.png")
-      assert length(conflicts) == 1
-      assert Enum.at(conflicts, 0).id == photo.id
+      assert conflicts == []
 
       conflicts = Objects.get_photo_dir_conflicts("a/b/d", "hello.png")
       assert conflicts == []
@@ -536,9 +538,11 @@ defmodule PenguinMemories.ObjectsTest do
       assert length(conflicts) == 1
       assert Enum.at(conflicts, 0).id == file.id
 
+      conflicts = Objects.get_file_dir_conflicts("a/b/c", "HELLO.JPG")
+      assert conflicts == []
+
       conflicts = Objects.get_file_dir_conflicts("a/b/c", "hello.png")
-      assert length(conflicts) == 1
-      assert Enum.at(conflicts, 0).id == file.id
+      assert conflicts == []
 
       conflicts = Objects.get_file_dir_conflicts("a/b/d", "hello.png")
       assert conflicts == []
