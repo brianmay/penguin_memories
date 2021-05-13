@@ -1,5 +1,5 @@
 defmodule PenguinMemories.Photos.Person do
-  @moduledoc "An album containing photos and subalbums"
+  @moduledoc "An person"
   use Ecto.Schema
   import Ecto.Changeset
   alias Ecto.Changeset
@@ -42,7 +42,7 @@ defmodule PenguinMemories.Photos.Person do
           updated_at: DateTime.t() | nil
         }
 
-  schema "pm_album" do
+  schema "pm_person" do
     belongs_to :cover_photo, Photo
     field :title, :string
     field :called, :string
@@ -70,8 +70,8 @@ defmodule PenguinMemories.Photos.Person do
   end
 
   @spec edit_changeset(t(), map()) :: Changeset.t()
-  def edit_changeset(%__MODULE__{} = album, attrs) do
-    album
+  def edit_changeset(%__MODULE__{} = person, attrs) do
+    person
     |> cast(attrs, [
       :cover_photo_id,
       :title,
@@ -93,7 +93,7 @@ defmodule PenguinMemories.Photos.Person do
   end
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
-  def update_changeset(%__MODULE__{} = album, enabled, attrs) do
+  def update_changeset(%__MODULE__{} = person, enabled, attrs) do
     allowed_list = [:title, :parent_id, :revised]
     allowed = MapSet.new(allowed_list)
     enabled = MapSet.intersection(enabled, allowed)
@@ -101,7 +101,7 @@ defmodule PenguinMemories.Photos.Person do
     required = MapSet.new([:title])
     required_list = MapSet.to_list(MapSet.intersection(enabled, required))
 
-    album
+    person
     |> cast(attrs, enabled_list)
     |> validate_required(required_list)
   end

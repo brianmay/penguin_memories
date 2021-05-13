@@ -19,14 +19,14 @@ defmodule PenguinMemories.Photos.PhotoCategory do
           category: Category.t() | Ecto.Association.NotLoaded.t() | nil
         }
 
-  schema "pm_photo_album" do
+  schema "pm_photo_category" do
     belongs_to :photo, Photo
     belongs_to :category, Category
     timestamps()
   end
 
-  def changeset(photo_album, attrs) do
-    photo_album
+  def changeset(photo_category, attrs) do
+    photo_category
     |> cast(attrs, [:photo_id, :category_id])
     |> validate_required([:photo_id, :category_id])
     |> foreign_key_constraint(:photo_id)

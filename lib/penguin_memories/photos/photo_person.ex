@@ -19,14 +19,14 @@ defmodule PenguinMemories.Photos.PhotoPerson do
           person: Person.t() | Ecto.Association.NotLoaded.t() | nil
         }
 
-  schema "pm_photo_album" do
+  schema "pm_photo_person" do
     belongs_to :photo, Photo
     belongs_to :person, Person
     timestamps()
   end
 
-  def changeset(photo_album, attrs) do
-    photo_album
+  def changeset(photo_person, attrs) do
+    photo_person
     |> cast(attrs, [:photo_id, :person_id])
     |> validate_required([:photo_id, :person_id])
     |> foreign_key_constraint(:photo_id)

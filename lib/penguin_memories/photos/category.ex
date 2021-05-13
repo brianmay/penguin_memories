@@ -1,5 +1,5 @@
 defmodule PenguinMemories.Photos.Category do
-  @moduledoc "An album containing photos and subalbums"
+  @moduledoc "A category"
   use Ecto.Schema
   import Ecto.Changeset
   alias Ecto.Changeset
@@ -28,7 +28,7 @@ defmodule PenguinMemories.Photos.Category do
           updated_at: DateTime.t() | nil
         }
 
-  schema "pm_album" do
+  schema "pm_category" do
     belongs_to :cover_photo, Photo
     field :title, :string
     field :description, :string
@@ -47,8 +47,8 @@ defmodule PenguinMemories.Photos.Category do
   end
 
   @spec edit_changeset(t(), map()) :: Changeset.t()
-  def edit_changeset(%__MODULE__{} = album, attrs) do
-    album
+  def edit_changeset(%__MODULE__{} = category, attrs) do
+    category
     |> cast(attrs, [
       :cover_photo_id,
       :title,
@@ -61,7 +61,7 @@ defmodule PenguinMemories.Photos.Category do
   end
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
-  def update_changeset(%__MODULE__{} = album, enabled, attrs) do
+  def update_changeset(%__MODULE__{} = category, enabled, attrs) do
     allowed_list = [:title, :parent_id, :revised]
     allowed = MapSet.new(allowed_list)
     enabled = MapSet.intersection(enabled, allowed)
@@ -69,7 +69,7 @@ defmodule PenguinMemories.Photos.Category do
     required = MapSet.new([:title])
     required_list = MapSet.to_list(MapSet.intersection(enabled, required))
 
-    album
+    category
     |> cast(attrs, enabled_list)
     |> validate_required(required_list)
   end

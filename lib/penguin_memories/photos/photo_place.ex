@@ -15,18 +15,18 @@ defmodule PenguinMemories.Photos.PhotoPlace do
           id: integer | nil,
           photo_id: integer | nil,
           photo: Photo.t() | Ecto.Association.NotLoaded.t() | nil,
-          album_id: integer | nil,
-          album: Place.t() | Ecto.Association.NotLoaded.t() | nil
+          place_id: integer | nil,
+          place: Place.t() | Ecto.Association.NotLoaded.t() | nil
         }
 
-  schema "pm_photo_album" do
+  schema "pm_photo_place" do
     belongs_to :photo, Photo
-    belongs_to :album, Place
+    belongs_to :place, Place
     timestamps()
   end
 
-  def changeset(photo_album, attrs) do
-    photo_album
+  def changeset(photo_place, attrs) do
+    photo_place
     |> cast(attrs, [:photo_id, :place_id])
     |> validate_required([:photo_id, :place_id])
     |> foreign_key_constraint(:photo_id)
