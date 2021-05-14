@@ -266,7 +266,7 @@ defmodule PenguinMemories.Upload do
       dir: photo_dir,
       name: name,
       datetime: utc_datetime,
-      utc_offset: trunc(local_datetime.utc_offset / 60),
+      utc_offset: trunc((local_datetime.utc_offset + local_datetime.std_offset) / 60),
       action: "R"
     }
 
