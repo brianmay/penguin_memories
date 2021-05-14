@@ -25,7 +25,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateCategorys do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:pm_photo_category, [:photo_id]))
+    create(index(:pm_photo_category, [:photo_id, :category_id], unique: true))
     create(index(:pm_photo_category, [:category_id]))
 
     create table(:pm_category_ascendant) do
@@ -36,7 +36,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateCategorys do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:pm_category_ascendant, [:ascendant_id]))
+    create(index(:pm_category_ascendant, [:ascendant_id, :descendant_id], unique: true))
     create(index(:pm_category_ascendant, [:descendant_id]))
   end
 end

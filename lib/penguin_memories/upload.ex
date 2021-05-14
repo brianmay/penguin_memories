@@ -12,6 +12,8 @@ defmodule PenguinMemories.Upload do
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Photos.PhotoRelation
+  alias PenguinMemories.Photos.Relation
   alias PenguinMemories.Repo
   alias PenguinMemories.Storage
 
@@ -101,7 +103,7 @@ defmodule PenguinMemories.Upload do
     }
   end
 
-  @type rc :: {:ok, Photo.t()} | {:error, String.t()} | {:skipped, String.t()}
+  @type rc :: {:ok, Photo.t()} | {:skipped, Photo.t()} | {:error, String.t()}
 
   @spec changeset_error_to_string(Ecto.Changeset.t()) :: String.t()
   defp changeset_error_to_string(%Ecto.Changeset{} = changeset) do
@@ -116,16 +118,28 @@ defmodule PenguinMemories.Upload do
     end)
   end
 
-  @spec save_photo(rc(), Album.t()) :: rc()
-  # defp save_photo({:error, _} = rc, _), do: rc
-  defp save_photo({:skipped, _} = rc, _), do: rc
+  @spec add_item(list(map()), map(), (map(), map() -> boolean)) :: list(map())
+  def add_item([], new_item, _), do: [new_item]
 
-  defp save_photo({:ok, %Photo{} = photo}, %Album{} = album) do
+  def add_item([head | tail] = list, new_item, match?) do
+    if match?.(head, new_item) do
+      list
+    else
+      [head | add_item(tail, new_item, match?)]
+    end
+  end
+
+  @spec save_photo(rc()) :: rc()
+  # defp save_photo({:error, _} = rc), do: rc
+  defp save_photo({:skipped, _} = rc), do: rc
+
+  defp save_photo({:ok, %Photo{} = photo}) do
     rc =
       photo
       |> Ecto.Changeset.change()
-      |> Ecto.Changeset.put_assoc(:albums, [album])
+      |> Ecto.Changeset.put_assoc(:albums, [])
       |> Ecto.Changeset.put_assoc(:files, [])
+      |> Ecto.Changeset.put_assoc(:photo_relations, [])
       |> Repo.insert()
 
     case rc do
@@ -134,24 +148,36 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  # @spec check_photo_conflicts(rc(), list(Photo.t())) :: rc()
-  # # defp check_photo_conflicts({:error, _} = rc, _), do: rc
-  # # defp check_photo_conflicts({:skipped, _} = rc, _), do: rc
-  # defp check_photo_conflicts({:ok, _} = rc, []), do: rc
+  @spec add_album(rc(), Album.t()) :: rc()
+  defp add_album({:error, _} = rc, _), do: rc
 
-  # defp check_photo_conflicts({:ok, %Photo{}}, photo_conflicts) do
-  #   pc_string = Enum.map(photo_conflicts, fn p -> Photo.to_string(p) end) |> Enum.join(",")
-  #   {:skipped, "Photo conflict #{pc_string}"}
-  # end
+  defp add_album({status, %Photo{} = photo}, %Album{} = album) do
+    albums = add_item(photo.albums, album, fn a, b -> a.id == b.id end)
 
-  @spec check_file_conflicts(rc(), list(File.t())) :: rc()
-  # defp check_file_conflicts({:error, _} = rc, _), do: rc
-  # defp check_file_conflicts({:skipped, _} = rc, _), do: rc
-  defp check_file_conflicts({:ok, _} = rc, []), do: rc
+    rc =
+      photo
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:albums, albums)
+      |> Repo.update()
 
-  defp check_file_conflicts({:ok, %Photo{}}, photo_conflicts) do
-    fc_string = Enum.map(photo_conflicts, fn f -> File.to_string(f) end) |> Enum.join(",")
-    {:skipped, "File conflict #{fc_string}"}
+    case rc do
+      {:ok, %Photo{} = photo} -> {status, photo}
+      {:error, %Ecto.Changeset{} = cs} -> {:error, changeset_error_to_string(cs)}
+    end
+  end
+
+  @spec check_file_conflicts(rc(), Media.t(), String.t()) :: rc()
+  # defp check_file_conflicts({:error, _, _} = rc, []), do: rc
+  # defp check_file_conflicts({:skipped, _, _} = rc, []), do: rc
+
+  defp check_file_conflicts({:ok, %Photo{}} = rc, media, size_key) do
+    case Objects.get_file_hash_conflict(media, size_key) do
+      nil ->
+        rc
+
+      %Photo{} = photo ->
+        {:skipped, photo}
+    end
   end
 
   @spec create_file(rc(), Media.t(), String.t()) :: rc()
@@ -162,7 +188,7 @@ defmodule PenguinMemories.Upload do
     rc = Storage.build_file_from_media(photo, media, size_key, check_conflicts: true)
 
     case rc do
-      {:ok, file} ->
+      {:ok, %File{} = file} ->
         photo =
           photo
           |> Ecto.Changeset.change()
@@ -187,8 +213,13 @@ defmodule PenguinMemories.Upload do
     rc
   end
 
-  defp print_status({:skipped, reason} = rc, true, path) do
-    IO.puts("Skipped #{path}: #{reason}")
+  defp print_status({:skipped, %Photo{} = photo} = rc, true, _) do
+    IO.puts("Skipped #{Photo.to_string(photo)}")
+
+    Enum.each(photo.files, fn file ->
+      IO.puts("     #{File.to_string(file)}")
+    end)
+
     rc
   end
 
@@ -199,19 +230,15 @@ defmodule PenguinMemories.Upload do
 
   defp print_status(rc, _, _), do: rc
 
-  @spec rollback_if_error(rc()) :: Photo.t()
+  @spec rollback_if_error(rc()) :: {:ok | :skipped, Photo.t()}
   defp rollback_if_error({:error, _} = rc) do
     Repo.rollback(rc)
   end
 
-  defp rollback_if_error({:skipped, _} = rc) do
-    Repo.rollback(rc)
-  end
+  defp rollback_if_error({:skipped, %Photo{}} = rc), do: rc
+  defp rollback_if_error({:ok, %Photo{}} = rc), do: rc
 
-  defp rollback_if_error({:ok, %Photo{} = photo}), do: photo
-
-  @spec upload_file(String.t(), Album.t(), keyword()) ::
-          {:ok, Photo.t() | :skipped} | {:error, String.t()}
+  @spec upload_file(String.t(), Album.t(), keyword()) :: rc
   def upload_file(path, album, opts \\ []) do
     {:ok, media} = Media.get_media(path)
 
@@ -245,29 +272,26 @@ defmodule PenguinMemories.Upload do
 
     photo = add_exif_to_photo(photo, media)
 
-    # photo_conflicts = Objects.get_photo_dir_conflicts(photo_dir, name)
-    file_conflicts = Objects.get_file_hash_conflicts(media, size_key)
-
     rc =
       Repo.transaction(fn ->
         {:ok, photo}
-        # |> check_photo_conflicts(photo_conflicts)
-        |> check_file_conflicts(file_conflicts)
-        |> save_photo(album)
+        |> check_file_conflicts(media, size_key)
+        |> save_photo()
+        |> add_album(album)
         |> create_file(media, size_key)
         |> print_status(opts[:verbose], path)
         |> rollback_if_error()
       end)
 
     case rc do
-      {:ok, %Photo{}} = rc ->
+      {:ok, {:ok, %Photo{}} = rc} ->
+        rc
+
+      {:ok, {:skipped, %Photo{}} = rc} ->
         rc
 
       {:error, {:error, reason}} ->
         {:error, "Error processing #{path}: #{reason}"}
-
-      {:error, {:skipped, _reason}} ->
-        {:ok, :skipped}
     end
   end
 
@@ -293,32 +317,110 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  @spec upload_directory(String.t(), keyword()) :: list(File.t() | nil)
+  @spec create_relation(list(Photo.t()), String.t()) :: :ok
+  defp create_relation(photos, rootname) do
+    related_title = "Files for #{rootname}"
+
+    ids = Enum.map(photos, fn photo -> photo.id end)
+
+    {:ok, :ok} =
+      Repo.transaction(fn ->
+        query =
+          from r in Relation,
+            join: pr in PhotoRelation,
+            on: pr.relation_id == r.id,
+            join: p in Photo,
+            on: pr.photo_id == p.id,
+            where: p.id in ^ids and r.title == ^related_title,
+            limit: 1
+
+        relation =
+          case Repo.one(query) do
+            nil ->
+              %Relation{
+                title: related_title
+              }
+              |> Repo.insert!()
+
+            relation ->
+              relation
+          end
+
+        Enum.each(photos, fn photo ->
+          pr = %PhotoRelation{
+            relation_id: relation.id,
+            title: photo.name
+          }
+
+          prs =
+            add_item(photo.photo_relations, pr, fn a, b ->
+              a.relation_id == b.relation_id
+            end)
+
+          photo
+          |> Ecto.Changeset.change()
+          |> Ecto.Changeset.put_assoc(:photo_relations, prs)
+          |> Repo.update!()
+        end)
+
+        :ok
+      end)
+
+    :ok
+  end
+
+  @spec upload_group(String.t(), String.t(), list(String.t()), Album.t(), keyword()) ::
+          list(Photo.t())
+  defp upload_group(directory, rootname, filenames, %Album{} = album, opts) do
+    photos =
+      Enum.map(filenames, fn filename ->
+        path = Path.join(directory, filename)
+
+        if opts[:verbose] do
+          IO.puts("---> #{filename}")
+        end
+
+        # Do not put this in a transaction here, as if transaction
+        # gets rolled back the files will still be created.
+        photo =
+          case upload_file(path, album, opts) do
+            {:ok, %Photo{} = photo} -> photo
+            {:skipped, %Photo{} = photo} -> photo
+          end
+
+        photo
+      end)
+
+    if length(filenames) > 1 do
+      create_relation(photos, rootname)
+    end
+
+    photos
+  end
+
+  @spec upload_directory(String.t(), keyword()) :: list(Photo.t() | nil)
   def upload_directory(directory, opts \\ []) do
     default_date = DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
     upload_date = Keyword.get(opts, :date, default_date)
+    opts = Keyword.put(opts, :date, upload_date)
 
     album =
       directory
       |> Path.basename()
       |> get_upload_album()
 
-    ls!(directory)
-    |> Enum.reject(fn filename ->
-      path = Path.join(directory, filename)
-      dir?(path)
+    files =
+      ls!(directory)
+      |> Enum.reject(fn filename ->
+        path = Path.join(directory, filename)
+        dir?(path)
+      end)
+
+    files
+    |> Enum.group_by(fn f -> Path.rootname(f) end)
+    |> Enum.map(fn {rootname, filenames} ->
+      upload_group(directory, rootname, filenames, album, opts)
     end)
-    |> Enum.map(fn filename ->
-      path = Path.join(directory, filename)
-
-      if opts[:verbose] do
-        IO.puts("---> #{filename}")
-      end
-
-      opts = Keyword.put(opts, :date, upload_date)
-      {:ok, file} = upload_file(path, album, opts)
-
-      file
-    end)
+    |> List.flatten()
   end
 end

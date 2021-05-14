@@ -16,7 +16,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhotoRelation do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:pm_photo_relation, [:photo_id]))
+    create(index(:pm_photo_relation, [:photo_id, :relation_id], unique: true))
     create(index(:pm_photo_relation, [:relation_id]))
   end
 end

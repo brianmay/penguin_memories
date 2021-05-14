@@ -8,6 +8,7 @@ defmodule PenguinMemories.Photos.Photo do
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.PhotoAlbum
+  alias PenguinMemories.Photos.PhotoRelation
 
   alias PenguinMemories.Objects.Photo
 
@@ -39,9 +40,10 @@ defmodule PenguinMemories.Photos.Photo do
           utc_offset: integer() | nil,
           cover_photo_albums: list(Album.t()) | Ecto.Association.NotLoaded.t() | nil,
           files: list(File.t()) | Ecto.Association.NotLoaded.t() | nil,
-          album_list: list(Album.t()) | Ecto.Association.NotLoaded.t() | nil,
+          album_list: list(integer()) | Ecto.Association.NotLoaded.t() | nil,
           # photo_albums: list(PhotoAlbum.t()) | Ecto.Association.NotLoaded.t() | nil,
-          albums: list(Album.t()) | Ecto.Association.NotLoaded.t() | nil
+          albums: list(Album.t()) | Ecto.Association.NotLoaded.t() | nil,
+          photo_relations: list(PhotoRelation.t()) | Ecto.Association.NotLoaded.t() | nil
         }
 
   schema "pm_photo" do
@@ -73,6 +75,7 @@ defmodule PenguinMemories.Photos.Photo do
     field :album_list, :string, virtual: true
     # has_many :photo_albums, PhotoAlbum, on_replace: :delete
     many_to_many :albums, Album, join_through: PhotoAlbum
+    has_many :photo_relations, PhotoRelation, foreign_key: :photo_id
 
     timestamps()
   end

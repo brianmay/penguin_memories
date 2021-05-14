@@ -25,7 +25,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateAlbums do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:pm_photo_album, [:photo_id]))
+    create(index(:pm_photo_album, [:photo_id, :album_id], unique: true))
     create(index(:pm_photo_album, [:album_id]))
 
     create table(:pm_album_ascendant) do
@@ -36,7 +36,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateAlbums do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:pm_album_ascendant, [:ascendant_id]))
+    create(index(:pm_album_ascendant, [:ascendant_id, :descendant_id], unique: true))
     create(index(:pm_album_ascendant, [:descendant_id]))
   end
 end

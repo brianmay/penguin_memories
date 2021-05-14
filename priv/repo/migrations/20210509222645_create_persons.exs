@@ -40,7 +40,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:pm_photo_person, [:photo_id]))
+    create(index(:pm_photo_person, [:photo_id, :person_id], unique: true))
     create(index(:pm_photo_person, [:person_id]))
 
     create table(:pm_person_ascendant) do
@@ -51,7 +51,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:pm_person_ascendant, [:ascendant_id]))
+    create(index(:pm_person_ascendant, [:ascendant_id, :descendant_id], unique: true))
     create(index(:pm_person_ascendant, [:descendant_id]))
   end
 end
