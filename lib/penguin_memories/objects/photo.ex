@@ -15,6 +15,11 @@ defmodule PenguinMemories.Objects.Photo do
 
   @behaviour Objects
 
+  @spec get_image_url() :: String.t()
+  defp get_image_url do
+    Application.get_env(:penguin_memories, :image_url)
+  end
+
   @impl Objects
   @spec get_type_name() :: String.t()
   def get_type_name do
@@ -141,7 +146,7 @@ defmodule PenguinMemories.Objects.Photo do
     Enum.map(entries, fn result ->
       url =
         if result.dir do
-          "https://photos.linuxpenguins.xyz/images/#{result.dir}/#{result.name}"
+          "#{get_image_url()}/#{result.dir}/#{result.name}"
         end
 
       %Objects.Video{
@@ -158,7 +163,7 @@ defmodule PenguinMemories.Objects.Photo do
   defp get_icon_from_result(result) do
     url =
       if result.icon.dir do
-        "https://photos.linuxpenguins.xyz/images/#{result.icon.dir}/#{result.icon.name}"
+        "#{get_image_url()}/#{result.icon.dir}/#{result.icon.name}"
       end
 
     subtitle = Objects.display_datetime_offset(result.datetime, result.icon.utc_offset)
