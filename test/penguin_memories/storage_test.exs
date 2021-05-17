@@ -8,6 +8,10 @@ defmodule PenguinMemories.StorageTest do
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Storage
 
+  setup_all do
+    :ok
+  end
+
   setup do
     image_dir = Temp.mkdir!()
     Application.put_env(:penguin_memories, :image_dir, image_dir)

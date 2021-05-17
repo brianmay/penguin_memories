@@ -9,8 +9,10 @@ use Mix.Config
 
 config :penguin_memories,
   ecto_repos: [PenguinMemories.Repo],
+  # image_dir: "/home/brian/photos/images",
   image_dir: "/tmp/images",
-  image_url: "https://photos.linuxpenguins.xyz/images",
+  # image_url: "https://photos.linuxpenguins.xyz/images",
+  image_url: "/images",
   cameras: %{
     "Canon EOS R5" => "10:59:36",
     "Canon EOS 350D DIGITAL" => "11:00:00"
@@ -37,7 +39,8 @@ config :penguin_memories,
       %{max_width: 1920, format: "video/ogg"},
       %{max_width: 1920, format: "video/webm"}
     ]
-  }
+  },
+  api: PenguinMemories.Database.Generic
 
 config :penguin_memories, PenguinMemories.Repo,
   url: System.get_env("DATABASE_URL"),

@@ -7,6 +7,7 @@ defmodule PenguinMemories.Upload do
   import Ecto.Query
   import File
 
+  alias PenguinMemories.Database.Index
   alias PenguinMemories.Media
   alias PenguinMemories.Objects
   alias PenguinMemories.Photos.Album
@@ -309,7 +310,7 @@ defmodule PenguinMemories.Upload do
           |> Ecto.Changeset.change()
           |> Repo.insert!()
 
-        Objects.fix_index_tree(album.id, PenguinMemories.Objects.Album)
+        Index.fix_index_tree(album.id, Album)
         album
 
       %Album{} = album ->

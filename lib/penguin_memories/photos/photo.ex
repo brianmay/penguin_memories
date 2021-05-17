@@ -246,4 +246,14 @@ defmodule PenguinMemories.Photos.Photo do
   def to_string(%__MODULE__{} = photo) do
     "#{photo.id}:#{photo.dir}/#{photo.name}"
   end
+
+  @behaviour PenguinMemories.Database.Generic
+
+  @impl PenguinMemories.Database.Generic
+  @spec get_parent_fields :: list(atom())
+  def get_parent_fields, do: []
+
+  @impl PenguinMemories.Database.Generic
+  @spec get_index_type :: module() | nil
+  def get_index_type, do: nil
 end

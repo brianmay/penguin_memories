@@ -76,4 +76,13 @@ defmodule PenguinMemories.Photos.Category do
     |> cast(attrs, enabled_list)
     |> validate_required(required_list)
   end
+
+  @behaviour PenguinMemories.Database.Generic
+
+  @impl PenguinMemories.Database.Generic
+  @spec get_parent_fields :: list(atom())
+  def get_parent_fields, do: [:parent_id]
+
+  @impl PenguinMemories.Database.Generic
+  def get_index_type, do: CategoryAscendant
 end

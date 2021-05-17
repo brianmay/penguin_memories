@@ -115,7 +115,7 @@ defmodule PenguinMemories.Objects do
           seen_type,
           cache_type
         ) :: {seen_type, cache_type, MapSet.t()}
-  def generate_index(id, position, type, seen, cache) when is_integer(id) do
+  defp generate_index(id, position, type, seen, cache) when is_integer(id) do
     cond do
       Map.has_key?(cache, id) ->
         cache_item = Map.fetch!(cache, id)
@@ -162,7 +162,7 @@ defmodule PenguinMemories.Objects do
   end
 
   @spec fix_index(integer, module, cache_type) :: cache_type
-  def fix_index(id, type, cache) when is_integer(id) do
+  defp fix_index(id, type, cache) when is_integer(id) do
     {_, cache, new_index} = generate_index(id, 0, type, MapSet.new(), cache)
     old_index = type.get_index(id)
 
@@ -180,7 +180,7 @@ defmodule PenguinMemories.Objects do
   end
 
   @spec fix_index_parents(integer, module, seen_type, cache_type) :: {seen_type, cache_type}
-  def fix_index_parents(id, type, seen, cache) when is_integer(id) do
+  defp fix_index_parents(id, type, seen, cache) when is_integer(id) do
     cond do
       MapSet.member?(seen, id) ->
         {seen, cache}
@@ -197,7 +197,7 @@ defmodule PenguinMemories.Objects do
   end
 
   @spec fix_index_children(integer, module, seen_type, cache_type) :: {seen_type, cache_type}
-  def fix_index_children(id, type, seen, cache) when is_integer(id) do
+  defp fix_index_children(id, type, seen, cache) when is_integer(id) do
     cond do
       MapSet.member?(seen, id) ->
         {seen, cache}
@@ -214,7 +214,7 @@ defmodule PenguinMemories.Objects do
   end
 
   @spec fix_index_tree(integer, module()) :: :ok
-  def fix_index_tree(id, type) when is_integer(id) do
+  defp fix_index_tree(id, type) when is_integer(id) do
     cache = %{}
     {_, cache} = fix_index_parents(id, type, MapSet.new(), cache)
 

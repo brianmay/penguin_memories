@@ -60,7 +60,8 @@ defmodule PenguinMemories.MixProject do
       {:temp, "~> 0.4"},
       {:timex, "~> 3.5"},
       {:dialyxir, "~> 1.1.0", only: [:dev, :test], runtime: false},
-      {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:assertions, "~> 0.10", only: [:dev, :test], runtime: false}
     ]
   end
 

@@ -18,6 +18,12 @@ defmodule PenguinMemories.Uploadtest do
       rm_rf!(image_dir)
     end)
 
+    PenguinMemories.Database.APIMock
+    |> Mox.stub(:get_parent_ids, fn _, _ -> [] end)
+    |> Mox.stub(:get_child_ids, fn _, _ -> [] end)
+    |> Mox.stub(:get_index, fn _, _ -> MapSet.new() end)
+    |> Mox.stub(:create_index, fn _, _, _ -> :ok end)
+
     {:ok, image_dir: image_dir}
   end
 
