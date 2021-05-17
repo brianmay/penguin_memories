@@ -1,5 +1,5 @@
 defmodule PenguinMemories.Photos.PlaceAscendant do
-  @moduledoc "Index for albums"
+  @moduledoc "Index for places"
   use Ecto.Schema
   import Ecto.Changeset
   @timestamps_opts [type: :utc_datetime]
@@ -15,7 +15,7 @@ defmodule PenguinMemories.Photos.PlaceAscendant do
           updated_at: DateTime.t() | nil
         }
 
-  schema "pm_album_ascendant" do
+  schema "pm_place_ascendant" do
     field :position, :integer
     belongs_to :ascendant, PenguinMemories.Photos.Place
     belongs_to :descendant, PenguinMemories.Photos.Place
@@ -23,8 +23,8 @@ defmodule PenguinMemories.Photos.PlaceAscendant do
   end
 
   @doc false
-  def changeset(album_ascendant, attrs) do
-    album_ascendant
+  def changeset(place_ascendant, attrs) do
+    place_ascendant
     |> cast(attrs, [:position])
     |> validate_required([:position])
   end

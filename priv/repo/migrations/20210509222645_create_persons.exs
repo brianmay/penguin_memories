@@ -31,7 +31,6 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
     create(index(:pm_person, [:father_id]))
     create(index(:pm_person, [:mother_id]))
     create(index(:pm_person, [:spouse_id]))
-    create(index(:pm_person, [:parent_id]))
 
     create table(:pm_photo_person) do
       add(:photo_id, references(:pm_photo, on_delete: :delete_all), null: false)

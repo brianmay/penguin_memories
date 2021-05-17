@@ -1,5 +1,5 @@
 defmodule PenguinMemories.Photos.PersonAscendant do
-  @moduledoc "Index for albums"
+  @moduledoc "Index for persons"
   use Ecto.Schema
   import Ecto.Changeset
   @timestamps_opts [type: :utc_datetime]
@@ -15,7 +15,7 @@ defmodule PenguinMemories.Photos.PersonAscendant do
           updated_at: DateTime.t() | nil
         }
 
-  schema "pm_album_ascendant" do
+  schema "pm_person_ascendant" do
     field :position, :integer
     belongs_to :ascendant, PenguinMemories.Photos.Person
     belongs_to :descendant, PenguinMemories.Photos.Person
@@ -23,8 +23,8 @@ defmodule PenguinMemories.Photos.PersonAscendant do
   end
 
   @doc false
-  def changeset(album_ascendant, attrs) do
-    album_ascendant
+  def changeset(person_ascendant, attrs) do
+    person_ascendant
     |> cast(attrs, [:position])
     |> validate_required([:position])
   end

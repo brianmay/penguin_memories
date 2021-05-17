@@ -34,9 +34,7 @@ defmodule PenguinMemories.Photos.Person do
           private_notes: String.t() | nil,
           email: String.t() | nil,
           revised: DateTime.t() | nil,
-          parent_id: integer() | nil,
-          parent: t() | Ecto.Association.NotLoaded.t() | nil,
-          children: list(t()) | Ecto.Association.NotLoaded.t(),
+          # children: list(t()) | Ecto.Association.NotLoaded.t(),
           ascendants: list(PersonAscendant.t()) | Ecto.Association.NotLoaded.t(),
           descendants: list(PersonAscendant.t()) | Ecto.Association.NotLoaded.t(),
           photos: list(Photo.t()) | Ecto.Association.NotLoaded.t(),
@@ -60,8 +58,7 @@ defmodule PenguinMemories.Photos.Person do
     field :private_notes, :string
     field :email, :string
     field :revised, :utc_datetime
-    belongs_to :parent, PenguinMemories.Photos.Person
-    has_many :children, PenguinMemories.Photos.Person, foreign_key: :parent_id
+    # has_many :children, PenguinMemories.Photos.Person, foreign_key: :parent_id
     has_many :ascendants, PenguinMemories.Photos.PersonAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.PersonAscendant, foreign_key: :ascendant_id
     many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoPerson
@@ -91,8 +88,7 @@ defmodule PenguinMemories.Photos.Person do
       :description,
       :private_notes,
       :email,
-      :revised,
-      :parent_id
+      :revised
     ])
     |> validate_required([:title])
     |> validate_revised()
@@ -100,7 +96,7 @@ defmodule PenguinMemories.Photos.Person do
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
   def update_changeset(%__MODULE__{} = person, enabled, attrs) do
-    allowed_list = [:title, :parent_id, :revised]
+    allowed_list = [:title, :mother_id, :father_id, :revised]
     allowed = MapSet.new(allowed_list)
     enabled = MapSet.intersection(enabled, allowed)
     enabled_list = MapSet.to_list(enabled)

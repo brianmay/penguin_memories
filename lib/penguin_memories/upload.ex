@@ -332,7 +332,7 @@ defmodule PenguinMemories.Upload do
             join: p in Photo,
             on: pr.photo_id == p.id,
             where: p.id in ^ids and r.title == ^related_title,
-            order_by: [:desc, p.id],
+            order_by: [desc: p.id],
             limit: 1
 
         relation =

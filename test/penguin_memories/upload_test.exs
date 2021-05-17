@@ -150,7 +150,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.ccd_width == nil
     assert photo.private_notes == nil
     assert photo.datetime == ~U[2021-04-01 03:32:00Z]
-    assert photo.utc_offset == 600
+    assert photo.utc_offset == 660
     assert photo.description == nil
     assert_in_delta(photo.exposure_time, 0.01666666667, 0.0001)
     assert photo.flash_used == false
@@ -211,7 +211,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.ccd_width == nil
     assert photo.private_notes == nil
     assert photo.datetime == ~U[2005-03-18 23:57:13Z]
-    assert photo.utc_offset == 600
+    assert photo.utc_offset == 660
     assert photo.description == nil
     assert_in_delta(photo.exposure_time, 0.01, 0.0001)
     assert photo.flash_used == false
