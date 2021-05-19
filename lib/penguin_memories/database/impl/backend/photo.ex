@@ -38,7 +38,11 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   def query do
     from o in Photo,
       as: :object,
-      select: %{datetime: o.datetime, id: o.id, o: o},
+      select: %{
+        datetime: o.datetime,
+        id: o.id,
+        o: %{action: o.action, title: o.title, dir: o.dir, name: o.name, utc_offset: o.utc_offset}
+      },
       order_by: [asc: o.datetime, asc: o.id]
   end
 
@@ -100,7 +104,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   @impl API
   @spec get_subtitle_from_result(result :: map()) :: String.t()
   def get_subtitle_from_result(%{} = result) do
-    Format.display_datetime_offset(result.o.datetime, result.o.utc_offset)
+    Format.display_datetime_offset(result.datetime, result.o.utc_offset)
   end
 
   @impl API

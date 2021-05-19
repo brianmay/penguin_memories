@@ -39,7 +39,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   def query do
     from o in Person,
       as: :object,
-      select: %{sort_name: o.sort_name, id: o.id, o: o},
+      select: %{sort_name: o.sort_name, id: o.id, o: %{title: o.title}},
       order_by: [asc: o.sort_name, asc: o.id]
   end
 
@@ -72,7 +72,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   @impl API
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
-    "#{result.o.title}"
+    "#{result.title}"
   end
 
   @impl API

@@ -387,6 +387,7 @@ defmodule PenguinMemories.Database.Query do
       query(type)
       |> filter_by_id(id)
       |> get_icons(icon_size)
+      |> select_merge([object: o], %{o: o})
 
     case Repo.one(query) do
       nil ->

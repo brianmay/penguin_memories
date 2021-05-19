@@ -39,7 +39,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   def query do
     from o in Album,
       as: :object,
-      select: %{title: o.title, id: o.id, o: o},
+      select: %{title: o.title, id: o.id},
       order_by: [asc: o.title, asc: o.id]
   end
 
@@ -72,7 +72,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   @impl API
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
-    "#{result.o.title}"
+    "#{result.title}"
   end
 
   @impl API
