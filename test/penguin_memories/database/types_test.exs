@@ -12,10 +12,10 @@ defmodule PenguinMemories.Database.TypesTest do
   end
 
   test "get_name_by_type/1" do
-    assert Types.get_name_by_type(PenguinMemories.Photos.Album) == {:ok, "album"}
-    assert Types.get_name_by_type(PenguinMemories.Photos.Category) == {:ok, "category"}
-    assert Types.get_name_by_type(PenguinMemories.Photos.Place) == {:ok, "place"}
-    assert Types.get_name_by_type(PenguinMemories.Photos.Person) == {:ok, "person"}
-    assert Types.get_name_by_type(PenguinMemories.Photos.Photo) == {:ok, "photo"}
+    assert Types.get_name!(PenguinMemories.Photos.Album) == "album"
+    assert Types.get_name!(PenguinMemories.Photos.Category) == "category"
+    assert Types.get_name!(PenguinMemories.Photos.Place) == "place"
+    assert Types.get_name!(PenguinMemories.Photos.Person) == "person"
+    assert Types.get_name!(PenguinMemories.Photos.Photo) == "photo"
   end
 end

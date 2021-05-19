@@ -21,6 +21,15 @@
           <li class="nav-item <%= active_class(@active, "album") %>">
             <%= link("Album", to: Routes.object_list_path(@conn, :index, "album"), class: "nav-link " <> active_class(@active, "album")) %>
           </li>
+          <li class="nav-item <%= active_class(@active, "category") %>">
+            <%= link("Category", to: Routes.object_list_path(@conn, :index, "category"), class: "nav-link " <> active_class(@active, "category")) %>
+          </li>
+          <li class="nav-item <%= active_class(@active, "person") %>">
+            <%= link("Person", to: Routes.object_list_path(@conn, :index, "person"), class: "nav-link " <> active_class(@active, "person")) %>
+          </li>
+          <li class="nav-item <%= active_class(@active, "place") %>">
+            <%= link("Place", to: Routes.object_list_path(@conn, :index, "place"), class: "nav-link " <> active_class(@active, "place")) %>
+          </li>
           <li class="nav-item <%= active_class(@active, "photo") %>">
             <%= link("Photo", to: Routes.object_list_path(@conn, :index, "photo"), class: "nav-link " <> active_class(@active, "photo")) %>
           </li>

@@ -1,23 +1,26 @@
-defmodule PenguinMemories.Database.Generic do
+defmodule PenguinMemories.Database.Impl.Index.Generic do
   @moduledoc """
-  Generic database functions
+  Functions used for indexing.
   """
   import Ecto.Query
 
-  alias PenguinMemories.Database.API
+  alias PenguinMemories.Database
+  alias PenguinMemories.Database.Impl.Index.API
+  alias PenguinMemories.Database.Types
   alias PenguinMemories.Repo
 
   @callback get_parent_fields() :: list(atom())
   @callback get_index_type() :: module() | nil
 
-  @type object_type :: API.object_type()
+  @type object_type :: Database.object_type()
 
   @behaviour API
 
   @impl API
-  @spec get_parent_ids(integer, object_type) :: list(integer())
+  @spec get_parent_ids(id :: integer, type :: object_type) :: list(integer())
   def get_parent_ids(id, type) when is_integer(id) do
-    fields = type.get_parent_fields()
+    backend = Types.get_backend!(type)
+    fields = backend.get_parent_fields()
 
     case fields do
       [] ->
@@ -30,14 +33,18 @@ defmodule PenguinMemories.Database.Generic do
             select: map(o, ^fields)
 
         o = Repo.one!(query)
-        Enum.map(o, fn {_, v} -> v end)
+
+        o
+        |> Enum.map(fn {_, v} -> v end)
+        |> Enum.reject(fn v -> is_nil(v) end)
     end
   end
 
   @impl API
-  @spec get_child_ids(integer, object_type) :: list(integer())
+  @spec get_child_ids(id :: integer, type :: object_type) :: list(integer())
   def get_child_ids(id, type) do
-    fields = type.get_parent_fields()
+    backend = Types.get_backend!(type)
+    fields = backend.get_parent_fields()
 
     dynamic =
       Enum.reduce(fields, false, fn field_name, dynamic ->
@@ -53,9 +60,11 @@ defmodule PenguinMemories.Database.Generic do
   end
 
   @impl API
-  @spec get_index(integer, object_type) :: MapSet.t()
+  @spec get_index(id :: integer, type :: object_type) :: MapSet.t()
   def get_index(id, type) do
-    case type.get_index_type() do
+    backend = Types.get_backend!(type)
+
+    case backend.get_index_type() do
       nil ->
         []
 
@@ -72,9 +81,11 @@ defmodule PenguinMemories.Database.Generic do
   end
 
   @impl API
-  @spec create_index(integer, {integer, integer}, object_type) :: :ok
+  @spec create_index(id :: integer, index :: {integer, integer}, type :: object_type) :: :ok
   def create_index(id, index, type) do
-    case type.get_index_type() do
+    backend = Types.get_backend!(type)
+
+    case backend.get_index_type() do
       nil ->
         :ok
 
@@ -94,9 +105,11 @@ defmodule PenguinMemories.Database.Generic do
   end
 
   @impl API
-  @spec delete_index(integer, {integer, integer}, object_type) :: :ok
+  @spec delete_index(id :: integer, index :: {integer, integer}, type :: object_type) :: :ok
   def delete_index(id, index, type) do
-    case type.get_index_type() do
+    backend = Types.get_backend!(type)
+
+    case backend.get_index_type() do
       nil ->
         :ok
 

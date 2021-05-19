@@ -1,11 +1,12 @@
-defmodule PenguinMemories.Database.GenericTest do
+defmodule PenguinMemories.Database.Impl.Index.GenericTest do
   use ExUnit.Case, async: true
   use PenguinMemories.DataCase
 
   require Assertions
   import Assertions
 
-  alias PenguinMemories.Database.Generic
+  alias PenguinMemories.Database.Impl.Index.Generic
+  alias PenguinMemories.Database.Types
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.Category
   alias PenguinMemories.Photos.Person
@@ -120,7 +121,7 @@ defmodule PenguinMemories.Database.GenericTest do
     for type <- [Album, Category, Person, Place] do
       @tag type: type
       test "#{inspect(type)}", %{type: type} do
-        index = type.get_index_type()
+        index = Types.get_backend!(type).get_index_type()
         obj = create(type, "object")
         struct(index, ascendant_id: obj.id, descendant_id: obj.id, position: 0) |> Repo.insert!()
         result = Generic.get_index(obj.id, type)
@@ -145,7 +146,7 @@ defmodule PenguinMemories.Database.GenericTest do
     for type <- [Album, Category, Person, Place] do
       @tag type: type
       test "#{inspect(type)}", %{type: type} do
-        index = type.get_index_type()
+        index = Types.get_backend!(type).get_index_type()
         obj = create(type, "object")
         struct(index, ascendant_id: obj.id, descendant_id: obj.id, position: 0) |> Repo.insert!()
         :ok = Generic.delete_index(obj.id, {obj.id, 999}, type)

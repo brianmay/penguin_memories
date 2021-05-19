@@ -6,11 +6,13 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   alias Ecto.Changeset
   alias PenguinMemories.Auth
-  alias PenguinMemories.Objects
+  alias PenguinMemories.Database.Query
+  alias PenguinMemories.Database.Query.Field
+  alias PenguinMemories.Database.Types
   alias Phoenix.LiveView.Socket
 
   @impl true
-  def mount(socket) do
+  def mount(%Socket{} = socket) do
     assigns = [
       edit: nil,
       edit_object: nil,
@@ -28,13 +30,13 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
-  def update(%{status: "refresh"}, socket) do
+  def update(%{status: "refresh"}, %Socket{} = socket) do
     socket = reload(socket)
     {:ok, socket}
   end
 
   @impl true
-  def update(params, socket) do
+  def update(params, %Socket{} = socket) do
     type = params.type
     selected_ids = params.selected_ids
     num_selected = MapSet.size(selected_ids)
@@ -49,7 +51,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       enabled: nil,
       action: nil,
       user: params.user,
-      search_spec: params.search_spec
+      filter: params.filter
     ]
 
     socket =
@@ -60,11 +62,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:ok, socket}
   end
 
-  def reload(socket) do
+  def reload(%Socket{} = socket) do
     type = socket.assigns.type
     num_selected = socket.assigns.num_selected
     selected_ids = socket.assigns.selected_ids
-    search_spec = socket.assigns.search_spec
+    filter = socket.assigns.filter
 
     {icon_size, video_size} =
       case socket.assigns.big do
@@ -80,20 +82,22 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
         num_selected == 1 ->
           [id] = MapSet.to_list(selected_ids)
 
-          case type.get_details(id, icon_size, video_size) do
+          case Query.get_details(id, icon_size, video_size, type) do
             nil ->
               {nil, nil, [], false, nil, nil, []}
 
-            {object, icon, videos, fields, cursor} ->
-              prev_icon = type.get_prev_next_id(search_spec, cursor, nil)
-              next_icon = type.get_prev_next_id(search_spec, nil, cursor)
-              {object, fields, [icon], false, prev_icon, next_icon, videos}
+            %Query.Details{} = details ->
+              prev_icon = Query.get_prev_next_id(filter, details.cursor, nil, "thumb", type)
+              next_icon = Query.get_prev_next_id(filter, nil, details.cursor, "thumb", type)
+
+              {details.obj, details.fields, [details.icon], false, prev_icon, next_icon,
+               details.videos}
           end
 
         true ->
           limit = 5
-          icons = type.search_icons(%{"ids" => selected_ids}, limit)
-          fields = type.get_update_fields()
+          icons = Query.query_icons_by_id_map(selected_ids, limit, type, "thumb")
+          fields = Query.get_update_fields(type)
           {nil, fields, icons, length(icons) >= limit, nil, nil, []}
       end
 
@@ -110,10 +114,10 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     assign(socket, assigns)
   end
 
-  def handle_event("create", _params, socket) do
-    type = socket.assigns.type
-
-    if Auth.can_edit(socket.assigns.user) and type.can_create?() do
+  @spec handle_event(String.t(), map, Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
+  def handle_event("create", _params, %Socket{} = socket) do
+    if Auth.can_edit(socket.assigns.user) do
       handle_create(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -121,17 +125,17 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
-  def handle_event("big", _params, socket) do
+  def handle_event("big", _params, %Socket{} = socket) do
     {:noreply, assign(socket, :big, true) |> reload()}
   end
 
   @impl true
-  def handle_event("unbig", _params, socket) do
+  def handle_event("unbig", _params, %Socket{} = socket) do
     {:noreply, assign(socket, :big, false) |> reload()}
   end
 
   @impl true
-  def handle_event("edit", _params, socket) do
+  def handle_event("edit", _params, %Socket{} = socket) do
     if Auth.can_edit(socket.assigns.user) do
       handle_edit(socket)
     else
@@ -140,7 +144,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
-  def handle_event("update", _params, socket) do
+  def handle_event("update", _params, %Socket{} = socket) do
     if Auth.can_edit(socket.assigns.user) do
       handle_update(socket)
     else
@@ -149,7 +153,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
-  def handle_event("delete", _params, socket) do
+  def handle_event("delete", _params, %Socket{} = socket) do
     if Auth.can_edit(socket.assigns.user) do
       handle_delete(socket)
     else
@@ -158,7 +162,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"object" => params}, socket) do
+  def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
     if Auth.can_edit(socket.assigns.user) do
       handle_validate(socket, params)
     else
@@ -167,7 +171,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
-  def handle_event("save", %{"object" => params}, socket) do
+  def handle_event("save", %{"object" => params}, %Socket{} = socket) do
     if Auth.can_edit(socket.assigns.user) do
       handle_save(socket, params)
     else
@@ -176,7 +180,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @impl true
-  def handle_event("cancel", _params, socket) do
+  def handle_event("cancel", _params, %Socket{} = socket) do
     assigns = [
       edit: nil,
       changeset: nil,
@@ -188,9 +192,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec handle_create(Socket.t()) :: {:noreply, Socket.t()}
-  defp handle_create(socket) do
-    type = socket.assigns.type
-    changeset = type.get_create_child_changeset(socket.assigns.selected_object, %{})
+  defp handle_create(%Socket{} = socket) do
+    changeset = Query.get_create_child_changeset(socket.assigns.selected_object, %{})
 
     assigns = [
       edit: :edit,
@@ -203,9 +206,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec handle_edit(Socket.t()) :: {:noreply, Socket.t()}
-  defp handle_edit(socket) do
-    type = socket.assigns.type
-    changeset = type.get_edit_changeset(socket.assigns.selected_object, %{})
+  defp handle_edit(%Socket{} = socket) do
+    changeset = Query.get_edit_changeset(socket.assigns.selected_object, %{})
     changeset = %{changeset | action: :update}
 
     assigns = [
@@ -219,10 +221,10 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec handle_update(Socket.t()) :: {:noreply, Socket.t()}
-  defp handle_update(socket) do
+  defp handle_update(%Socket{} = socket) do
     type = socket.assigns.type
     enabled = MapSet.new()
-    changeset = type.get_update_changeset(enabled, %{})
+    changeset = Query.get_update_changeset(enabled, %{}, type)
     changeset = %{changeset | action: :update}
 
     assigns = [
@@ -237,11 +239,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec handle_delete(Socket.t()) :: {:noreply, Socket.t()}
-  defp handle_delete(socket) do
-    type = socket.assigns.type
-
+  defp handle_delete(%Socket{} = socket) do
     {socket, assigns} =
-      case type.delete(socket.assigns.selected_object) do
+      case Query.delete(socket.assigns.selected_object) do
         {:error, error} ->
           assigns = [
             error: error
@@ -251,7 +251,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
         :ok ->
           PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
-          type_name = socket.assigns.type.get_type_name()
+          type_name = Types.get_name!(socket.assigns.type)
           url = Routes.object_list_path(socket, :index, type_name)
           socket = push_patch(socket, to: url)
 
@@ -271,20 +271,18 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   # ---- EDIT -----
   @spec get_edit_changeset(Socket.t(), map()) :: Changeset.t()
-  defp get_edit_changeset(socket, params) do
-    type = socket.assigns.type
-
-    changeset = type.get_edit_changeset(socket.assigns.edit_object, params)
+  defp get_edit_changeset(%Socket{} = socket, params) do
+    changeset = Query.get_edit_changeset(socket.assigns.edit_object, params)
     changeset = %{changeset | action: socket.assigns.action}
 
     changeset
   end
 
   # ---- UPDATE -----
-  @spec get_update_changes(list(Objects.Field.t()), map()) :: {MapSet.t(), map()}
+  @spec get_update_changes(list(Field.t()), map()) :: {MapSet.t(), map()}
   def get_update_changes(fields, params) do
     Enum.reduce(fields, {MapSet.new(), %{}}, fn
-      field, {enabled, changes} ->
+      %Field{} = field, {enabled, changes} ->
         field_id = Atom.to_string(field.id)
         enable_id = Atom.to_string(field_to_enable_field_id(field))
         enable_value = string_to_boolean(Map.get(params, enable_id, "false"))
@@ -300,11 +298,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec get_update_changeset(Socket.t(), map()) :: {MapSet.t(), Changeset.t()}
-  defp get_update_changeset(socket, params) do
+  defp get_update_changeset(%Socket{} = socket, params) do
     type = socket.assigns.type
 
     {enabled, changes} = get_update_changes(socket.assigns.selected_fields, params)
-    changeset = type.get_update_changeset(enabled, changes)
+    changeset = Query.get_update_changeset(enabled, changes, type)
     changeset = %{changeset | action: socket.assigns.action}
 
     {enabled, changeset}
@@ -312,7 +310,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   # ---- VALIDATE -----
   @spec handle_validate(Socket.t(), map()) :: {:noreply, Socket.t()}
-  def handle_validate(socket, params) do
+  def handle_validate(%Socket{} = socket, params) do
     case socket.assigns.edit do
       :edit -> handle_edit_validate(socket, params)
       :update -> handle_update_validate(socket, params)
@@ -320,7 +318,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec handle_edit_validate(Socket.t(), map()) :: {:noreply, Socket.t()}
-  def handle_edit_validate(socket, params) do
+  def handle_edit_validate(%Socket{} = socket, params) do
     changeset = get_edit_changeset(socket, params)
 
     assigns = [
@@ -331,7 +329,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec handle_update_validate(Socket.t(), map()) :: {:noreply, Socket.t()}
-  def handle_update_validate(socket, params) do
+  def handle_update_validate(%Socket{} = socket, params) do
     {enabled, changeset} = get_update_changeset(socket, params)
 
     assigns = [
@@ -344,7 +342,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   # ---- SAVE -----
   @spec handle_save(Socket.t(), map()) :: {:noreply, Socket.t()}
-  defp handle_save(socket, params) do
+  defp handle_save(%Socket{} = socket, params) do
     case socket.assigns.edit do
       :edit -> handle_edit_save(socket, params)
       :update -> handle_update_save(socket, params)
@@ -352,12 +350,12 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec handle_edit_save(Socket.t(), map()) :: {:noreply, Socket.t()}
-  defp handle_edit_save(socket, params) do
+  defp handle_edit_save(%Socket{} = socket, params) do
     type = socket.assigns.type
     changeset = get_edit_changeset(socket, params)
 
     {socket, assigns} =
-      case Objects.apply_edit_changeset(changeset, type) do
+      case Query.apply_edit_changeset(changeset, type) do
         {:error, changeset, error} ->
           assigns = [
             changeset: changeset,
@@ -372,7 +370,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
           socket =
             case socket.assigns.action do
               :insert ->
-                type_name = socket.assigns.type.get_type_name()
+                type_name = Types.get_name!(socket.assigns.type)
                 url = Routes.object_list_path(socket, :index, type_name, object.id)
                 push_patch(socket, to: url)
 
@@ -394,14 +392,14 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec handle_update_save(Socket.t(), map()) :: {:noreply, Socket.t()}
-  defp handle_update_save(socket, params) do
+  defp handle_update_save(%Socket{} = socket, params) do
     type = socket.assigns.type
     selected_ids = socket.assigns.selected_ids
 
     {enabled, changeset} = get_update_changeset(socket, params)
 
     {socket, assigns} =
-      case Objects.apply_update_changeset(selected_ids, changeset, enabled, type) do
+      case Query.apply_update_changeset(selected_ids, changeset, enabled, type) do
         {:error, error} ->
           assigns = [
             error: error
@@ -425,10 +423,10 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  @spec output_field(Objects.Field.t(), keyword()) :: any()
+  @spec output_field(Field.t(), keyword()) :: any()
   defp output_field(field, opts \\ [])
 
-  defp output_field(%{icons: icons}, _opts) when not is_nil(icons) do
+  defp output_field(%Field{icons: icons}, _opts) when not is_nil(icons) do
     Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icons.html",
       icons: icons,
       classes: [],
@@ -460,8 +458,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     field.display
   end
 
-  @spec input_field(Socket.t(), Phoenix.HTML.Form.t(), Objects.Field.t(), keyword()) :: any()
-  defp input_field(socket, form, field, opts \\ []) do
+  @spec input_field(Socket.t(), Phoenix.HTML.Form.t(), Field.t(), keyword()) :: any()
+  defp input_field(%Socket{} = socket, form, %Field{} = field, opts \\ []) do
     opts = [{:label, field.title} | opts]
 
     case field.type do
@@ -470,7 +468,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
       :album ->
         disabled = opts[:disabled]
-        type = Objects.get_for_type("album")
+        type = PenguinMemories.Photos.Album
 
         live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
@@ -483,7 +481,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
       :albums ->
         disabled = opts[:disabled]
-        type = Objects.get_for_type("album")
+        type = PenguinMemories.Photos.Album
 
         live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
@@ -496,7 +494,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
       :photo ->
         disabled = opts[:disabled]
-        type = Objects.get_for_type("photo")
+        type = PenguinMemories.Photos.Photo
 
         live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
@@ -512,20 +510,23 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     end
   end
 
-  @spec field_to_enable_field_id(Objects.Field.t()) :: atom()
-  defp field_to_enable_field_id(field) do
+  @spec field_to_enable_field_id(Field.t()) :: atom()
+  defp field_to_enable_field_id(%Field{} = field) do
     String.to_atom(Atom.to_string(field.id) <> "_enable")
   end
 
-  @spec get_photo_url(Socket.t(), module(), integer) :: String.t() | nil
-  defp get_photo_url(socket, type, id) do
-    case type.get_photo_params(id) do
-      nil ->
-        nil
+  @spec get_photo_url(Socket.t(), type :: PenguinMemories.Database.object_type(), integer) ::
+          String.t() | nil
+  defp get_photo_url(%Socket{}, PenguinMemories.Photos.Photo, _), do: nil
 
-      params ->
-        query = URI.encode_query(params)
-        Routes.object_list_path(socket, :index, "photo") <> "?" <> query
-    end
+  defp get_photo_url(%Socket{} = socket, type, id) do
+    name = Types.get_name!(type)
+
+    params = %{
+      reference: "#{name}:#{id}"
+    }
+
+    query = URI.encode_query(params)
+    Routes.object_list_path(socket, :index, "photo") <> "?" <> query
   end
 end

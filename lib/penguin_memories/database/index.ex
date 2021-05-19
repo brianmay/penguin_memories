@@ -2,14 +2,14 @@ defmodule PenguinMemories.Database.Index do
   @moduledoc """
   Indexing parent/child relationships
   """
-  alias PenguinMemories.Database.API
-  @type object_type :: API.object_type()
+  alias PenguinMemories.Database
+  @type object_type :: Database.object_type()
   @type seen_type :: MapSet.t()
   @type cache_type :: %{required(integer) => MapSet.t()}
 
-  @spec get_api :: module()
-  defp get_api do
-    Application.get_env(:penguin_memories, :api)
+  @spec get_index_api :: module()
+  defp get_index_api do
+    Application.get_env(:penguin_memories, :index_api)
   end
 
   @spec generate_index(
@@ -20,7 +20,7 @@ defmodule PenguinMemories.Database.Index do
           cache_type
         ) :: {seen_type, cache_type, MapSet.t()}
   def generate_index(id, position, type, seen, cache) when is_integer(id) do
-    api = get_api()
+    api = get_index_api()
 
     cond do
       Map.has_key?(cache, id) ->
@@ -69,7 +69,7 @@ defmodule PenguinMemories.Database.Index do
 
   @spec fix_index(integer, object_type, cache_type) :: cache_type
   def fix_index(id, type, cache) when is_integer(id) do
-    api = get_api()
+    api = get_index_api()
 
     {_, cache, new_index} = generate_index(id, 0, type, MapSet.new(), cache)
     old_index = api.get_index(id, type)
@@ -89,7 +89,7 @@ defmodule PenguinMemories.Database.Index do
 
   @spec fix_index_parents(integer, object_type, seen_type, cache_type) :: {seen_type, cache_type}
   def fix_index_parents(id, type, seen, cache) when is_integer(id) do
-    api = get_api()
+    api = get_index_api()
 
     cond do
       MapSet.member?(seen, id) ->
@@ -108,7 +108,7 @@ defmodule PenguinMemories.Database.Index do
 
   @spec fix_index_children(integer, object_type, seen_type, cache_type) :: {seen_type, cache_type}
   def fix_index_children(id, type, seen, cache) when is_integer(id) do
-    api = get_api()
+    api = get_index_api()
 
     cond do
       MapSet.member?(seen, id) ->
@@ -127,7 +127,7 @@ defmodule PenguinMemories.Database.Index do
 
   @spec fix_index_tree(integer, object_type) :: :ok
   def fix_index_tree(id, type) when is_integer(id) do
-    api = get_api()
+    api = get_index_api()
 
     cache = %{}
     {_, cache} = fix_index_parents(id, type, MapSet.new(), cache)

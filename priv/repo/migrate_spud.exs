@@ -1,5 +1,6 @@
 require Stream
 import Ecto.Query
+alias PenguinMemories.Database.Index
 alias PenguinMemories.Photos.Album
 alias PenguinMemories.Photos.Category
 alias PenguinMemories.Photos.File
@@ -11,7 +12,6 @@ alias PenguinMemories.Photos.PhotoCategory
 alias PenguinMemories.Photos.PhotoPerson
 alias PenguinMemories.Media
 alias PenguinMemories.Repo
-alias PenguinMemories.Storage
 alias PenguinMemories.Upload
 
 defmodule Util do
@@ -208,7 +208,7 @@ defmodule ImportAlbums do
     from(a in Album, select: a.id, order_by: :id)
     |> Repo.stream()
     |> Stream.scan(%{}, fn id, cache ->
-      PenguinMemories.Objects.fix_index(id, PenguinMemories.Objects.Album, cache)
+      Index.fix_index(id, Album, cache)
     end)
     |> Stream.run()
 
@@ -259,6 +259,13 @@ defmodule ImportCategorys do
       category
       |> Ecto.Changeset.change(parent_id: src.parent_id)
       |> Repo.update!()
+    end)
+    |> Stream.run()
+
+    from(c in Category, select: c.id, order_by: :id)
+    |> Repo.stream()
+    |> Stream.scan(%{}, fn id, cache ->
+      Index.fix_index(id, Category, cache)
     end)
     |> Stream.run()
 
@@ -351,6 +358,14 @@ defmodule ImportPersons do
     end)
     |> Stream.run()
 
+    from(p in Person, select: p.id, order_by: :id)
+    |> Repo.stream()
+    |> Stream.scan(%{}, fn id, cache ->
+      Index.fix_index(id, Person, cache)
+    end)
+    |> Stream.run()
+
+
     from("spud_photo_person", select: [:person_id, :photo_id], order_by: :id)
     |> Repo.stream()
     |> Stream.map(fn pp ->
@@ -418,6 +433,13 @@ defmodule ImportPlaces do
       place
       |> Ecto.Changeset.change(parent_id: src.parent_id)
       |> Repo.update!()
+    end)
+    |> Stream.run()
+
+    from(p in Place, select: p.id, order_by: :id)
+    |> Repo.stream()
+    |> Stream.scan(%{}, fn id, cache ->
+      Index.fix_index(id, Place, cache)
     end)
     |> Stream.run()
 

@@ -1,4 +1,4 @@
-defmodule PenguinMemories.IndexTest do
+defmodule PenguinMemories.Database.IndexTest do
   defmodule MapSetStore do
     def init(state \\ %{}) do
       {:ok, state}
@@ -27,6 +27,9 @@ defmodule PenguinMemories.IndexTest do
   alias PenguinMemories.Database.Index
   import Mox
 
+  # Can be any valid type
+  @dummy_type PenguinMemories.Photos.Album
+
   defp reverse_map(map) do
     Enum.reduce(map, %{}, fn {k, vs}, acc ->
       Enum.reduce(vs, acc, fn v, acc ->
@@ -52,14 +55,14 @@ defmodule PenguinMemories.IndexTest do
 
       child_data = reverse_map(parent_data)
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
       seen = MapSet.new()
       cache = %{}
 
-      {seen, cache, index} = Index.generate_index(1, 0, PenguiMemories.Dummy, seen, cache)
+      {seen, cache, index} = Index.generate_index(1, 0, @dummy_type, seen, cache)
 
       assert seen == MapSet.new([1])
 
@@ -80,14 +83,14 @@ defmodule PenguinMemories.IndexTest do
 
       child_data = reverse_map(parent_data)
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
       seen = MapSet.new()
       cache = %{}
 
-      {seen, cache, index} = Index.generate_index(3, 0, PenguiMemories.Dummy, seen, cache)
+      {seen, cache, index} = Index.generate_index(3, 0, @dummy_type, seen, cache)
 
       assert seen == MapSet.new([1, 2, 3])
 
@@ -110,14 +113,14 @@ defmodule PenguinMemories.IndexTest do
 
       child_data = reverse_map(parent_data)
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
       seen = MapSet.new()
       cache = %{}
 
-      {seen, cache, index} = Index.generate_index(3, 0, PenguiMemories.Dummy, seen, cache)
+      {seen, cache, index} = Index.generate_index(3, 0, @dummy_type, seen, cache)
 
       assert seen == MapSet.new([1, 2, 3])
 
@@ -144,14 +147,14 @@ defmodule PenguinMemories.IndexTest do
 
       child_data = reverse_map(parent_data)
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
       seen = MapSet.new()
       cache = %{}
 
-      {seen, cache, index} = Index.generate_index(7, 0, PenguiMemories.Dummy, seen, cache)
+      {seen, cache, index} = Index.generate_index(7, 0, @dummy_type, seen, cache)
 
       assert seen == MapSet.new([1, 2, 3, 4, 5, 6, 7])
 
@@ -179,14 +182,14 @@ defmodule PenguinMemories.IndexTest do
 
       child_data = reverse_map(parent_data)
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
       seen = MapSet.new()
       cache = %{}
 
-      {seen, cache, index} = Index.generate_index(4, 0, PenguiMemories.Dummy, seen, cache)
+      {seen, cache, index} = Index.generate_index(4, 0, @dummy_type, seen, cache)
 
       assert seen == MapSet.new([1, 2, 3, 4])
 
@@ -211,14 +214,14 @@ defmodule PenguinMemories.IndexTest do
 
       child_data = reverse_map(parent_data)
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
       seen = MapSet.new()
       cache = %{}
 
-      {seen, cache, index} = Index.generate_index(3, 0, PenguiMemories.Dummy, seen, cache)
+      {seen, cache, index} = Index.generate_index(3, 0, @dummy_type, seen, cache)
 
       assert seen == MapSet.new([1, 2, 3])
 
@@ -248,7 +251,7 @@ defmodule PenguinMemories.IndexTest do
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
@@ -261,7 +264,7 @@ defmodule PenguinMemories.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(1, PenguiMemories.Dummy)
+      :ok = Index.fix_index_tree(1, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 1}])
@@ -293,7 +296,7 @@ defmodule PenguinMemories.IndexTest do
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
@@ -306,7 +309,7 @@ defmodule PenguinMemories.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(3, PenguiMemories.Dummy)
+      :ok = Index.fix_index_tree(3, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 98}]),
@@ -341,7 +344,7 @@ defmodule PenguinMemories.IndexTest do
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
@@ -354,7 +357,7 @@ defmodule PenguinMemories.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(3, PenguiMemories.Dummy)
+      :ok = Index.fix_index_tree(3, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 98}]),
@@ -389,7 +392,7 @@ defmodule PenguinMemories.IndexTest do
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
@@ -402,7 +405,7 @@ defmodule PenguinMemories.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(3, PenguiMemories.Dummy)
+      :ok = Index.fix_index_tree(3, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 98}]),
@@ -437,7 +440,7 @@ defmodule PenguinMemories.IndexTest do
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
-      PenguinMemories.Database.APIMock
+      PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
@@ -450,7 +453,7 @@ defmodule PenguinMemories.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(3, PenguiMemories.Dummy)
+      :ok = Index.fix_index_tree(3, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 98}]),

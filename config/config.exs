@@ -40,7 +40,7 @@ config :penguin_memories,
       %{max_width: 1920, format: "video/webm"}
     ]
   },
-  api: PenguinMemories.Database.Generic
+  index_api: PenguinMemories.Database.Impl.Index.Generic
 
 config :penguin_memories, PenguinMemories.Repo,
   url: System.get_env("DATABASE_URL"),

@@ -3,9 +3,9 @@ defmodule PenguinMemories.Storage do
   Helper functions for storage of media objects on filesystem.
   """
   import File
+  alias PenguinMemories.Database.Conflicts
   alias PenguinMemories.Media
   alias PenguinMemories.Media.SizeRequirement
-  alias PenguinMemories.Objects
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
 
@@ -81,7 +81,7 @@ defmodule PenguinMemories.Storage do
   defp check_conflicts(true, file_dir, name) do
     path = build_path(file_dir, name)
 
-    with [] <- Objects.get_file_dir_conflicts(file_dir, name),
+    with [] <- Conflicts.get_file_dir_conflicts(file_dir, name),
          {:error, _} <- stat(path) do
       :ok
     else

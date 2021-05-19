@@ -7,7 +7,10 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
   use PenguinMemoriesWeb, :live_component
   import Phoenix.HTML.Form
 
-  alias PenguinMemories.Objects
+  alias PenguinMemories.Database.Query
+  alias PenguinMemories.Database.Query.Field
+  alias PenguinMemories.Database.Query.Filter
+  alias PenguinMemories.Database.Query.Icon
 
   @impl true
   def mount(socket) do
@@ -50,7 +53,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       end
       |> MapSet.new()
 
-    icons = type.search_icons(%{"ids" => ids}, 100)
+    icons = Query.query_icons_by_id_map(ids, 100, type, "thumb")
 
     assigns = [
       type: type,
@@ -65,14 +68,14 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     {:ok, assign(socket, assigns)}
   end
 
-  @spec field_to_dummy_field_id(Objects.Field.t()) :: atom()
+  @spec field_to_dummy_field_id(Field.t()) :: atom()
   defp field_to_dummy_field_id(field) do
     String.to_atom(Atom.to_string(field.id) <> "_dummy")
   end
 
   @impl true
   def handle_event("search", %{"value" => value}, socket) do
-    search = Map.put(socket.assigns.search, "query", value)
+    search = %Filter{query: value}
 
     if socket.assigns.disabled do
       {:noreply, socket}
@@ -86,7 +89,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
 
       icons =
         search
-        |> type.search_icons(10)
+        |> Query.query_icons(10, type, "thumb")
         |> Enum.reject(fn icon -> MapSet.member?(selected, icon.id) end)
 
       assigns = [
@@ -140,8 +143,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     end
   end
 
-  @spec add_selected(list(Objects.Icon.t()), Objects.Icon.t(), boolean()) ::
-          list(Objects.Icon.t())
+  @spec add_selected(list(Icon.t()), Icon.t(), boolean()) ::
+          list(Icon.t())
   def add_selected(_selected, icon, true) do
     [icon]
   end
@@ -150,8 +153,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     [icon | selected]
   end
 
-  @spec remove_selected(list(Objects.Icon.t()), Objects.Icon.t(), boolean()) ::
-          list(Objects.Icon.t())
+  @spec remove_selected(list(Icon.t()), Icon.t(), boolean()) ::
+          list(Icon.t())
   def remove_selected(_selected, _icon, true) do
     []
   end
@@ -160,7 +163,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     Enum.reject(selected, fn s -> s.id == icon.id end)
   end
 
-  @spec update_changeset(Phoenix.LiveView.Socket.t(), list(Objects.Icon.t())) :: Changeset.t()
+  @spec update_changeset(Phoenix.LiveView.Socket.t(), list(Icon.t())) :: Changeset.t()
   def update_changeset(socket, selected) do
     ids =
       selected

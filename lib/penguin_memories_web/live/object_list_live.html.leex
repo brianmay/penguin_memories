@@ -4,17 +4,17 @@
     </div>
 <% end %>
 
-<h2>List of <%= @type.get_plural_title() %></h2>
+<h2>List of <%= Query.get_plural_name(@type) %></h2>
 
 <form method="get"  phx-submit="search" novalidate="">
   <div class="form-group">
-    <input class="form-control" name="query" placeholder="Search" type="text" value="<%= Map.get(@search_spec, "query") %>">
+    <input class="form-control" name="query" placeholder="Search" type="text" value="<%= Map.get(@filter, :query) %>">
    </div>
   <input type="submit" class="btn btn-primary" value="Search">
 </form>
 
 <% num_selected = num_selected(@selected_ids) %>
-<% search_spec = get_search_spec(assigns) %>
+<% filter = get_filter(assigns) %>
 
 <%= if length(@parents) > 0 do %>
     <div class="parents">
@@ -31,14 +31,15 @@
 <% end %>
 
 
-<%= if @parent_id != nil do %>
+<%= if @filter.reference != nil do %>
 <%
-parent_ids = MapSet.new([@parent_id])
+{ref_type, ref_id} = @filter.reference
+ref_ids = MapSet.new([ref_id])
 %>
-<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: parent_ids, type: @type, search_spec: search_spec, id: :parent_detail) %>
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: ref_ids, type: ref_type, filter: filter, id: :parent_detail) %>
 <% end %>
 
-<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: @selected_ids, type: @type, search_spec: search_spec, id: :detail) %>
+<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: @selected_ids, type: @type, filter: filter, id: :detail) %>
 
 <div class="photo_list_with_controls">
     <div class="buttons">

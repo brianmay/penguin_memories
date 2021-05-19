@@ -1,8 +1,10 @@
 defmodule PenguinMemoriesWeb.IncludeView do
   use PenguinMemoriesWeb, :view
 
-  @spec icon_classes(list(String.t()), PenguinMemories.Objects.Icon.t()) :: String.t()
-  def icon_classes(classes, icon) do
+  alias PenguinMemories.Database.Query.Icon
+
+  @spec icon_classes(list(String.t()), PenguinMemories.Database.Query.Icon.t()) :: String.t()
+  def icon_classes(classes, %Icon{} = icon) do
     results = ["photo_item" | classes]
 
     case icon.action do

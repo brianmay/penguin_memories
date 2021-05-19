@@ -6,7 +6,10 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   alias Elixir.Phoenix.LiveView.Socket
   alias PenguinMemories.Auth
-  alias PenguinMemories.Objects
+  alias PenguinMemories.Database.Query
+  alias PenguinMemories.Database.Query.Filter
+  alias PenguinMemories.Database.Query.Icon
+  alias PenguinMemories.Database.Types
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
@@ -57,33 +60,50 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     requested_before_key = params["before"]
     requested_after_key = params["after"]
 
-    type = Objects.get_for_type(params["type"])
+    {:ok, type} = Types.get_type_for_name(params["type"])
 
     parsed_uri = uri |> URI.parse() |> uri_to_path()
 
-    parent_id =
-      cond do
-        (id = params["id"]) != nil -> to_int(id)
-        (id = params["parent_id"]) != nil -> to_int(id)
-        true -> nil
+    reference =
+      case {params["id"], params["references"]} do
+        {nil, nil} ->
+          nil
+
+        {id, nil} ->
+          {id, ""} = Integer.parse(id)
+          {type, id}
+
+        {_, value} ->
+          [type, id] = String.split(value, ":", max_parts: 2)
+          {:ok, type} = Types.get_type_for_name(type)
+          {id, ""} = Integer.parse(id)
+          {type, id}
       end
 
-    params =
-      case parent_id do
-        nil -> params
-        _ -> Map.put(params, "parent_id", parent_id)
+    ids =
+      case params["ids"] do
+        nil ->
+          nil
+
+        value ->
+          value
+          |> String.split(",")
+          |> MapSet.new()
       end
-      |> Map.delete("id")
-      |> Map.update("ids", nil, fn str -> MapSet.new(String.split(str, ",")) end)
+
+    filter = %Filter{
+      ids: ids,
+      reference: reference,
+      query: params["query"]
+    }
 
     assigns = [
       type: type,
-      active: type.get_type_name(),
+      active: Types.get_name!(type),
       parsed_uri: parsed_uri,
       requested_before_key: requested_before_key,
       requested_after_key: requested_after_key,
-      parent_id: parent_id,
-      search_spec: params,
+      filter: filter,
       last_clicked_id: nil,
       show_selected: false
     ]
@@ -96,11 +116,11 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {:noreply, socket}
   end
 
-  @spec get_search_spec(map()) :: map()
-  defp get_search_spec(assigns) do
+  @spec get_filter(assigns :: map()) :: map()
+  defp get_filter(assigns) do
     case assigns.show_selected do
-      false -> assigns.search_spec
-      true -> %{"ids" => assigns.selected_ids}
+      false -> assigns.filter
+      true -> %Filter{ids: assigns.filter}
     end
   end
 
@@ -109,16 +129,18 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     parsed_uri = socket.assigns.parsed_uri
     requested_before_key = socket.assigns.requested_before_key
     requested_after_key = socket.assigns.requested_after_key
-    search_spec = get_search_spec(socket.assigns)
+    filter = get_filter(socket.assigns)
 
     parents =
-      case socket.assigns.parent_id do
+      case socket.assigns.filter.reference do
         nil ->
           []
 
-        parent_id ->
-          parent_id
-          |> type.get_parents()
+        reference ->
+          {ref_type, ref_id} = reference
+
+          ref_id
+          |> Query.query_parents(ref_type)
           |> Enum.group_by(fn {_icon, position} -> position end)
           |> Enum.map(fn {position, list} ->
             {position, Enum.map(list, fn {icon, _} -> icon end)}
@@ -127,7 +149,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       end
 
     {icons, before_key, after_key, total_count} =
-      type.get_page_icons(search_spec, requested_before_key, requested_after_key, 10)
+      Query.get_page_icons(filter, requested_before_key, requested_after_key, 10, "thumb", type)
 
     before_url =
       case before_key do
@@ -234,13 +256,13 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   end
 
   @impl true
-  @spec handle_event(<<_::32, _::_*8>>, any, Phoenix.LiveView.Socket.t()) ::
+  @spec handle_event(String.t(), any, Phoenix.LiveView.Socket.t()) ::
           {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("goto", params, socket) do
     %{"id" => id, "type" => type} = params
     id = to_int(id)
-    type = String.to_existing_atom(type)
-    type_name = type.get_type_name()
+    {:ok, type} = Types.get_type_for_name(type)
+    type_name = Types.get_name!(type)
     url = Routes.object_list_path(socket, :index, type_name, id)
 
     socket =
@@ -336,8 +358,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {:noreply, socket}
   end
 
-  @spec icon_classes(Objects.Icon.t(), MapSet.t(), integer) :: list(String.t())
-  defp icon_classes(%Objects.Icon{} = icon, selected_ids, last_clicked_id) do
+  @spec icon_classes(Icon.t(), MapSet.t(), integer) :: list(String.t())
+  defp icon_classes(%Icon{} = icon, selected_ids, last_clicked_id) do
     result = []
 
     result =

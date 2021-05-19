@@ -1,13 +1,8 @@
-defmodule PenguinMemories.Database.API do
+defmodule PenguinMemories.Database.Impl.Index.API do
   @moduledoc """
-  Generic database functions
+  API used for indexing.
   """
-  @type object_type ::
-          PenguinMemories.Photos.Album
-          | PenguinMemories.Photos.Category
-          | PenguinMemories.Photos.Person
-          | PenguinMemories.Photos.Place
-          | PenguinMemories.Photos.Photo
+  @type object_type :: PenguinMemories.Database.object_type()
 
   @callback get_parent_ids(integer, object_type) :: list(integer())
   @callback get_child_ids(integer, object_type) :: list(integer())

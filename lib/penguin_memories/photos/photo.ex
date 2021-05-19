@@ -5,12 +5,12 @@ defmodule PenguinMemories.Photos.Photo do
   alias Ecto.Changeset
 
   import PenguinMemories.Photos.Private
+
+  alias PenguinMemories.Database.Query
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.PhotoAlbum
   alias PenguinMemories.Photos.PhotoRelation
-
-  alias PenguinMemories.Objects.Photo
 
   @timestamps_opts [type: :utc_datetime]
 
@@ -145,7 +145,7 @@ defmodule PenguinMemories.Photos.Photo do
     id = get_field(changeset, :id)
 
     if get_change(changeset, :action) == "D" do
-      case Photo.can_delete?(id) do
+      case Query.can_delete?(id, PenguinMemories.Photos.Photo) do
         :yes -> changeset
         {:no, error} -> add_error(changeset, :action, error)
       end
@@ -246,14 +246,4 @@ defmodule PenguinMemories.Photos.Photo do
   def to_string(%__MODULE__{} = photo) do
     "#{photo.id}:#{photo.dir}/#{photo.name}"
   end
-
-  @behaviour PenguinMemories.Database.Generic
-
-  @impl PenguinMemories.Database.Generic
-  @spec get_parent_fields :: list(atom())
-  def get_parent_fields, do: []
-
-  @impl PenguinMemories.Database.Generic
-  @spec get_index_type :: module() | nil
-  def get_index_type, do: nil
 end

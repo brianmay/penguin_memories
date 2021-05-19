@@ -1,4 +1,4 @@
-<% type_name = @type.get_type_name() %>
+<% type_name = PenguinMemories.Database.Types.get_name!(@type) %>
 
 <div>
     <%= if @error do %>
@@ -44,8 +44,8 @@
                             <% end %>
                             <%= if @num_selected == 1 do %>
                                 <div class="title">
-                                    <%= icon.title %>
-                                    (<%= icon.id %>)
+                                    <%= @selected_object.title %>
+                                    (<%= @selected_object.id %>)
                                 </div>
                             <% end %>
                         </div>
@@ -132,9 +132,7 @@
                         <% end %>
 
                         <%= if Auth.can_edit(@user) do %>
-                            <%= if @type.can_create?() do %>
-                                <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
-                            <% end %>
+                            <div class="btn btn-secondary" phx-click="create" phx-target="<%= @myself %>">Create</div>
                             <div class="btn btn-secondary" phx-click="edit" phx-target="<%= @myself %>">Edit</div>
                             <div class="btn btn-secondary" phx-click="delete" phx-target="<%= @myself %>">Delete</div>
                         <% end %>

@@ -18,7 +18,7 @@ defmodule PenguinMemories.Uploadtest do
       rm_rf!(image_dir)
     end)
 
-    PenguinMemories.Database.APIMock
+    PenguinMemories.Database.Impl.Index.Mock
     |> Mox.stub(:get_parent_ids, fn _, _ -> [] end)
     |> Mox.stub(:get_child_ids, fn _, _ -> [] end)
     |> Mox.stub(:get_index, fn _, _ -> MapSet.new() end)

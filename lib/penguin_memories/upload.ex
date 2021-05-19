@@ -7,9 +7,9 @@ defmodule PenguinMemories.Upload do
   import Ecto.Query
   import File
 
+  alias PenguinMemories.Database.Conflicts
   alias PenguinMemories.Database.Index
   alias PenguinMemories.Media
-  alias PenguinMemories.Objects
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
@@ -172,7 +172,7 @@ defmodule PenguinMemories.Upload do
   # defp check_file_conflicts({:skipped, _, _} = rc, []), do: rc
 
   defp check_file_conflicts({:ok, %Photo{}} = rc, media, size_key) do
-    case Objects.get_file_hash_conflict(media, size_key) do
+    case Conflicts.get_file_hash_conflict(media, size_key) do
       nil ->
         rc
 
