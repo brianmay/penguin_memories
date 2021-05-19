@@ -250,6 +250,7 @@ defmodule PenguinMemories.Database.Query do
         "#{get_image_url()}/#{result.icon.dir}/#{result.icon.name}"
       end
 
+    title = backend.get_title_from_result(result)
     subtitle = backend.get_subtitle_from_result(result)
     action = if type == Photo, do: result.o.action
 
@@ -257,7 +258,7 @@ defmodule PenguinMemories.Database.Query do
       id: result.id,
       action: action,
       url: url,
-      title: result.o.title,
+      title: title,
       subtitle: subtitle,
       height: result.icon.height,
       width: result.icon.width,

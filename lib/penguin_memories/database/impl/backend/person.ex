@@ -70,6 +70,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   end
 
   @impl API
+  @spec get_title_from_result(result :: map()) :: String.t()
+  def get_title_from_result(%{} = result) do
+    "#{result.o.title}"
+  end
+
+  @impl API
   @spec get_subtitle_from_result(result :: map()) :: String.t()
   def get_subtitle_from_result(%{} = result) do
     "#{result.sort_name}"

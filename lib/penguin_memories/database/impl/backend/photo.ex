@@ -89,6 +89,15 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   end
 
   @impl API
+  @spec get_title_from_result(result :: map()) :: String.t()
+  def get_title_from_result(%{} = result) do
+    case result.o.title do
+      nil -> Path.join([result.o.dir, result.o.name])
+      title -> title
+    end
+  end
+
+  @impl API
   @spec get_subtitle_from_result(result :: map()) :: String.t()
   def get_subtitle_from_result(%{} = result) do
     Format.display_datetime_offset(result.o.datetime, result.o.utc_offset)
