@@ -35,11 +35,13 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
     create table(:pm_photo_person) do
       add(:photo_id, references(:pm_photo, on_delete: :delete_all), null: false)
       add(:person_id, references(:pm_person, on_delete: :delete_all), null: false)
+      add(:position, :integer, null: false)
 
       timestamps(type: :utc_datetime_usec)
     end
 
     create(index(:pm_photo_person, [:photo_id, :person_id], unique: true))
+    create(index(:pm_photo_person, [:photo_id, :position], unique: true))
     create(index(:pm_photo_person, [:person_id]))
 
     create table(:pm_person_ascendant) do

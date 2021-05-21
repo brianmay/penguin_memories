@@ -12,6 +12,7 @@ alias PenguinMemories.Photos.PhotoCategory
 alias PenguinMemories.Photos.PhotoPerson
 alias PenguinMemories.Media
 alias PenguinMemories.Repo
+alias PenguinMemories.Storage
 alias PenguinMemories.Upload
 
 defmodule Util do
@@ -366,12 +367,18 @@ defmodule ImportPersons do
     |> Stream.run()
 
 
-    from("spud_photo_person", select: [:person_id, :photo_id], order_by: :id)
+    from("spud_photo_person", select: [:person_id, :photo_id, :position], order_by: [:photo_id, :position, :id])
     |> Repo.stream()
+    |> Stream.scan(nil, fn
+      pp, nil -> %{pp | position: 1}
+      %{photo_id: photo_id} = pp, %{photo_id: photo_id, position: position} -> %{pp | position: position + 1}
+      pp, _ -> %{pp | position: 1}
+    end)
     |> Stream.map(fn pp ->
       %PhotoPerson{
         photo_id: pp.photo_id,
-        person_id: pp.person_id
+        person_id: pp.person_id,
+        position: pp.position
       }
     end)
     |> Stream.each(fn pp -> Repo.insert!(pp) end)
