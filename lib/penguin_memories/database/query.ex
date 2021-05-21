@@ -54,16 +54,23 @@ defmodule PenguinMemories.Database.Query do
     @moduledoc """
     A field specification that can be displayed or edited
     """
+    @type object_type :: Database.object_type()
     @type t :: %__MODULE__{
             id: atom,
             title: String.t(),
-            display: String.t() | nil,
-            icons: list(Icon.t()) | nil,
             type:
-              :string | :markdown | :album | :albums | :photo | :time | :utc_offset | :readonly
+              {:static, String.t()}
+              | :string
+              | :markdown
+              | :datetime
+              | {:datetime_with_offset, integer()}
+              | :utc_offset
+              | {:single, object_type()}
+              | {:multiple, object_type()},
+            read_only: boolean()
           }
-    @enforce_keys [:id, :title, :display, :type]
-    defstruct [:id, :title, :display, :type, :icons]
+    @enforce_keys [:id, :title, :type]
+    defstruct id: nil, title: nil, type: nil, read_only: false
   end
 
   defmodule Details do
@@ -86,10 +93,11 @@ defmodule PenguinMemories.Database.Query do
     @moduledoc """
     Details from an object
     """
+    @type object_type :: Database.object_type()
     @type t :: %__MODULE__{
             ids: MapSet.t() | nil,
             query: String.t() | nil,
-            reference: {module(), integer()} | nil
+            reference: {object_type(), integer()} | nil
           }
     defstruct [:ids, :query, :reference]
   end
@@ -322,7 +330,7 @@ defmodule PenguinMemories.Database.Query do
 
   @spec query_icons_by_id_map(
           ids :: MapSet.t(),
-          limit :: integer,
+          limit :: integer(),
           type :: object_type(),
           size_key :: String.t()
         ) :: list(Icon.t())
@@ -374,6 +382,25 @@ defmodule PenguinMemories.Database.Query do
     end
   end
 
+  @spec get_object_by_id(
+          id :: integer,
+          type :: object_type()
+        ) :: Details.t() | nil
+  def get_object_by_id(id, type) do
+    query =
+      query(type)
+      |> filter_by_id(id)
+      |> select_merge([object: o], %{o: o})
+
+    case Repo.one(query) do
+      nil ->
+        nil
+
+      result ->
+        result.o
+    end
+  end
+
   @spec get_details(
           id :: integer,
           icon_size :: String.t(),
@@ -387,6 +414,7 @@ defmodule PenguinMemories.Database.Query do
       query(type)
       |> filter_by_id(id)
       |> get_icons(icon_size)
+      |> backend.preload_details()
       |> select_merge([object: o], %{o: o})
 
     case Repo.one(query) do

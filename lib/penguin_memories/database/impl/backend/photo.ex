@@ -3,13 +3,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   Backend Photo functions
   """
   import Ecto.Query
-  alias PenguinMemories.Database.Format
   alias PenguinMemories.Database.Impl.Backend.API
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Query.Details
   alias PenguinMemories.Database.Query.Field
+  alias PenguinMemories.Format
   alias PenguinMemories.Photos.Photo
-  alias PenguinMemories.Repo
 
   @behaviour API
 
@@ -93,6 +92,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   end
 
   @impl API
+  @spec preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
+  def preload_details(query) do
+    preload(query, [:albums, :categorys, :place, :photographer])
+  end
+
+  @impl API
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
     case result.o.title do
@@ -113,16 +118,9 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
           icon_size :: String.t(),
           video_size :: String.t()
         ) :: Details.t()
-  def get_details_from_result(%{} = result, icon_size, video_size) do
+  def get_details_from_result(%{} = result, _icon_size, video_size) do
     icon = Query.get_icon_from_result(result, Photo)
     videos = Query.get_videos_for_photo(result.o.id, video_size)
-
-    albums =
-      Query.query(PenguinMemories.Photos.Album)
-      |> filter_by_photo_id(result.o.id)
-      |> Query.get_icons(icon_size)
-      |> Repo.all()
-      |> Enum.map(fn r -> Query.get_icon_from_result(r, PenguinMemories.Photos.Album) end)
 
     o = result.o
 
@@ -130,135 +128,128 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       %Field{
         id: :title,
         title: "Title",
-        display: o.title,
         type: :string
       },
       %Field{
         id: :path,
         title: "Path",
-        display: Path.join([o.dir, o.name]),
-        type: :readonly
+        type: {:static, Path.join([o.dir, o.name])},
+        read_only: true
       },
       %Field{
-        id: :album_list,
+        id: :albums,
         title: "Albums",
-        display: o.album_list,
-        icons: albums,
-        type: :albums
+        type: {:multiple, PenguinMemories.Photos.Album}
       },
       %Field{
-        id: :photographer_id,
-        title: "Photographer",
-        display: o.photographer_id,
-        type: :person
+        id: :categorys,
+        title: "Categories",
+        type: {:multiple, PenguinMemories.Photos.Category}
       },
       %Field{
-        id: :place_id,
+        id: :place,
         title: "Place",
-        display: o.place_id,
-        type: :place
+        type: {:single, PenguinMemories.Photos.Place}
+      },
+      %Field{
+        id: :photographer,
+        title: "Photographer",
+        type: {:single, PenguinMemories.Photos.Person}
       },
       %Field{
         id: :view,
         title: "View",
-        display: o.view,
         type: :string
       },
       %Field{
         id: :rating,
         title: "Rating",
-        display: o.rating,
         type: :string
       },
       %Field{
         id: :description,
         title: "Description",
-        display: o.description,
         type: :markdown
       },
       %Field{
         id: :private_notes,
         title: "Private Notes",
-        display: o.private_notes,
         type: :markdown
       },
       %Field{
         id: :datetime,
         title: "Time",
-        display: Format.display_datetime_offset(o.datetime, o.utc_offset),
-        type: :datetime
+        type: {:datetime_with_offset, o.utc_offset}
       },
       %Field{
         id: :utc_offset,
         title: "UTC offset",
-        display: o.utc_offset,
-        type: :string
+        type: :utc_offset
       },
       %Field{
         id: :action,
         title: "Action",
-        display: o.action,
         type: :string
       },
       %Field{
         id: :camera_make,
         title: "Camera Make",
-        display: o.camera_make,
-        type: :readonly
+        type: :string,
+        read_only: true
       },
       %Field{
         id: :camera_model,
         title: "Camera Model",
-        display: o.camera_model,
-        type: :readonly
+        type: :string,
+        read_only: true
       },
       %Field{
         id: :flash_used,
         title: "Flash Used",
-        display: o.flash_used,
-        type: :readonly
+        type: :string,
+        read_only: true
       },
       %Field{
         id: :focal_length,
         title: "Focal Length",
-        display: o.focal_length,
-        type: :readonly
+        type: :string,
+        read_only: true
       },
       %Field{
         id: :exposure_time,
         title: "Exposure Time",
-        display: o.exposure_time,
-        type: :readonly
+        type: :string,
+        read_only: true
       },
       %Field{
         id: :aperture,
         title: "Aperture",
-        display: o.aperture,
-        type: :readonly
+        type: :string,
+        read_only: true
       },
       %Field{
         id: :iso_equiv,
         title: "ISO",
-        display: o.iso_equiv,
-        type: :readonly
+        type: :string,
+        read_only: true
       },
       %Field{
         id: :metering_mode,
         title: "Metering Mode",
-        display: o.metering_mode,
-        type: :readonly
+        type: :string,
+        read_only: true
       },
       %Field{
         id: :focus_dist,
         title: "Focus Distance",
-        display: o.focus_dist,
-        type: :readonly
+        type: :string,
+        read_only: true
       },
       %Field{
         id: :ccd_width,
         title: "CCD Width",
-        display: o.ccd_width,
-        type: :readonly
+        type: :string,
+        read_only: true
       }
     ]
 
@@ -281,61 +272,51 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       %Field{
         id: :title,
         title: "Title",
-        display: nil,
         type: :string
       },
       %Field{
-        id: :photographer_id,
+        id: :photographer,
         title: "Photographer",
-        display: nil,
-        type: :person
+        type: {:single, PenguinMemories.Photos.Person}
       },
       %Field{
-        id: :place_id,
+        id: :place,
         title: "Place",
-        display: nil,
-        type: :place
+        type: {:single, PenguinMemories.Photos.Place}
       },
       %Field{
         id: :view,
         title: "View",
-        display: nil,
         type: :string
       },
       %Field{
         id: :rating,
         title: "Rating",
-        display: nil,
         type: :string
       },
       %Field{
         id: :description,
         title: "Description",
-        display: nil,
         type: :string
       },
       %Field{
         id: :private_notes,
         title: "Private Notes",
-        display: nil,
         type: :string
       },
       %Field{
         id: :datetime,
         title: "Time",
-        display: nil,
         type: :time
       },
       %Field{
         id: :utc_offset,
         title: "Revised UTC offset",
-        display: nil,
-        type: :string
+        type: :utc_offset
       },
       %Field{
         id: :action,
         title: "Action",
-        display: nil,
         type: :string
       }
     ]

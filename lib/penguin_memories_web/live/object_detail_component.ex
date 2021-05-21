@@ -8,7 +8,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   alias PenguinMemories.Auth
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Query.Field
+  alias PenguinMemories.Database.Query.Icon
   alias PenguinMemories.Database.Types
+  alias PenguinMemories.Format
   alias Phoenix.LiveView.Socket
 
   @impl true
@@ -35,6 +37,12 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:ok, socket}
   end
 
+  def update(%{status: :selected} = change, %Socket{} = socket) do
+    assoc = Map.put(socket.assigns.assoc, change.field_id, change.value)
+    socket = assign(socket, assoc: assoc)
+    {:ok, socket}
+  end
+
   @impl true
   def update(params, %Socket{} = socket) do
     type = params.type
@@ -42,6 +50,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     num_selected = MapSet.size(selected_ids)
 
     assigns = [
+      id: params.id,
       type: type,
       num_selected: num_selected,
       selected_ids: selected_ids,
@@ -199,7 +208,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       edit: :edit,
       changeset: changeset,
       edit_object: changeset.data,
-      action: :insert
+      action: :insert,
+      assoc: %{}
     ]
 
     {:noreply, assign(socket, assigns)}
@@ -214,7 +224,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       edit: :edit,
       changeset: changeset,
       edit_object: changeset.data,
-      action: :update
+      action: :update,
+      assoc: %{}
     ]
 
     {:noreply, assign(socket, assigns)}
@@ -232,7 +243,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
       changeset: changeset,
       edit_object: changeset.data,
       enabled: enabled,
-      action: :update
+      action: :update,
+      assoc: %{}
     ]
 
     {:noreply, assign(socket, assigns)}
@@ -275,6 +287,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     changeset = Query.get_edit_changeset(socket.assigns.edit_object, params)
     changeset = %{changeset | action: socket.assigns.action}
 
+    changeset =
+      Enum.reduce(socket.assigns.assoc, changeset, fn {key, value}, changeset ->
+        Changeset.put_assoc(changeset, key, value)
+      end)
+
     changeset
   end
 
@@ -304,6 +321,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {enabled, changes} = get_update_changes(socket.assigns.selected_fields, params)
     changeset = Query.get_update_changeset(enabled, changes, type)
     changeset = %{changeset | action: socket.assigns.action}
+
+    changeset =
+      Enum.reduce(socket.assigns.assoc, changeset, fn {key, value}, changeset ->
+        Changeset.put_assoc(changeset, key, value)
+      end)
 
     {enabled, changeset}
   end
@@ -423,10 +445,15 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     {:noreply, assign(socket, assigns)}
   end
 
-  @spec output_field(Field.t(), keyword()) :: any()
-  defp output_field(field, opts \\ [])
+  @spec display_icon(icon :: Icon.t() | nil) :: any()
+  defp display_icon(nil), do: ""
 
-  defp output_field(%Field{icons: icons}, _opts) when not is_nil(icons) do
+  defp display_icon(%Icon{} = icon) do
+    display_icons([icon])
+  end
+
+  @spec display_icons(icon :: list(Icon.t())) :: any()
+  defp display_icons(icons) do
     Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icons.html",
       icons: icons,
       classes: [],
@@ -434,10 +461,30 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     )
   end
 
-  defp output_field(%{display: nil}, _opts), do: ""
+  @spec output_field(value :: any(), field :: Field.t()) :: any()
+  defp output_field(value, field)
 
-  defp output_field(%{type: :markdown} = field, _opts) do
-    case Earmark.as_html(field.display) do
+  defp output_field(_, %Field{type: {:static, value}}) do
+    value
+  end
+
+  defp output_field(nil, _field), do: "N/A"
+
+  defp output_field(value, %Field{type: {:single, type}}) do
+    Query.query_icon_by_id(value.id, type, "thumb")
+    |> display_icon()
+  end
+
+  defp output_field(value, %Field{type: {:multiple, type}}) do
+    value
+    |> Enum.map(fn obj -> obj.id end)
+    |> Enum.into(MapSet.new())
+    |> Query.query_icons_by_id_map(10, type, "thumb")
+    |> display_icons()
+  end
+
+  defp output_field(value, %Field{type: :markdown}) do
+    case Earmark.as_html(value) do
       {:ok, html_doc, _} ->
         Phoenix.HTML.raw(html_doc)
 
@@ -454,21 +501,28 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     end
   end
 
-  defp output_field(field, _opts) do
-    field.display
+  defp output_field(value, %Field{type: :datetime}) do
+    Format.display_datetime(value)
   end
 
-  @spec input_field(Socket.t(), Phoenix.HTML.Form.t(), Field.t(), keyword()) :: any()
-  defp input_field(%Socket{} = socket, form, %Field{} = field, opts \\ []) do
+  defp output_field(value, %Field{type: {:datetime_with_offset, utc_offset}}) do
+    Format.display_datetime_offset(value, utc_offset)
+  end
+
+  defp output_field(value, _field) do
+    value
+  end
+
+  @spec input_field(Socket.t(), String.t(), Phoenix.HTML.Form.t(), Field.t(), keyword()) :: any()
+  defp input_field(%Socket{} = socket, id, form, %Field{} = field, opts \\ []) do
     opts = [{:label, field.title} | opts]
 
     case field.type do
       :markdown ->
         textarea_input_field(form, field.id, opts)
 
-      :album ->
+      {:single, type} ->
         disabled = opts[:disabled]
-        type = PenguinMemories.Photos.Album
 
         live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
@@ -476,12 +530,12 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
           field: field,
           id: field.id,
           disabled: disabled,
-          single_choice: true
+          single_choice: true,
+          updates: {__MODULE__, id}
         )
 
-      :albums ->
+      {:multiple, type} ->
         disabled = opts[:disabled]
-        type = PenguinMemories.Photos.Album
 
         live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
@@ -489,21 +543,12 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
           field: field,
           id: field.id,
           disabled: disabled,
-          single_choice: false
+          single_choice: false,
+          updates: {__MODULE__, id}
         )
 
-      :photo ->
-        disabled = opts[:disabled]
-        type = PenguinMemories.Photos.Photo
-
-        live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent,
-          type: type,
-          form: form,
-          field: field,
-          id: field.id,
-          disabled: disabled,
-          single_choice: true
-        )
+      {:static, _} ->
+        nil
 
       _ ->
         text_input_field(form, field.id, opts)

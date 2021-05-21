@@ -63,7 +63,7 @@
                     <%= for field <- @selected_fields do %>
                         <tr>
                             <th><%= field.title %></th>
-                            <td><%= output_field(field) %></td>
+                            <td><%= output_field(Map.get(@selected_object, field.id), field) %></td>
                         </tr>
                     <% end %>
                 </tbody>
@@ -73,8 +73,8 @@
         <%= if @edit == :edit do %>
             <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save", phx_target: @myself] %>
                 <%= for field <- @selected_fields do %>
-                    <%= if field.type != :readonly do %>
-                    <%= input_field @socket, f, field %>
+                    <%= if field.read_only == false do %>
+                    <%= input_field @socket, @id, f, field %>
                     <% end %>
                 <% end %>
                 <div>
@@ -87,10 +87,10 @@
         <%= if @edit == :update do %>
             <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save", phx_target: @myself] %>
                 <%= for field <- @selected_fields do %>
-                    <%= if field.type != :readonly do %>
+                    <%= if field.read_only == false do %>
                     <% enabled = MapSet.member?(@enabled, field.id) %>
                     <%= checkbox_field f, field_to_enable_field_id(field), value: enabled %>
-                    <%= input_field @socket, f, field, disabled: not enabled %>
+                    <%= input_field @socket, @id, f, field, disabled: not enabled %>
                     <% end %>
                 <% end %>
                 <div>

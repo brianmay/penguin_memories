@@ -5,7 +5,9 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
   alias Ecto.Changeset
 
   use PenguinMemoriesWeb, :live_component
+
   import Phoenix.HTML.Form
+  alias Phoenix.HTML.Form
 
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Query.Field
@@ -17,6 +19,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     assigns = [
       choices: [],
       selected: [],
+      icons: [],
       text: ""
     ]
 
@@ -25,44 +28,49 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
 
   @impl true
   @spec update(
-          %{disabled: any, field: atom | %{icons: any}, form: any, single_choice: any, type: any},
+          %{
+            disabled: boolean(),
+            field: Field.t(),
+            form: Form.t(),
+            single_choice: boolean(),
+            type: Query.object_type(),
+            updates: {module(), String.t()}
+          },
           Phoenix.LiveView.Socket.t()
         ) :: {:ok, Phoenix.LiveView.Socket.t()}
   def update(params, socket) do
     type = params.type
     form = params.form
     field = params.field
+    single_choice = params.single_choice
+    updates = params.updates
     search = Map.get(params, :search, %{})
-    selected = Changeset.get_field(form.source, field.id)
 
-    ids =
-      cond do
-        is_integer(selected) ->
-          [selected]
+    raw_value = Changeset.get_field(form.source, field.id)
 
-        is_binary(selected) ->
-          selected
-          |> String.split(",")
-          |> Enum.map(fn id ->
-            {id, ""} = Integer.parse(id)
-            id
-          end)
-
-        is_nil(selected) ->
-          []
+    selected =
+      case {single_choice, raw_value} do
+        {true, nil} -> []
+        {true, value} -> [value]
+        {false, _} -> raw_value
       end
-      |> MapSet.new()
 
-    icons = Query.query_icons_by_id_map(ids, 100, type, "thumb")
+    icons =
+      selected
+      |> Enum.map(fn obj -> obj.id end)
+      |> Enum.into(MapSet.new())
+      |> Query.query_icons_by_id_map(100, type, "thumb")
 
     assigns = [
       type: type,
       form: form,
       field: field,
-      selected: icons,
+      selected: selected,
+      icons: icons,
       disabled: params.disabled,
       single_choice: params.single_choice,
-      search: search
+      search: search,
+      updates: updates
     ]
 
     {:ok, assign(socket, assigns)}
@@ -82,15 +90,15 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     else
       type = socket.assigns.type
 
-      selected =
-        socket.assigns.selected
+      icons =
+        socket.assigns.icons
         |> Enum.map(fn icon -> icon.id end)
         |> MapSet.new()
 
       icons =
         search
         |> Query.query_icons(10, type, "thumb")
-        |> Enum.reject(fn icon -> MapSet.member?(selected, icon.id) end)
+        |> Enum.reject(fn icon -> MapSet.member?(icons, icon.id) end)
 
       assigns = [
         choices: icons,
@@ -106,15 +114,17 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     if socket.assigns.disabled do
       {:noreply, socket}
     else
+      type = socket.assigns.type
       {id, ""} = Integer.parse(id)
       [icon | _] = socket.assigns.choices |> Enum.filter(fn icon -> icon.id == id end)
-      selected = add_selected(socket.assigns.selected, icon, socket.assigns.single_choice)
-      changeset = update_changeset(socket, selected)
+      icons = add_icons(socket.assigns.icons, icon, socket.assigns.single_choice)
+      selected = add_selection(socket.assigns.selected, id, socket.assigns.single_choice, type)
+      update_changeset(socket, selected)
 
       assigns = [
         choices: [],
-        form: %{socket.assigns.form | source: changeset},
-        selected: selected,
+        # form: %{socket.assigns.form | source: changeset},
+        icons: icons,
         text: ""
       ]
 
@@ -128,14 +138,15 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       {:noreply, socket}
     else
       {id, ""} = Integer.parse(id)
-      [icon | _] = socket.assigns.selected |> Enum.filter(fn icon -> icon.id == id end)
-      selected = remove_selected(socket.assigns.selected, icon, socket.assigns.single_choice)
-      changeset = update_changeset(socket, selected)
+      [icon | _] = socket.assigns.icons |> Enum.filter(fn icon -> icon.id == id end)
+      icons = remove_icons(socket.assigns.icons, icon, socket.assigns.single_choice)
+      selected = remove_selection(socket.assigns.selected, id, socket.assigns.single_choice)
+      update_changeset(socket, selected)
 
       assigns = [
         choices: [],
-        form: %{socket.assigns.form | source: changeset},
-        selected: selected,
+        # form: %{socket.assigns.form | source: changeset},
+        icons: icons,
         text: ""
       ]
 
@@ -143,33 +154,63 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     end
   end
 
-  @spec add_selected(list(Icon.t()), Icon.t(), boolean()) ::
+  @spec add_icons(list(Icon.t()), Icon.t(), boolean()) ::
           list(Icon.t())
-  def add_selected(_selected, icon, true) do
+  def add_icons(_icons, %Icon{} = icon, true) do
     [icon]
   end
 
-  def add_selected(selected, icon, false) do
-    [icon | selected]
+  def add_icons(icons, %Icon{} = icon, false) do
+    icons = Enum.reject(icons, fn s -> s.id == icon.id end)
+    [icon | icons]
   end
 
-  @spec remove_selected(list(Icon.t()), Icon.t(), boolean()) ::
+  @spec remove_icons(list(Icon.t()), Icon.t(), boolean()) ::
           list(Icon.t())
-  def remove_selected(_selected, _icon, true) do
-    []
+  def remove_icons(icons, %Icon{} = icon, _) do
+    Enum.reject(icons, fn s -> s.id == icon.id end)
   end
 
-  def remove_selected(selected, icon, false) do
-    Enum.reject(selected, fn s -> s.id == icon.id end)
+  @spec add_selection(list(struct()), integer(), boolean(), type :: Query.object_type()) ::
+          list(struct())
+  def add_selection(_selections, id, true, type) do
+    case Query.get_object_by_id(id, type) do
+      nil -> []
+      obj -> [obj]
+    end
+  end
+
+  def add_selection(selections, id, false, type) do
+    selections = Enum.reject(selections, fn s -> s.id == id end)
+
+    case Query.get_object_by_id(id, type) do
+      nil -> selections
+      obj -> [obj | selections]
+    end
+  end
+
+  @spec remove_selection(list(struct()), integer(), boolean()) ::
+          list(struct())
+  def remove_selection(selections, id, _) do
+    Enum.reject(selections, fn s -> s.id == id end)
   end
 
   @spec update_changeset(Phoenix.LiveView.Socket.t(), list(Icon.t())) :: Changeset.t()
   def update_changeset(socket, selected) do
-    ids =
-      selected
-      |> Enum.map(fn icon -> icon.id end)
-      |> Enum.join(",")
+    value =
+      case {socket.assigns.single_choice, selected} do
+        {true, []} -> nil
+        {true, [v]} -> v
+        {false, v} -> v
+      end
 
-    Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, ids)
+    {module, id} = socket.assigns.updates
+    # IO.inspect(socket.assigns.updates)
+    # IO.inspect(self())
+    # send(socket.assigns.updates, {:selected, socket.assigns.field.id, value})
+    send_update(module, id: id, status: :selected, field_id: socket.assigns.field.id, value: value)
+
+    # IO.inspect(value)
+    # Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, value) |> IO.inspect()
   end
 end

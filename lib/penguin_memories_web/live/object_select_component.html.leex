@@ -8,7 +8,7 @@
     <div class="form-group" phx_feedback_for="<%= feedback_for %>">
         <%= label(@form, dummy_field_id, @field.title, class: "control-label") %>
         <div class="autoselect form-control <%= field_class %>">
-            <%= for icon <- @selected do %>
+            <%= for icon <- @icons do %>
                 <span class="selected" phx-click="remove" phx-value-id="<%= icon.id %>" phx-target="<%= @myself %>"><%= icon.title %></span>
             <% end %>
             <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, value: @text, disabled: @disabled) %>
@@ -30,6 +30,4 @@
             </div>
         </div>
     <% end %>
-
-    <%= hidden_input(@form, @field.id) %>
 </div>

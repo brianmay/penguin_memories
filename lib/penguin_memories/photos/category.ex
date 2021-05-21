@@ -30,12 +30,12 @@ defmodule PenguinMemories.Photos.Category do
         }
 
   schema "pm_category" do
-    belongs_to :cover_photo, Photo
+    belongs_to :cover_photo, Photo, on_replace: :delete
     field :title, :string
     field :description, :string
     field :private_notes, :string
     field :revised, :utc_datetime
-    belongs_to :parent, PenguinMemories.Photos.Category
+    belongs_to :parent, PenguinMemories.Photos.Category, on_replace: :delete
     has_many :children, PenguinMemories.Photos.Category, foreign_key: :parent_id
     has_many :ascendants, PenguinMemories.Photos.CategoryAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.CategoryAscendant, foreign_key: :ascendant_id

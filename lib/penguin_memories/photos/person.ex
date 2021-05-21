@@ -43,17 +43,17 @@ defmodule PenguinMemories.Photos.Person do
         }
 
   schema "pm_person" do
-    belongs_to :cover_photo, Photo
+    belongs_to :cover_photo, Photo, on_replace: :delete
     field :title, :string
     field :called, :string
     field :sort_name, :string
     field :date_of_birth, :date
     field :date_of_death, :date
-    belongs_to :home, PenguinMemories.Photos.Place
-    belongs_to :work, PenguinMemories.Photos.Place
-    belongs_to :father, PenguinMemories.Photos.Person
-    belongs_to :mother, PenguinMemories.Photos.Person
-    belongs_to :spouse, PenguinMemories.Photos.Person
+    belongs_to :home, PenguinMemories.Photos.Place, on_replace: :delete
+    belongs_to :work, PenguinMemories.Photos.Place, on_replace: :delete
+    belongs_to :father, PenguinMemories.Photos.Person, on_replace: :delete
+    belongs_to :mother, PenguinMemories.Photos.Person, on_replace: :delete
+    belongs_to :spouse, PenguinMemories.Photos.Person, on_replace: :delete
     field :description, :string
     field :private_notes, :string
     field :email, :string

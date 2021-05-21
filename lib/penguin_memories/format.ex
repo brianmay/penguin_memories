@@ -1,4 +1,4 @@
-defmodule PenguinMemories.Database.Format do
+defmodule PenguinMemories.Format do
   @moduledoc """
   Format database values for display.
   """

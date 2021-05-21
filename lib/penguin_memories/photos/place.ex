@@ -36,7 +36,7 @@ defmodule PenguinMemories.Photos.Place do
         }
 
   schema "pm_place" do
-    belongs_to :cover_photo, Photo
+    belongs_to :cover_photo, Photo, on_replace: :delete
     field :title, :string
     field :description, :string
     field :address, :string
@@ -48,7 +48,7 @@ defmodule PenguinMemories.Photos.Place do
     field :url, :string
     field :private_notes, :string
     field :revised, :utc_datetime
-    belongs_to :parent, PenguinMemories.Photos.Place
+    belongs_to :parent, PenguinMemories.Photos.Place, on_replace: :delete
     has_many :children, PenguinMemories.Photos.Place, foreign_key: :parent_id
     has_many :ascendants, PenguinMemories.Photos.PlaceAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.PlaceAscendant, foreign_key: :ascendant_id

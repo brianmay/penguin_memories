@@ -30,12 +30,12 @@ defmodule PenguinMemories.Photos.Album do
         }
 
   schema "pm_album" do
-    belongs_to :cover_photo, Photo
+    belongs_to :cover_photo, Photo, on_replace: :delete
     field :title, :string
     field :description, :string
     field :private_notes, :string
     field :revised, :utc_datetime
-    belongs_to :parent, PenguinMemories.Photos.Album
+    belongs_to :parent, PenguinMemories.Photos.Album, on_replace: :delete
     has_many :children, PenguinMemories.Photos.Album, foreign_key: :parent_id
     has_many :ascendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :ascendant_id
@@ -52,20 +52,20 @@ defmodule PenguinMemories.Photos.Album do
   def edit_changeset(%__MODULE__{} = album, attrs) do
     album
     |> cast(attrs, [
-      :cover_photo_id,
       :title,
       :description,
       :private_notes,
-      :revised,
-      :parent_id
+      :revised
     ])
+    |> cast_assoc(:cover_photo)
+    |> cast_assoc(:parent)
     |> validate_required([:title])
     |> validate_revised()
   end
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
   def update_changeset(%__MODULE__{} = album, enabled, attrs) do
-    allowed_list = [:title, :parent_id, :revised]
+    allowed_list = [:title, :parent, :revised]
     allowed = MapSet.new(allowed_list)
     enabled = MapSet.intersection(enabled, allowed)
     enabled_list = MapSet.to_list(enabled)

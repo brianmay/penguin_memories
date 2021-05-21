@@ -3,7 +3,6 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   Backend Album functions
   """
   import Ecto.Query
-  alias PenguinMemories.Database.Format
   alias PenguinMemories.Database.Impl.Backend.API
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Query.Details
@@ -70,6 +69,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   end
 
   @impl API
+  @spec preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
+  def preload_details(query) do
+    preload(query, [:cover_photo, :parent])
+  end
+
+  @impl API
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
     "#{result.title}"
@@ -87,58 +92,38 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
           icon_size :: String.t(),
           video_size :: String.t()
         ) :: Details.t()
-  def get_details_from_result(%{} = result, icon_size, _video_size) do
+  def get_details_from_result(%{} = result, _icon_size, _video_size) do
     icon = Query.get_icon_from_result(result, Album)
-
-    cover_photos =
-      case result.o.cover_photo_id do
-        nil -> nil
-        id -> [Query.query_icon_by_id(id, PenguinMemories.Photos.Photo, "thumb")]
-      end
-
-    parent_icons =
-      case result.o.parent_id do
-        nil -> nil
-        id -> [Query.query_icon_by_id(id, Album, icon_size)]
-      end
 
     fields = [
       %Field{
         id: :title,
         title: "Title",
-        display: result.o.title,
         type: :string
       },
       %Field{
-        id: :parent_id,
+        id: :parent,
         title: "Parent",
-        display: nil,
-        icons: parent_icons,
-        type: :album
+        type: {:single, Album}
       },
       %Field{
         id: :description,
         title: "Description",
-        display: result.o.description,
         type: :markdown
       },
       %Field{
         id: :private_notes,
         title: "Private Notes",
-        display: result.o.private_notes,
         type: :markdown
       },
       %Field{
-        id: :cover_photo_id,
+        id: :cover_photo,
         title: "Cover Photo",
-        display: nil,
-        icons: cover_photos,
-        type: :photo
+        type: {:single, PenguinMemories.Photos.Photo}
       },
       %Field{
         id: :revised,
         title: "Revised time",
-        display: Format.display_datetime(result.o.revised),
         type: :datetime
       }
     ]
@@ -162,19 +147,16 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
       %Field{
         id: :title,
         title: "Title",
-        display: nil,
         type: :string
       },
       %Field{
-        id: :parent_id,
+        id: :parent,
         title: "Parent",
-        display: nil,
         type: :album
       },
       %Field{
         id: :revised,
         title: "Revised time",
-        display: nil,
         type: :datetime
       }
     ]

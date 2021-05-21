@@ -15,6 +15,7 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
   @callback filter_by_parent_id(query :: Ecto.Query.t(), parent_id :: integer) :: Ecto.Query.t()
   @callback filter_by_reference(query :: Ecto.Query.t(), reference :: {module(), integer()}) ::
               Ecto.Query.t()
+  @callback preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
   @callback get_title_from_result(result :: map()) :: String.t()
   @callback get_subtitle_from_result(result :: map()) :: String.t()
   @callback get_details_from_result(
