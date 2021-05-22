@@ -9,10 +9,10 @@ use Mix.Config
 
 config :penguin_memories,
   ecto_repos: [PenguinMemories.Repo],
-  # image_dir: "/home/brian/photos/images",
-  image_dir: "/tmp/images",
-  # image_url: "https://photos.linuxpenguins.xyz/images",
-  image_url: "/images",
+  image_dir: "/home/brian/photos/images",
+  image_url: "https://photos.linuxpenguins.xyz/images",
+  # image_dir: "/tmp/images",
+  # image_url: "/images",
   cameras: %{
     "Canon EOS R5" => "10:59:36",
     "Canon EOS 350D DIGITAL" => "11:00:00"

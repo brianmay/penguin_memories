@@ -94,7 +94,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   @impl API
   @spec preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
   def preload_details(query) do
-    preload(query, [:albums, :categorys, :place, :photographer])
+    preload(query, [:albums, :categorys, :place, :photographer, :photo_persons])
   end
 
   @impl API

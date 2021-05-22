@@ -17,13 +17,21 @@ defmodule PenguinMemories.Photos.PhotoPerson do
           photo: Photo.t() | Ecto.Association.NotLoaded.t() | nil,
           person_id: integer | nil,
           person: Person.t() | Ecto.Association.NotLoaded.t() | nil,
-          position: integer() | nil
+          position: integer() | nil,
+          x1: integer() | nil,
+          y1: integer() | nil,
+          x2: integer() | nil,
+          y2: integer() | nil,
         }
 
   schema "pm_photo_person" do
     belongs_to :photo, Photo
     belongs_to :person, Person
     field :position, :integer
+    field :x1, :integer
+    field :y1, :integer
+    field :x2, :integer
+    field :y2, :integer
     timestamps()
   end
 

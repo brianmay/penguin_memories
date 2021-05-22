@@ -13,6 +13,7 @@ defmodule PenguinMemories.Photos.Photo do
   alias PenguinMemories.Photos.Person
   alias PenguinMemories.Photos.PhotoAlbum
   alias PenguinMemories.Photos.PhotoCategory
+  alias PenguinMemories.Photos.PhotoPerson
   alias PenguinMemories.Photos.PhotoRelation
   alias PenguinMemories.Photos.Place
 
@@ -79,6 +80,7 @@ defmodule PenguinMemories.Photos.Photo do
     many_to_many :categorys, Category, join_through: PhotoCategory, on_replace: :delete
     belongs_to :place, Place, on_replace: :delete
     belongs_to :photographer, Person, on_replace: :delete
+    has_many :photo_persons, PhotoPerson, on_replace: :delete
 
     has_many :photo_relations, PhotoRelation, foreign_key: :photo_id
 
@@ -130,6 +132,7 @@ defmodule PenguinMemories.Photos.Photo do
     |> cast_assoc(:categorys)
     |> cast_assoc(:place)
     |> cast_assoc(:photographer)
+    |> cast_assoc(:photo_persons)
   end
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()

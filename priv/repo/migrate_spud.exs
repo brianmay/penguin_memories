@@ -119,7 +119,8 @@ defmodule ImportPhotoFiles do
            num_bytes: spf.num_bytes,
            photo_id: spf.photo_id
          }, p},
-      order_by: spf.id
+      order_by: [spf.photo_id, spf.id],
+      limit: 100  # FIXME
     )
     |> Repo.stream()
     |> Stream.each(fn {src, photo} ->
@@ -466,7 +467,7 @@ end
 Repo.transaction(
   fn ->
     ImportPhotos.import_all()
-    # ImportPhotoFiles.import_all()
+    ImportPhotoFiles.import_all()
     ImportAlbums.import_all()
     ImportCategorys.import_all()
     ImportPlaces.import_all()
