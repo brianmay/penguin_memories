@@ -26,11 +26,11 @@ config :penguin_memories,
       %{max_width: 120, max_height: 90, format: "video/webm"}
     ],
     "mid" => [
-      %{max_width: 480, format: "image/jpeg"},
-      %{max_width: 480, format: "image/gif"},
-      %{max_width: 480, format: "video/mp4"},
-      %{max_width: 480, format: "video/ogg"},
-      %{max_width: 480, format: "video/webm"}
+      %{max_width: 480, max_height: 360, format: "image/jpeg"},
+      %{max_width: 480, max_height: 360, format: "image/gif"},
+      %{max_width: 480, max_height: 360, format: "video/mp4"},
+      %{max_width: 480, max_height: 360, format: "video/ogg"},
+      %{max_width: 480, max_height: 360, format: "video/webm"}
     ],
     "large" => [
       %{max_width: 1920, format: "image/jpeg"},

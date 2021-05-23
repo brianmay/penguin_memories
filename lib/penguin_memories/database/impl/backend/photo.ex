@@ -9,6 +9,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   alias PenguinMemories.Database.Query.Field
   alias PenguinMemories.Format
   alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Photos.Relation
+  alias PenguinMemories.Repo
 
   @behaviour API
 
@@ -126,7 +128,18 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
     icon = Query.get_icon_from_result(result, Photo)
     videos = Query.get_videos_for_photo(result.o.id, video_size)
 
-    o = result.o
+    related =
+      from(r in Relation,
+        join: pr1 in PenguinMemories.Photos.PhotoRelation,
+        on: pr1.relation_id == r.id,
+        join: pr2 in PenguinMemories.Photos.PhotoRelation,
+        on: pr2.relation_id == r.id,
+        where: pr1.photo_id == ^result.id,
+        select: %{r: r, pr: pr2}
+      )
+      |> Repo.all()
+
+    o = %Photo{result.o | related: related}
 
     fields = [
       %Field{
@@ -164,6 +177,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         id: :photo_persons,
         title: "Persons",
         type: :persons
+      },
+      %Field{
+        id: :related,
+        title: "Related",
+        type: :related,
+        read_only: true
       },
       %Field{
         id: :view,
@@ -265,7 +284,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
     cursor = Paginator.cursor_for_record(result, get_cursor_fields())
 
     %Details{
-      obj: result.o,
+      obj: o,
       icon: icon,
       videos: videos,
       fields: fields,

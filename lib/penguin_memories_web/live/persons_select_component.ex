@@ -122,7 +122,11 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
           assign(socket, position: position)
 
         edit ->
-          edit = %PenguinMemories.Photos.PhotoPerson{person_id: edit.person_id, position: position}
+          edit = %PenguinMemories.Photos.PhotoPerson{
+            person_id: edit.person_id,
+            position: position
+          }
+
           assign(socket, edit: edit)
       end
 

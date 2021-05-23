@@ -16,6 +16,7 @@ defmodule PenguinMemories.Photos.Photo do
   alias PenguinMemories.Photos.PhotoPerson
   alias PenguinMemories.Photos.PhotoRelation
   alias PenguinMemories.Photos.Place
+  alias PenguinMemories.Photos.Relation
 
   @timestamps_opts [type: :utc_datetime]
 
@@ -48,7 +49,8 @@ defmodule PenguinMemories.Photos.Photo do
           categorys: list(Category.t()) | Ecto.Association.NotLoaded.t() | nil,
           place: Place.t() | Ecto.Association.NotLoaded.t() | nil,
           photographer: Person.t() | Ecto.Association.NotLoaded.t() | nil,
-          photo_relations: list(PhotoRelation.t()) | Ecto.Association.NotLoaded.t() | nil
+          photo_relations: list(PhotoRelation.t()) | Ecto.Association.NotLoaded.t() | nil,
+          related: list(%{r: Relation.t(), pr: PhotoRelation.t()}) | nil
         }
 
   schema "pm_photo" do
@@ -72,6 +74,7 @@ defmodule PenguinMemories.Photos.Photo do
     field :title, :string
     field :view, :string
     field :utc_offset, :integer
+    field :related, :any, virtual: true
     has_many :files, File, on_replace: :delete
 
     many_to_many :albums, Album, join_through: PhotoAlbum, on_replace: :delete

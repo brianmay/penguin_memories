@@ -4,6 +4,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   """
   use PenguinMemoriesWeb, :live_component
 
+  import Phoenix.HTML
+
   alias Ecto.Changeset
   alias PenguinMemories.Auth
   alias PenguinMemories.Database.Query
@@ -12,6 +14,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Format
   alias PenguinMemories.Photos.Person
+  alias PenguinMemories.Photos.Photo
   alias Phoenix.LiveView.Socket
 
   @impl true
@@ -34,7 +37,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @impl true
   def update(%{status: "refresh"}, %Socket{} = socket) do
-    socket = reload(socket)
+    # socket = reload(socket)
     {:ok, socket}
   end
 
@@ -453,13 +456,33 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     display_icons([icon])
   end
 
-  @spec display_icons(icon :: list(Icon.t())) :: any()
+  @spec display_icons(icons :: list(Icon.t())) :: any()
   defp display_icons(icons) do
-    Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icons.html",
+    Phoenix.View.render_to_string(PenguinMemoriesWeb.IncludeView, "icons.html",
       icons: icons,
       classes: [],
       event: "goto"
     )
+    |> raw()
+  end
+
+  @spec display_markdown(value :: String.t()) :: any()
+  defp display_markdown(value) do
+    case Earmark.as_html(value) do
+      {:ok, html_doc, _} ->
+        Phoenix.HTML.raw(html_doc)
+
+      {:error, _, errors} ->
+        result = ["</ul>"]
+
+        result =
+          Enum.reduce(errors, result, fn {_, _, text}, acc ->
+            ["<li>", text, "</li>" | acc]
+          end)
+
+        result = ["<ul class='alert alert-danger'>" | result]
+        Phoenix.HTML.raw(result)
+    end
   end
 
   @spec output_field(value :: any(), field :: Field.t()) :: any()
@@ -485,21 +508,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   defp output_field(value, %Field{type: :markdown}) do
-    case Earmark.as_html(value) do
-      {:ok, html_doc, _} ->
-        Phoenix.HTML.raw(html_doc)
-
-      {:error, _, errors} ->
-        result = ["</ul>"]
-
-        result =
-          Enum.reduce(errors, result, fn {_, _, text}, acc ->
-            ["<li>", text, "</li>" | acc]
-          end)
-
-        result = ["<ul class='alert alert-danger'>" | result]
-        Phoenix.HTML.raw(result)
-    end
+    display_markdown(value)
   end
 
   defp output_field(value, %Field{type: :datetime}) do
@@ -512,18 +521,45 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   defp output_field(value, %Field{type: :persons}) do
     icons =
-    value
-    |> Enum.map(fn obj -> obj.person_id end)
-    |> MapSet.new()
-    |> Query.query_icons_by_id_map(100, Person, "thumb")
-    |> Enum.map(fn icon -> {icon.id, icon} end)
-    |> Enum.into(%{})
+      value
+      |> Enum.map(fn obj -> obj.person_id end)
+      |> MapSet.new()
+      |> Query.query_icons_by_id_map(100, Person, "thumb")
+      |> Enum.map(fn icon -> {icon.id, icon} end)
+      |> Enum.into(%{})
 
     value
     |> Enum.map(fn obj -> obj.person_id end)
     |> Enum.map(fn id -> Map.get(icons, id) end)
     |> Enum.reject(fn icon -> is_nil(icon) end)
     |> display_icons()
+  end
+
+  defp output_field(related, %Field{type: :related}) do
+    icons =
+      Enum.map(related, fn result -> result.pr.photo_id end)
+      |> MapSet.new()
+      |> Query.query_icons_by_id_map(100, Photo, "thumb")
+      |> Enum.map(fn icon -> {icon.id, icon} end)
+      |> Enum.into(%{})
+
+    related_icons =
+      Enum.map(related, fn result ->
+        icon = Map.get(icons, result.pr.photo_id)
+        icon = %Icon{icon | title: result.pr.title, subtitle: nil, action: nil}
+        Map.put(result, :icon, icon)
+      end)
+      |> Enum.group_by(fn value -> value.r end, fn value -> value.icon end)
+
+    Enum.map(related_icons, fn {related, icons} ->
+      [
+        raw("<div>"),
+        related.title,
+        display_markdown(related.description),
+        display_icons(icons),
+        raw("</div>")
+      ]
+    end)
   end
 
   defp output_field(value, _field) do
