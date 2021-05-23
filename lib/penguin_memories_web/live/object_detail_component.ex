@@ -11,6 +11,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   alias PenguinMemories.Database.Query.Icon
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Format
+  alias PenguinMemories.Photos.Person
   alias Phoenix.LiveView.Socket
 
   @impl true
@@ -509,6 +510,22 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     Format.display_datetime_offset(value, utc_offset)
   end
 
+  defp output_field(value, %Field{type: :persons}) do
+    icons =
+    value
+    |> Enum.map(fn obj -> obj.person_id end)
+    |> MapSet.new()
+    |> Query.query_icons_by_id_map(100, Person, "thumb")
+    |> Enum.map(fn icon -> {icon.id, icon} end)
+    |> Enum.into(%{})
+
+    value
+    |> Enum.map(fn obj -> obj.person_id end)
+    |> Enum.map(fn id -> Map.get(icons, id) end)
+    |> Enum.reject(fn icon -> is_nil(icon) end)
+    |> display_icons()
+  end
+
   defp output_field(value, _field) do
     value
   end
@@ -544,6 +561,17 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
           id: field.id,
           disabled: disabled,
           single_choice: false,
+          updates: {__MODULE__, id}
+        )
+
+      :persons ->
+        disabled = opts[:disabled]
+
+        live_component(socket, PenguinMemoriesWeb.PersonsSelectComponent,
+          form: form,
+          field: field,
+          id: field.id,
+          disabled: disabled,
           updates: {__MODULE__, id}
         )
 

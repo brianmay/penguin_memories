@@ -10,6 +10,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   alias PenguinMemories.Photos.Person
   alias PenguinMemories.Photos.PersonAscendant
   alias PenguinMemories.Photos.PhotoPerson
+  alias PenguinMemories.Photos.Place
 
   @behaviour API
 
@@ -71,7 +72,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   @impl API
   @spec preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
   def preload_details(query) do
-    preload(query, [:cover_photo, :mother, :father])
+    preload(query, [:cover_photo, :home, :work, :mother, :father, :spouse])
   end
 
   @impl API
@@ -110,6 +111,26 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
         id: :father,
         title: "Father",
         type: {:single, Person}
+      },
+      %Field{
+        id: :spouse,
+        title: "Spouse",
+        type: {:single, Person}
+      },
+      %Field{
+        id: :home,
+        title: "Home",
+        type: {:single, Place}
+      },
+      %Field{
+        id: :work,
+        title: "Work",
+        type: {:single, Place}
+      },
+      %Field{
+        id: :email,
+        title: "E-Mail",
+        type: :string
       },
       %Field{
         id: :description,

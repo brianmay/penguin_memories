@@ -4,7 +4,6 @@ defmodule PenguinMemories.Photos.Person do
   import Ecto.Changeset
   alias Ecto.Changeset
 
-  import PenguinMemories.Photos.Private
   alias PenguinMemories.Photos.PersonAscendant
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoPerson
@@ -65,11 +64,6 @@ defmodule PenguinMemories.Photos.Person do
     timestamps()
   end
 
-  @spec validate_revised(Changeset.t()) :: Changeset.t()
-  defp validate_revised(%Changeset{data: %__MODULE__{}} = changeset) do
-    validate_pair(changeset, :revised, :revised_utc_offset)
-  end
-
   @spec edit_changeset(t(), map()) :: Changeset.t()
   def edit_changeset(%__MODULE__{} = person, attrs) do
     person
@@ -91,7 +85,6 @@ defmodule PenguinMemories.Photos.Person do
       :revised
     ])
     |> validate_required([:title])
-    |> validate_revised()
   end
 
   @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()

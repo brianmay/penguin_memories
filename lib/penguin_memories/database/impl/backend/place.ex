@@ -7,6 +7,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Query.Details
   alias PenguinMemories.Database.Query.Field
+  alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoPlace
   alias PenguinMemories.Photos.Place
   alias PenguinMemories.Photos.PlaceAscendant
@@ -107,6 +108,41 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
         type: {:single, Place}
       },
       %Field{
+        id: :address,
+        title: "Address 1",
+        type: :string
+      },
+      %Field{
+        id: :address2,
+        title: "Address 2",
+        type: :string
+      },
+      %Field{
+        id: :city,
+        title: "City",
+        type: :string
+      },
+      %Field{
+        id: :state,
+        title: "State",
+        type: :string
+      },
+      %Field{
+        id: :postcode,
+        title: "Postcode",
+        type: :string
+      },
+      %Field{
+        id: :country,
+        title: "Country",
+        type: :string
+      },
+      %Field{
+        id: :url,
+        title: "URL",
+        type: :string
+      },
+      %Field{
         id: :description,
         title: "Description",
         type: :markdown
@@ -119,7 +155,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
       %Field{
         id: :cover_photo,
         title: "Cover Photo",
-        type: :photo
+        type: {:single, Photo}
       },
       %Field{
         id: :revised,

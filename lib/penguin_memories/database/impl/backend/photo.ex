@@ -94,7 +94,11 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   @impl API
   @spec preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
   def preload_details(query) do
-    preload(query, [:albums, :categorys, :place, :photographer, :photo_persons])
+    pp_query = from pp in PenguinMemories.Photos.PhotoPerson, order_by: pp.position
+
+    query
+    |> preload([:albums, :categorys, :place, :photographer])
+    |> preload(photo_persons: ^pp_query)
   end
 
   @impl API
@@ -155,6 +159,11 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         id: :photographer,
         title: "Photographer",
         type: {:single, PenguinMemories.Photos.Person}
+      },
+      %Field{
+        id: :photo_persons,
+        title: "Persons",
+        type: :persons
       },
       %Field{
         id: :view,

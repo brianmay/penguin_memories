@@ -36,10 +36,6 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
       add(:photo_id, references(:pm_photo, on_delete: :delete_all), null: false)
       add(:person_id, references(:pm_person, on_delete: :delete_all), null: false)
       add(:position, :integer, null: false)
-      add(:x1, :integer, null: true)
-      add(:y1, :integer, null: true)
-      add(:x2, :integer, null: true)
-      add(:y2, :integer, null: true)
 
       timestamps(type: :utc_datetime_usec)
     end

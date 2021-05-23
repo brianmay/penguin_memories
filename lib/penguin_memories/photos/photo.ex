@@ -44,12 +44,10 @@ defmodule PenguinMemories.Photos.Photo do
           view: String.t() | nil,
           utc_offset: integer() | nil,
           files: list(File.t()) | Ecto.Association.NotLoaded.t() | nil,
-
           albums: list(Album.t()) | Ecto.Association.NotLoaded.t() | nil,
           categorys: list(Category.t()) | Ecto.Association.NotLoaded.t() | nil,
           place: Place.t() | Ecto.Association.NotLoaded.t() | nil,
           photographer: Person.t() | Ecto.Association.NotLoaded.t() | nil,
-
           photo_relations: list(PhotoRelation.t()) | Ecto.Association.NotLoaded.t() | nil
         }
 
@@ -123,7 +121,7 @@ defmodule PenguinMemories.Photos.Photo do
       :datetime,
       :utc_offset,
       :action,
-      :private_notes,
+      :private_notes
     ])
     |> validate_action()
     |> validate_delete()

@@ -1,0 +1,56 @@
+<div class="dropdown">
+
+    <% field_id = @field.id %>
+    <% dummy_field_id = field_to_dummy_field_id(@field) %>
+    <% field_class = field_class(@form, field_id, "") %>
+    <% feedback_for = get_feedback_for(@form, dummy_field_id) %>
+
+    <div class="form-group" phx_feedback_for="<%= feedback_for %>">
+        <%= label(@form, dummy_field_id, @field.title, class: "control-label") %>
+        <div class="autoselect form-control <%= field_class %>">
+            <%= for pp <- @selected do %>
+                <% icon = Map.get(@icons, pp.person_id) %>
+                <%= if icon do %>
+                <span class="selected" phx-click="edit" phx-value-id="<%= pp.person_id %>" phx-target="<%= @myself %>"><%= icon.title %> (<%= pp.position %>)</span>
+                <% end %>
+            <% end %>
+        </div>
+
+        <div class="autoselect form-control <%= field_class %>">
+            <%= if @edit do %>
+                <% icon = Map.get(@icons, @edit.person_id) %>
+                <%= if icon do %>
+                    <span class="selected" phx-click="unedit" phx-target="<%= @myself %>"><%= icon.title %></span>
+                    <%= text_input(@form, :position, phx_keyup: "position", phx_target: @myself, value: @edit.position, disabled: @disabled) %>
+                    <div class="btn btn-primary" phx-click="commit" phx-target="<%= @myself %>">Commit</div>
+                    <div class="btn btn-secondary" phx-click="delete" phx-target="<%= @myself %>">Delete</div>
+                <% else %>
+                    Error - something went wrong
+                <% end %>
+                <% else %>
+                <%= @position %>
+                <input type="text" phx-keyup="search" phx-target="<%= @myself %>" vale="<%= @text %>">
+                <input type="text" phx-keyup="position" phx-target="<%= @myself %>" vale="<%= @position %>">
+                <!-- <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, disabled: @disabled) %> -->
+                <!-- <%= text_input(@form, :position, phx_keyup: "position", phx_target: @myself, value: @position, disabled: @disabled) %> -->
+            <% end %>
+        </div>
+
+        <%= error_tag(@form, field_id) %>
+    </div>
+
+    <%= if length(@choices) > 0 do %>
+        <div class="dropdown-menu show">
+            <div class="photo_list">
+                <%= for icon <- @choices do %>
+                    <%=
+                    Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
+                    icon: icon, classes: ["dropdown-item"],
+                    event: "set",
+                    target: @myself
+                    %>
+                <% end %>
+            </div>
+        </div>
+    <% end %>
+</div>

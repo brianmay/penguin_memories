@@ -25,32 +25,4 @@ defmodule PenguinMemories.Photos.Private do
         changeset
     end
   end
-
-  @spec validate_list_ids(String.t()) :: {:ok, list(integer())} | {:error, String.t()}
-  def validate_list_ids(nil), do: {:ok, []}
-
-  def validate_list_ids(string) do
-    {values, errors} =
-      string
-      |> String.split(",")
-      |> Enum.map(fn str_id ->
-        case Integer.parse(str_id) do
-          {id, ""} -> {:ok, id}
-          _ -> {:error, "Cannot parse #{str_id}"}
-        end
-      end)
-      |> Enum.split_with(fn
-        {:ok, _id} -> true
-        {:error, _msg} -> false
-      end)
-
-    cond do
-      length(errors) > 0 ->
-        [{:error, error} | _] = errors
-        {:error, error}
-
-      true ->
-        {:ok, Enum.map(values, fn {:ok, id} -> id end)}
-    end
-  end
 end

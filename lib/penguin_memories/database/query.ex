@@ -66,7 +66,8 @@ defmodule PenguinMemories.Database.Query do
               | {:datetime_with_offset, integer()}
               | :utc_offset
               | {:single, object_type()}
-              | {:multiple, object_type()},
+              | {:multiple, object_type()}
+              | :persons,
             read_only: boolean()
           }
     @enforce_keys [:id, :title, :type]
