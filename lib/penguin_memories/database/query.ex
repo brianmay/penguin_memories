@@ -7,6 +7,7 @@ defmodule PenguinMemories.Database.Query do
   alias Ecto.Changeset
   alias Ecto.Multi
 
+  alias PenguinMemories.Accounts.User
   alias PenguinMemories.Database
   alias PenguinMemories.Database.Index
   alias PenguinMemories.Database.Types
@@ -59,19 +60,19 @@ defmodule PenguinMemories.Database.Query do
             id: atom,
             title: String.t(),
             type:
-              {:static, String.t()}
-              | :string
+              :string
               | :markdown
               | :datetime
-              | {:datetime_with_offset, integer()}
+              | {:datetime_with_offset, atom()}
               | :utc_offset
               | {:single, object_type()}
               | {:multiple, object_type()}
               | :persons,
-            read_only: boolean()
+            read_only: boolean(),
+            access: :private | :all
           }
     @enforce_keys [:id, :title, :type]
-    defstruct id: nil, title: nil, type: nil, read_only: false
+    defstruct id: nil, title: nil, type: nil, read_only: false, access: :all
   end
 
   defmodule Details do
@@ -82,12 +83,11 @@ defmodule PenguinMemories.Database.Query do
             obj: struct(),
             icon: Icon.t() | nil,
             videos: list(Video.t()),
-            fields: list(Field.t()),
             cursor: String.t(),
             type: Database.object_type()
           }
-    @enforce_keys [:obj, :icon, :videos, :fields, :cursor, :type]
-    defstruct [:obj, :icon, :videos, :fields, :cursor, :type]
+    @enforce_keys [:obj, :icon, :videos, :cursor, :type]
+    defstruct [:obj, :icon, :videos, :cursor, :type]
   end
 
   defmodule Filter do
@@ -513,10 +513,31 @@ defmodule PenguinMemories.Database.Query do
     type.edit_changeset(object, attrs)
   end
 
-  @spec get_update_fields(type :: object_type) :: list(Field.t())
-  def get_update_fields(type) do
+  @spec can_access_field?(field :: Field.t(), user :: User.t() | nil) :: boolean()
+  defp can_access_field?(%Field{} = field, user) do
+    see_private = PenguinMemories.Auth.can_see_private(user)
+
+    case {see_private, field} do
+      {true, %Field{}} -> true
+      {false, %Field{access: :private}} -> false
+      {false, %Field{}} -> true
+    end
+  end
+
+  @spec get_fields(type :: object_type, user :: User.t() | nil) :: list(Field.t())
+  def get_fields(type, user) do
     backend = Types.get_backend!(type)
+
+    backend.get_fields()
+    |> Enum.filter(fn field -> can_access_field?(field, user) end)
+  end
+
+  @spec get_update_fields(type :: object_type, user :: User.t()) :: list(Field.t())
+  def get_update_fields(type, user) do
+    backend = Types.get_backend!(type)
+
     backend.get_update_fields()
+    |> Enum.filter(fn field -> can_access_field?(field, user) end)
   end
 
   @spec get_update_changeset(enabled :: MapSet.t(), attrs :: map(), type :: object_type()) ::

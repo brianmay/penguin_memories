@@ -23,5 +23,7 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
               icon_size :: String.t(),
               video_size :: String.t()
             ) :: Details.t()
-  @callback get_update_fields :: list(Field.t())
+
+  @callback get_fields() :: list(Field.t())
+  @callback get_update_fields() :: list(Field.t())
 end

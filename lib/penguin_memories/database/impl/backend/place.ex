@@ -95,8 +95,21 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
         ) :: Details.t()
   def get_details_from_result(%{} = result, _icon_size, _video_size) do
     icon = Query.get_icon_from_result(result, Place)
+    cursor = Paginator.cursor_for_record(result, get_cursor_fields())
 
-    fields = [
+    %Details{
+      obj: result.o,
+      icon: icon,
+      videos: [],
+      cursor: cursor,
+      type: Place
+    }
+  end
+
+  @impl API
+  @spec get_fields :: list(Field.t())
+  def get_fields do
+    [
       %Field{
         id: :title,
         title: "Title",
@@ -110,12 +123,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
       %Field{
         id: :address,
         title: "Address 1",
-        type: :string
+        type: :string,
+        access: :private
       },
       %Field{
         id: :address2,
         title: "Address 2",
-        type: :string
+        type: :string,
+        access: :private
       },
       %Field{
         id: :city,
@@ -150,7 +165,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
       %Field{
         id: :private_notes,
         title: "Private Notes",
-        type: :markdown
+        type: :markdown,
+        access: :private
       },
       %Field{
         id: :cover_photo,
@@ -163,17 +179,6 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
         type: :datetime
       }
     ]
-
-    cursor = Paginator.cursor_for_record(result, get_cursor_fields())
-
-    %Details{
-      obj: result.o,
-      icon: icon,
-      videos: [],
-      fields: fields,
-      cursor: cursor,
-      type: Place
-    }
   end
 
   @impl API

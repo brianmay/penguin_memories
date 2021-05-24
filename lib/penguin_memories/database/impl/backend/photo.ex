@@ -140,17 +140,36 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       |> Repo.all()
 
     o = %Photo{result.o | related: related}
+    cursor = Paginator.cursor_for_record(result, get_cursor_fields())
 
-    fields = [
+    %Details{
+      obj: o,
+      icon: icon,
+      videos: videos,
+      cursor: cursor,
+      type: Photo
+    }
+  end
+
+  @impl API
+  @spec get_fields :: list(Field.t())
+  def get_fields do
+    [
       %Field{
         id: :title,
         title: "Title",
         type: :string
       },
       %Field{
-        id: :path,
-        title: "Path",
-        type: {:static, Path.join([o.dir, o.name])},
+        id: :dir,
+        title: "Directory",
+        type: :string,
+        read_only: true
+      },
+      %Field{
+        id: :name,
+        title: "Name",
+        type: :string,
         read_only: true
       },
       %Field{
@@ -202,12 +221,13 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       %Field{
         id: :private_notes,
         title: "Private Notes",
-        type: :markdown
+        type: :markdown,
+        access: :private
       },
       %Field{
         id: :datetime,
         title: "Time",
-        type: {:datetime_with_offset, o.utc_offset}
+        type: {:datetime_with_offset, :utc_offset}
       },
       %Field{
         id: :utc_offset,
@@ -280,17 +300,6 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         read_only: true
       }
     ]
-
-    cursor = Paginator.cursor_for_record(result, get_cursor_fields())
-
-    %Details{
-      obj: o,
-      icon: icon,
-      videos: videos,
-      fields: fields,
-      cursor: cursor,
-      type: Photo
-    }
   end
 
   @impl API
@@ -323,23 +332,13 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         type: :string
       },
       %Field{
-        id: :description,
-        title: "Description",
-        type: :string
-      },
-      %Field{
-        id: :private_notes,
-        title: "Private Notes",
-        type: :string
-      },
-      %Field{
         id: :datetime,
         title: "Time",
-        type: :time
+        type: {:datetime_with_offset, :utc_offset}
       },
       %Field{
         id: :utc_offset,
-        title: "Revised UTC offset",
+        title: "UTC offset",
         type: :utc_offset
       },
       %Field{

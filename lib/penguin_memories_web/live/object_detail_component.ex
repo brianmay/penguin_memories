@@ -103,14 +103,14 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
               prev_icon = Query.get_prev_next_id(filter, details.cursor, nil, "thumb", type)
               next_icon = Query.get_prev_next_id(filter, nil, details.cursor, "thumb", type)
 
-              {details.obj, details.fields, [details.icon], false, prev_icon, next_icon,
-               details.videos}
+              fields = Query.get_fields(type, socket.assigns.user)
+              {details.obj, fields, [details.icon], false, prev_icon, next_icon, details.videos}
           end
 
         true ->
           limit = 5
           icons = Query.query_icons_by_id_map(selected_ids, limit, type, "thumb")
-          fields = Query.get_update_fields(type)
+          fields = Query.get_update_fields(type, socket.assigns.user)
           {nil, fields, icons, length(icons) >= limit, nil, nil, []}
       end
 
@@ -485,21 +485,25 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     end
   end
 
-  @spec output_field(value :: any(), field :: Field.t()) :: any()
-  defp output_field(value, field)
+  @spec output_field(obj :: struct(), field :: Field.t()) :: any()
+  defp output_field(obj, field) do
+    value = Map.get(obj, field.id)
+    output_field_value(obj, value, field)
+  end
 
-  defp output_field(_, %Field{type: {:static, value}}) do
+  @spec output_field_value(obj :: struct(), value :: any(), field :: Field.t()) :: any()
+  defp output_field_value(_, _, %Field{type: {:static, value}}) do
     value
   end
 
-  defp output_field(nil, _field), do: "N/A"
+  defp output_field_value(_, nil, _field), do: "N/A"
 
-  defp output_field(value, %Field{type: {:single, type}}) do
+  defp output_field_value(_, value, %Field{type: {:single, type}}) do
     Query.query_icon_by_id(value.id, type, "thumb")
     |> display_icon()
   end
 
-  defp output_field(value, %Field{type: {:multiple, type}}) do
+  defp output_field_value(_, value, %Field{type: {:multiple, type}}) do
     value
     |> Enum.map(fn obj -> obj.id end)
     |> Enum.into(MapSet.new())
@@ -507,19 +511,20 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     |> display_icons()
   end
 
-  defp output_field(value, %Field{type: :markdown}) do
+  defp output_field_value(_, value, %Field{type: :markdown}) do
     display_markdown(value)
   end
 
-  defp output_field(value, %Field{type: :datetime}) do
+  defp output_field_value(_, value, %Field{type: :datetime}) do
     Format.display_datetime(value)
   end
 
-  defp output_field(value, %Field{type: {:datetime_with_offset, utc_offset}}) do
+  defp output_field_value(obj, value, %Field{type: {:datetime_with_offset, utc_offset_field}}) do
+    utc_offset = Map.get(obj, utc_offset_field)
     Format.display_datetime_offset(value, utc_offset)
   end
 
-  defp output_field(value, %Field{type: :persons}) do
+  defp output_field_value(_, value, %Field{type: :persons}) do
     icons =
       value
       |> Enum.map(fn obj -> obj.person_id end)
@@ -535,7 +540,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     |> display_icons()
   end
 
-  defp output_field(related, %Field{type: :related}) do
+  defp output_field_value(_, related, %Field{type: :related}) do
     icons =
       Enum.map(related, fn result -> result.pr.photo_id end)
       |> MapSet.new()
@@ -562,7 +567,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     end)
   end
 
-  defp output_field(value, _field) do
+  defp output_field_value(_, value, _field) do
     value
   end
 

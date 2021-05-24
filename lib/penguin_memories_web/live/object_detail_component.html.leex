@@ -63,7 +63,7 @@
                     <%= for field <- @selected_fields do %>
                         <tr>
                             <th><%= field.title %></th>
-                            <td><%= output_field(Map.get(@selected_object, field.id), field) %></td>
+                            <td><%= output_field(@selected_object, field) %></td>
                         </tr>
                     <% end %>
                 </tbody>
