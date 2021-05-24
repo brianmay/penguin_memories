@@ -42,7 +42,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       select: %{
         datetime: o.datetime,
         id: o.id,
-        o: %{action: o.action, title: o.title, dir: o.dir, name: o.name, utc_offset: o.utc_offset}
+        o: %{action: o.action, title: o.title, name: o.name, utc_offset: o.utc_offset}
       },
       order_by: [asc: o.datetime, asc: o.id]
   end
@@ -107,7 +107,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
     case result.o.title do
-      nil -> Path.join([result.o.dir, result.o.name])
+      nil -> result.o.name
       title -> title
     end
   end
