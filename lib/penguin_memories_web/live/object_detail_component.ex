@@ -458,7 +458,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @spec display_icons(icons :: list(Icon.t())) :: any()
   defp display_icons(icons) do
-    Phoenix.View.render_to_string(PenguinMemoriesWeb.IncludeView, "icons.html",
+    Phoenix.View.render_to_string(PenguinMemoriesWeb.IncludeView, "list.html",
       icons: icons,
       classes: [],
       event: "goto"

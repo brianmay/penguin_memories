@@ -1,0 +1,20 @@
+<%= if length(@icons) > 0 do %>
+  <div class="list">
+    <%= for icon <- @icons do %>
+      <div class="hoverable">
+        <div class="non_hover">
+          <%= icon.title %>
+        </div>
+        <div class="hover">
+          <%=
+            Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+              icon: icon,
+              classes: [],
+              event: @event
+            )
+          %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% end %>
