@@ -61,7 +61,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   @impl API
   @spec filter_by_reference(query :: Ecto.Query.t(), reference :: {module(), integer()}) ::
           Ecto.Query.t()
-  def filter_by_reference(%Ecto.Query{} = query, {Album, id}) do
+  def filter_by_reference(%Ecto.Query{} = query, {Place, id}) do
     filter_by_parent_id(query, id)
   end
 
