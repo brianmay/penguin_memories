@@ -1,6 +1,8 @@
 <main role="main" class="container">
-  <%= Enum.map(@flash, fn {flash_key, flash_message} -> %>
-      <p class="alert alert-<%= flash_key %>" phx-click="lv:clear-flash"><%= flash_message %></p>
-  <% end) %>
+  <%= for {flash_key, flash_message} <- @flash do %>
+    <p class="alert alert-<%= flash_key %>" phx-click="lv:clear-flash">
+      <%= flash_message %>
+    </p>
+  <% end %>
   <%= @inner_content %>
 </main>

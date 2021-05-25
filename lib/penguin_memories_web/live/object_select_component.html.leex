@@ -1,36 +1,42 @@
 <div class="dropdown">
+  <% field_id = @field.id %>
+  <% dummy_field_id = field_to_dummy_field_id(@field) %>
+  <% field_class = field_class(@form, field_id, "") %>
+  <% feedback_for = get_feedback_for(@form, dummy_field_id) %>
 
-    <% field_id = @field.id %>
-    <% dummy_field_id = field_to_dummy_field_id(@field) %>
-    <% field_class = field_class(@form, field_id, "") %>
-    <% feedback_for = get_feedback_for(@form, dummy_field_id) %>
-
-    <div class="form-group" phx_feedback_for="<%= feedback_for %>">
-        <%= label(@form, dummy_field_id, @field.title, class: "control-label") %>
-        <div class="autoselect form-control <%= field_class %>">
-            <%= for obj <- @selected do %>
-                <% icon = Map.get(@icons, obj.id) %>
-                <%= if icon do %>
-                <span class="selected" phx-click="remove" phx-value-id="<%= icon.id %>" phx-target="<%= @myself %>"><%= icon.title %></span>
-                <% end %>
-            <% end %>
-            <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, value: @text, disabled: @disabled) %>
-        </div>
-        <%= error_tag(@form, field_id) %>
+  <div class="form-group" phx_feedback_for="<%= feedback_for %>">
+    <%= label(@form, dummy_field_id, @field.title, class: "control-label") %>
+    <div class="autoselect form-control <%= field_class %>">
+      <%= for obj <- @selected do %>
+        <% icon = Map.get(@icons, obj.id) %>
+        <%= if icon do %>
+          <span
+            class="selected"
+            phx-click="remove"
+            phx-value-id="<%= icon.id %>"
+            phx-target="<%= @myself %>"
+          ><%= icon.title %></span>
+        <% end %>
+      <% end %>
+      <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, value: @text, disabled: @disabled) %>
     </div>
+    <%= error_tag(@form, field_id) %>
+  </div>
 
-    <%= if length(@choices) > 0 do %>
-        <div class="dropdown-menu show">
-            <div class="photo_list">
-                <%= for icon <- @choices do %>
-                    <%=
-                    Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
-                    icon: icon, classes: ["dropdown-item"],
-                    event: "add",
-                    target: @myself
-                    %>
-                <% end %>
-            </div>
-        </div>
-    <% end %>
+  <%= if length(@choices) > 0 do %>
+    <div class="dropdown-menu show">
+      <div class="photo_list">
+        <%= for icon <- @choices do %>
+          <%=
+            Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+              icon: icon,
+              classes: ["dropdown-item"],
+              event: "add",
+              target: @myself
+            )
+          %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 </div>

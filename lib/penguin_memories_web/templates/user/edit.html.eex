@@ -12,7 +12,7 @@
   <%= checkbox_field(f, :is_admin) %>
 
   <div>
-      <span><%= submit "Save", class: "btn btn-primary" %></span>
-      <span><%= link "Back", to: Routes.user_path(@conn, :index), class: "btn btn-secondary" %></span>
+    <span><%= submit "Save", class: "btn btn-primary" %></span>
+    <span><%= link "Back", to: Routes.user_path(@conn, :index), class: "btn btn-secondary" %></span>
   </div>
 <% end %>

@@ -1,78 +1,90 @@
 <%= if @error do %>
-    <div class='alert alert-danger'>
-        <%= @error %>
-    </div>
+  <div class="alert alert-danger">
+    <%= @error %>
+  </div>
 <% end %>
 
 <h2>List of <%= Query.get_plural_name(@type) %></h2>
 
-<form method="get"  phx-submit="search" novalidate="">
+<form method="get" phx-submit="search" novalidate="">
   <div class="form-group">
-    <input class="form-control" name="query" placeholder="Search" type="text" value="<%= Map.get(@filter, :query) %>">
-   </div>
-  <input type="submit" class="btn btn-primary" value="Search">
+    <input
+      class="form-control"
+      name="query"
+      placeholder="Search"
+      type="text"
+      value="<%= Map.get(@filter, :query) %>"
+    />
+  </div>
+  <input type="submit" class="btn btn-primary" value="Search" />
 </form>
 
 <% num_selected = num_selected(@selected_ids) %>
 <% filter = get_filter(assigns) %>
 
 <%= if length(@parents) > 0 do %>
-    <div class="parents">
-        <%= for {_position, icons} <- @parents do %>
-            <%=  for icon <- icons do %>
-                <%=
-                Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
-                icon: icon, classes: [], event: "goto"
-                %>
-            <% end %>
-            <div class="arrow">🠆</div>
-        <% end %>
-    </div>
+  <div class="parents">
+    <%= for {_position, icons} <- @parents do %>
+      <%= for icon <- icons do %>
+        <%=
+          Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+            icon: icon,
+            classes: [],
+            event: "goto"
+          )
+        %>
+      <% end %>
+      <div class="arrow">🠆</div>
+    <% end %>
+  </div>
 <% end %>
 
-
 <%= if @filter.reference != nil do %>
-<%
-{ref_type, ref_id} = @filter.reference
-ref_ids = MapSet.new([ref_id])
-%>
-<%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: ref_ids, type: ref_type, filter: filter, id: :parent_detail) %>
+  <%
+    {ref_type, ref_id} = @filter.reference
+    ref_ids = MapSet.new([ref_id])
+  %>
+  <%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: ref_ids, type: ref_type, filter: filter, id: :parent_detail) %>
 <% end %>
 
 <%= live_component(@socket, PenguinMemoriesWeb.ObjectDetailComponent, user: @user, selected_ids: @selected_ids, type: @type, filter: filter, id: :detail) %>
 
 <div class="photo_list_with_controls">
-    <div class="buttons">
-        <%= if not @show_selected do %>
-            <div class="btn btn-secondary" phx-click="show-selected">Show Selected</div>
-        <% end %>
-        <%= if @show_selected do %>
-            <div class="btn btn-secondary" phx-click="show-all">Show All</div>
-        <% end %>
-        <%= if num_selected > 0 do %>
-            <div class="btn btn-secondary" phx-click="select-none">Unselect All</div>
-        <% end %>
-        <%= if @before_url do %>
-            <%= live_patch to: @before_url, class: "btn btn-secondary btn-prev" do %>
-                &lt
-            <% end %>
-        <% end %>
-        <%= if @after_url do %>
-            <%= live_patch to: @after_url, class: "btn btn-secondary btn-next" do %>
-                &gt
-            <% end %>
-        <% end %>
-    </div>
+  <div class="buttons">
+    <%= if not @show_selected do %>
+      <div class="btn btn-secondary" phx-click="show-selected">
+        Show Selected
+      </div>
+    <% end %>
+    <%= if @show_selected do %>
+      <div class="btn btn-secondary" phx-click="show-all">Show All</div>
+    <% end %>
+    <%= if num_selected > 0 do %>
+      <div class="btn btn-secondary" phx-click="select-none">Unselect All</div>
+    <% end %>
+    <%= if @before_url do %>
+      <%= live_patch to: @before_url, class: "btn btn-secondary btn-prev" do %>
+        &lt
+      <% end %>
+    <% end %>
+    <%= if @after_url do %>
+      <%= live_patch to: @after_url, class: "btn btn-secondary btn-next" do %>
+        &gt
+      <% end %>
+    <% end %>
+  </div>
 
-    <div class="photo_list">
-        <%= for icon <- @icons do %>
-            <%=
-            Phoenix.View.render PenguinMemoriesWeb.IncludeView, "icon.html",
-            icon: icon, classes: icon_classes(icon, @selected_ids, @last_clicked_id),
-            event: "select"
-            %>
-        <% end %>
-    </div>
+  <div class="photo_list">
+    <%= for icon <- @icons do %>
+      <%=
+        Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+          icon: icon,
+          classes: icon_classes(icon, @selected_ids, @last_clicked_id),
+          event: "select"
+        )
+      %>
+    <% end %>
+  </div>
 
-    Total count: '<%= @total_count %>'
+  Total count: '<%= @total_count %>'
 </div>

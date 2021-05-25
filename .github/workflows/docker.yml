@@ -6,7 +6,6 @@ on:
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
 
     # Service containers to run with `container-job`
@@ -14,7 +13,7 @@ jobs:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        ports: ['5432:5432']
+        ports: ["5432:5432"]
         image: postgres
         # Provide the password for postgres
         env:
@@ -38,53 +37,54 @@ jobs:
       MIX_ENV: test
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Install system dependancies
-      run: |
-        sudo apt-get update --yes
-        # required for media processing
-        sudo apt-get install --yes libimage-exiftool-perl ffmpeg exiftran dcraw
-        # required for Elixir
-        # sudo apt-get install --yes wget unzip libtinfo5
-    - name: Setup elixir
-      uses: erlef/setup-elixir@v1.7
-      with:
-        elixir-version: ${{ matrix.elixir }}
-        otp-version: ${{ matrix.otp }}
-    - name: Retrieve Mix Dependencies Cache
-      uses: actions/cache@v2.1.5
-      id: mix-cache # id to use in retrieve action
-      with:
-        path: deps
-        key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-    - name: Install Mix Dependencies
-      if: steps.mix-cache.outputs.cache-hit != 'true'
-      run: |
-        mix local.rebar --force
-        mix local.hex --force
-        mix deps.get
-    - name: Build
-      run: |
-        mix compile
-    - name: Install assets
-      run: |
-        npm install --prefix assets
-    - name: Build assets
-      run: |
-        npm run deploy --prefix assets
-    - name: Check Formatting
-      run: mix format --check-formatted
-    - name: Run Credo
-      run: mix credo --strict
-    - name: Download and extract test data
-      run: |
-        wget https://www.dropbox.com/s/yg6jdk9lfewn8yf/penguin_memories.tar?dl=0 -O penguin_memories.tar
-        tar -xvf penguin_memories.tar
-    - name: Run Tests
-      run: mix test
+      - uses: actions/checkout@v2
+      - name: Install system dependancies
+        run: |
+          sudo apt-get update --yes
+          # required for media processing
+          sudo apt-get install --yes libimage-exiftool-perl ffmpeg exiftran dcraw
+          # required for Elixir
+          # sudo apt-get install --yes wget unzip libtinfo5
+      - name: Setup elixir
+        uses: erlef/setup-elixir@v1.7
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+      - name: Retrieve Mix Dependencies Cache
+        uses: actions/cache@v2.1.5
+        id: mix-cache # id to use in retrieve action
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+      - name: Install Mix Dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+      - name: Build
+        run: |
+          mix compile
+      - name: Install assets
+        run: |
+          npm install --prefix assets
+      - name: Build assets
+        run: |
+          npm run deploy --prefix assets
+      - name: Check Formatting
+        run: mix format --check-formatted
+      - name: Check Prettier
+        run: mix prettier
+      - name: Run Credo
+        run: mix credo --strict
+      - name: Download and extract test data
+        run: |
+          wget https://www.dropbox.com/s/yg6jdk9lfewn8yf/penguin_memories.tar?dl=0 -O penguin_memories.tar
+          tar -xvf penguin_memories.tar
+      - name: Run Tests
+        run: mix test
 
   dialyzer:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -93,40 +93,40 @@ jobs:
         otp: [23.2.7]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup elixir
-      uses: erlef/setup-elixir@v1.7
-      with:
-        elixir-version: ${{ matrix.elixir }}
-        otp-version: ${{ matrix.otp }}
-    - name: Retrieve Mix Dependencies Cache
-      uses: actions/cache@v2.1.5
-      id: mix-cache # id to use in retrieve action
-      with:
-        path: deps
-        key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-    - name: Install Mix Dependencies
-      if: steps.mix-cache.outputs.cache-hit != 'true'
-      run: |
-        mix local.rebar --force
-        mix local.hex --force
-        mix deps.get
-    - name: Retrieve PLT Cache
-      uses: actions/cache@v2.1.5
-      id: plt-cache
-      with:
-        path: priv/plts
-        key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-2
-    - name: Create PLTs
-      if: steps.plt-cache.outputs.cache-hit != 'true'
-      run: |
-        mkdir -p priv/plts
-        mix dialyzer --plt
-    - name: Build
-      run: |
-        mix compile
-    - name: Run dialyzer
-      run: mix dialyzer --no-check
+      - uses: actions/checkout@v2
+      - name: Setup elixir
+        uses: erlef/setup-elixir@v1.7
+        with:
+          elixir-version: ${{ matrix.elixir }}
+          otp-version: ${{ matrix.otp }}
+      - name: Retrieve Mix Dependencies Cache
+        uses: actions/cache@v2.1.5
+        id: mix-cache # id to use in retrieve action
+        with:
+          path: deps
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+      - name: Install Mix Dependencies
+        if: steps.mix-cache.outputs.cache-hit != 'true'
+        run: |
+          mix local.rebar --force
+          mix local.hex --force
+          mix deps.get
+      - name: Retrieve PLT Cache
+        uses: actions/cache@v2.1.5
+        id: plt-cache
+        with:
+          path: priv/plts
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-2
+      - name: Create PLTs
+        if: steps.plt-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p priv/plts
+          mix dialyzer --plt
+      - name: Build
+        run: |
+          mix compile
+      - name: Run dialyzer
+        run: mix dialyzer --no-check
 
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
