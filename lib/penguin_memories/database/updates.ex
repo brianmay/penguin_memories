@@ -62,7 +62,8 @@ defmodule PenguinMemories.Database.Updates do
   #   Ecto.Changeset.put_change(changeset, update.id, update.value)
   # end
 
-  @spec get_current_value(object :: struct(), changes :: struct(), id :: atom(), default :: any()) :: any()
+  @spec get_current_value(object :: struct(), changes :: struct(), id :: atom(), default :: any()) ::
+          any()
   defp get_current_value(object, %{} = changes, id, default) do
     case Map.fetch(changes, id) do
       {:ok, value} ->
