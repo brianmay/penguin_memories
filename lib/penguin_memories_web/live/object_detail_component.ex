@@ -8,10 +8,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   alias Ecto.Changeset
   alias PenguinMemories.Auth
+  alias PenguinMemories.Database.Fields
+  alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Query
-  alias PenguinMemories.Database.Query.Field
-  alias PenguinMemories.Database.Query.Icon
   alias PenguinMemories.Database.Types
+  alias PenguinMemories.Database.Updates
   alias PenguinMemories.Format
   alias PenguinMemories.Photos.Person
   alias PenguinMemories.Photos.Photo
@@ -103,14 +104,14 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
               prev_icon = Query.get_prev_next_id(filter, details.cursor, nil, "thumb", type)
               next_icon = Query.get_prev_next_id(filter, nil, details.cursor, "thumb", type)
 
-              fields = Query.get_fields(type, socket.assigns.user)
+              fields = Fields.get_fields(type, socket.assigns.user)
               {details.obj, fields, [details.icon], false, prev_icon, next_icon, details.videos}
           end
 
         true ->
           limit = 5
           icons = Query.query_icons_by_id_map(selected_ids, limit, type, "thumb")
-          fields = Query.get_update_fields(type, socket.assigns.user)
+          fields = Fields.get_update_fields(type, socket.assigns.user)
           {nil, fields, icons, length(icons) >= limit, nil, nil, []}
       end
 
@@ -206,7 +207,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @spec handle_create(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_create(%Socket{} = socket) do
-    changeset = Query.get_create_child_changeset(socket.assigns.selected_object, %{})
+    changeset = Query.get_create_child_changeset(socket.assigns.selected_object, %{}, %{})
 
     assigns = [
       edit: :edit,
@@ -221,7 +222,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @spec handle_edit(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_edit(%Socket{} = socket) do
-    changeset = Query.get_edit_changeset(socket.assigns.selected_object, %{})
+    changeset = Query.get_edit_changeset(socket.assigns.selected_object, %{}, %{})
     changeset = %{changeset | action: :update}
 
     assigns = [
@@ -239,7 +240,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   defp handle_update(%Socket{} = socket) do
     type = socket.assigns.type
     enabled = MapSet.new()
-    changeset = Query.get_update_changeset(enabled, %{}, type)
+    obj = struct(type)
+    changeset = Updates.get_update_changeset(obj, [])
     changeset = %{changeset | action: :update}
 
     assigns = [
@@ -288,7 +290,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   # ---- EDIT -----
   @spec get_edit_changeset(Socket.t(), map()) :: Changeset.t()
   defp get_edit_changeset(%Socket{} = socket, params) do
-    changeset = Query.get_edit_changeset(socket.assigns.edit_object, params)
+    changeset = Query.get_edit_changeset(socket.assigns.edit_object, params, socket.assigns.assoc)
     changeset = %{changeset | action: socket.assigns.action}
 
     changeset =
@@ -299,39 +301,69 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     changeset
   end
 
-  # ---- UPDATE -----
-  @spec get_update_changes(list(Field.t()), map()) :: {MapSet.t(), map()}
-  def get_update_changes(fields, params) do
-    Enum.reduce(fields, {MapSet.new(), %{}}, fn
-      %Field{} = field, {enabled, changes} ->
-        field_id = Atom.to_string(field.id)
-        enable_id = Atom.to_string(field_to_enable_field_id(field))
-        enable_value = string_to_boolean(Map.get(params, enable_id, "false"))
-
-        if enable_value do
-          enabled = MapSet.put(enabled, field.id)
-          changes = Map.put(changes, field.id, Map.get(params, field_id))
-          {enabled, changes}
-        else
-          {enabled, changes}
-        end
-    end)
+  @spec get_field_value(params :: map(), assoc :: map(), field :: Fields.UpdateField.t()) :: any()
+  defp get_field_value(_params, assoc, %Fields.UpdateField{id: id, type: {:single, _}}) do
+    Map.get(assoc, id)
   end
 
-  @spec get_update_changeset(Socket.t(), map()) :: {MapSet.t(), Changeset.t()}
-  defp get_update_changeset(%Socket{} = socket, params) do
-    type = socket.assigns.type
+  defp get_field_value(_params, assoc, %Fields.UpdateField{id: id, type: {:multiple, _}}) do
+    Map.get(assoc, id)
+  end
 
-    {enabled, changes} = get_update_changes(socket.assigns.selected_fields, params)
-    changeset = Query.get_update_changeset(enabled, changes, type)
-    changeset = %{changeset | action: socket.assigns.action}
+  defp get_field_value(params, _assoc, %Fields.UpdateField{id: id}) do
+    Map.get(params, Atom.to_string(id))
+  end
 
-    changeset =
-      Enum.reduce(socket.assigns.assoc, changeset, fn {key, value}, changeset ->
-        Changeset.put_assoc(changeset, key, value)
+  # ---- UPDATE -----
+  @spec get_update_changes(
+          fields :: list(Fields.UpdateField.t()),
+          params :: map(),
+          assoc :: map()
+        ) ::
+          {MapSet.t(), list(Updates.UpdateChange.t())}
+  def get_update_changes(fields, %{} = params, %{} = assoc) do
+    enabled =
+      Enum.reduce(fields, MapSet.new(), fn
+        %Fields.UpdateField{} = field, enabled ->
+          enable_id = Atom.to_string(field_to_enable_field_id(field))
+          enable_value = string_to_boolean(Map.get(params, enable_id, "false"))
+
+          if enable_value do
+            MapSet.put(enabled, field.id)
+          else
+            enabled
+          end
       end)
 
-    {enabled, changeset}
+    fields = Enum.filter(fields, fn field -> MapSet.member?(enabled, field.id) end)
+
+    updates =
+      Enum.reduce(fields, [], fn
+        %Fields.UpdateField{} = field, updates ->
+          value = get_field_value(params, assoc, field)
+
+          update = %Updates.UpdateChange{
+            field_id: field.field_id,
+            change: field.change,
+            type: field.type,
+            value: value
+          }
+
+          [update | updates]
+      end)
+
+    {enabled, updates}
+  end
+
+  @spec get_update_changeset(socket :: Socket.t(), params :: map(), assoc :: map()) ::
+          {MapSet.t(), list(Updates.UpdateChange.t()), Changeset.t()}
+  defp get_update_changeset(%Socket{} = socket, %{} = params, %{} = assoc) do
+    type = socket.assigns.type
+
+    obj = struct(type)
+    {enabled, updates} = get_update_changes(socket.assigns.selected_fields, params, assoc)
+    changeset = Updates.get_update_changeset(obj, updates)
+    {enabled, updates, changeset}
   end
 
   # ---- VALIDATE -----
@@ -356,7 +388,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
 
   @spec handle_update_validate(Socket.t(), map()) :: {:noreply, Socket.t()}
   def handle_update_validate(%Socket{} = socket, params) do
-    {enabled, changeset} = get_update_changeset(socket, params)
+    assoc = socket.assigns.assoc
+    {enabled, _, changeset} = get_update_changeset(socket, params, assoc)
 
     assigns = [
       enabled: enabled,
@@ -421,42 +454,37 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   defp handle_update_save(%Socket{} = socket, params) do
     type = socket.assigns.type
     selected_ids = socket.assigns.selected_ids
+    query = Query.query(type) |> Query.filter_by_id_map(selected_ids)
 
-    {enabled, changeset} = get_update_changeset(socket, params)
+    {_, updates, changeset} = get_update_changeset(socket, params, socket.assigns.assoc)
 
-    {socket, assigns} =
-      case Query.apply_update_changeset(selected_ids, changeset, enabled, type) do
-        {:error, error} ->
-          assigns = [
-            error: error
-          ]
+    socket =
+      case changeset.valid? do
+        true ->
+          case Updates.apply_updates(updates, query) do
+            :ok ->
+              PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+              assign(socket, edit: nil, changeset: nil, error: nil, enabled: nil)
 
-          {socket, assigns}
+            {:error, reason} ->
+              assign(socket, :error, "Error bulk update: #{reason}")
+          end
 
-        :ok ->
-          PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
-
-          assigns = [
-            edit: nil,
-            changeset: nil,
-            error: nil,
-            enabled: nil
-          ]
-
-          {socket, assigns}
+        false ->
+          assign(socket, :error, "Form is invalid")
       end
 
-    {:noreply, assign(socket, assigns)}
+    {:noreply, socket}
   end
 
-  @spec display_icon(icon :: Icon.t() | nil) :: any()
+  @spec display_icon(icon :: Query.Icon.t() | nil) :: any()
   defp display_icon(nil), do: ""
 
-  defp display_icon(%Icon{} = icon) do
+  defp display_icon(%Query.Icon{} = icon) do
     display_icons([icon])
   end
 
-  @spec display_icons(icons :: list(Icon.t())) :: any()
+  @spec display_icons(icons :: list(Query.Icon.t())) :: any()
   defp display_icons(icons) do
     Phoenix.View.render_to_string(PenguinMemoriesWeb.IncludeView, "list.html",
       icons: icons,
@@ -466,7 +494,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     |> raw()
   end
 
-  @spec display_markdown(value :: String.t()) :: any()
+  @spec display_markdown(value :: String.t() | nil) :: any()
+  defp display_markdown(nil), do: []
+
   defp display_markdown(value) do
     case Earmark.as_html(value) do
       {:ok, html_doc, _} ->
@@ -492,10 +522,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
   end
 
   @spec output_field_value(obj :: struct(), value :: any(), field :: Field.t()) :: any()
-  defp output_field_value(_, _, %Field{type: {:static, value}}) do
-    value
-  end
-
   defp output_field_value(_, nil, _field), do: "N/A"
 
   defp output_field_value(_, value, %Field{type: {:single, type}}) do
@@ -551,7 +577,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     related_icons =
       Enum.map(related, fn result ->
         icon = Map.get(icons, result.pr.photo_id)
-        icon = %Icon{icon | title: result.pr.title, subtitle: nil, action: nil}
+        icon = %Query.Icon{icon | title: result.pr.title, subtitle: nil, action: nil}
         Map.put(result, :icon, icon)
       end)
       |> Enum.group_by(fn value -> value.r end, fn value -> value.icon end)
@@ -571,8 +597,14 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     value
   end
 
-  @spec input_field(Socket.t(), String.t(), Phoenix.HTML.Form.t(), Field.t(), keyword()) :: any()
-  defp input_field(%Socket{} = socket, id, form, %Field{} = field, opts \\ []) do
+  @spec input_field(
+          Socket.t(),
+          String.t(),
+          Phoenix.HTML.Form.t(),
+          Field.t() | Fields.UpdateField.t(),
+          keyword()
+        ) :: any()
+  defp input_field(%Socket{} = socket, id, form, field, opts \\ []) do
     opts = [{:label, field.title} | opts]
 
     case field.type do
@@ -624,8 +656,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailComponent do
     end
   end
 
-  @spec field_to_enable_field_id(Field.t()) :: atom()
-  defp field_to_enable_field_id(%Field{} = field) do
+  @spec field_to_enable_field_id(Fields.UpdateField.t()) :: atom()
+  defp field_to_enable_field_id(%Fields.UpdateField{} = field) do
     String.to_atom(Atom.to_string(field.id) <> "_enable")
   end
 

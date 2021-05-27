@@ -4,6 +4,8 @@ defmodule PenguinMemories.Photos.Album do
   import Ecto.Changeset
   alias Ecto.Changeset
 
+  import PenguinMemories.Photos.Private
+
   alias PenguinMemories.Photos.AlbumAscendant
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoAlbum
@@ -29,12 +31,12 @@ defmodule PenguinMemories.Photos.Album do
         }
 
   schema "pm_album" do
-    belongs_to :cover_photo, Photo, on_replace: :delete
+    belongs_to :cover_photo, Photo, on_replace: :nilify
     field :title, :string
     field :description, :string
     field :private_notes, :string
     field :revised, :utc_datetime
-    belongs_to :parent, PenguinMemories.Photos.Album, on_replace: :delete
+    belongs_to :parent, PenguinMemories.Photos.Album, on_replace: :nilify
     has_many :children, PenguinMemories.Photos.Album, foreign_key: :parent_id
     has_many :ascendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :ascendant_id
@@ -42,31 +44,25 @@ defmodule PenguinMemories.Photos.Album do
     timestamps()
   end
 
-  @spec edit_changeset(t(), map()) :: Changeset.t()
-  def edit_changeset(%__MODULE__{} = album, attrs) do
-    album
+  @spec edit_changeset(object :: t(), attrs :: map(), assoc :: map()) :: Changeset.t()
+  def edit_changeset(%__MODULE__{} = object, attrs, assoc) do
+    object
     |> cast(attrs, [
       :title,
       :description,
       :private_notes,
       :revised
     ])
-    |> cast_assoc(:cover_photo)
-    |> cast_assoc(:parent)
     |> validate_required([:title])
+    |> put_all_assoc(assoc, [:parent, :cover_photo_id])
   end
 
-  @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
-  def update_changeset(%__MODULE__{} = album, enabled, attrs) do
-    allowed_list = [:title, :parent, :revised]
-    allowed = MapSet.new(allowed_list)
-    enabled = MapSet.intersection(enabled, allowed)
-    enabled_list = MapSet.to_list(enabled)
-    required = MapSet.new([:title])
-    required_list = MapSet.to_list(MapSet.intersection(enabled, required))
-
-    album
-    |> cast(attrs, enabled_list)
-    |> validate_required(required_list)
+  @spec update_changeset(object :: t(), attrs :: map(), assoc :: map(), enabled :: MapSet.t()) ::
+          Changeset.t()
+  def update_changeset(%__MODULE__{} = object, attrs, assoc, enabled) do
+    object
+    |> selective_cast(attrs, enabled, [:title, :revised])
+    |> selective_validate_required(enabled, [:title])
+    |> selective_put_assoc(assoc, enabled, [:parent, :cover_photo])
   end
 end

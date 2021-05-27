@@ -2,8 +2,9 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
   @moduledoc """
   Backend API used for object types
   """
+  alias PenguinMemories.Database.Fields.Field
+  alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Query.Details
-  alias PenguinMemories.Database.Query.Field
 
   @callback get_single_name :: String.t()
   @callback get_plural_name :: String.t()
@@ -16,8 +17,9 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
   @callback filter_by_reference(query :: Ecto.Query.t(), reference :: {module(), integer()}) ::
               Ecto.Query.t()
   @callback preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
+  @callback preload_details_from_results(list(struct())) :: list(struct())
   @callback get_title_from_result(result :: map()) :: String.t()
-  @callback get_subtitle_from_result(result :: map()) :: String.t()
+  @callback get_subtitle_from_result(result :: map()) :: String.t() | nil
   @callback get_details_from_result(
               result :: map(),
               icon_size :: String.t(),
@@ -25,5 +27,5 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
             ) :: Details.t()
 
   @callback get_fields() :: list(Field.t())
-  @callback get_update_fields() :: list(Field.t())
+  @callback get_update_fields() :: list(UpdateField.t())
 end

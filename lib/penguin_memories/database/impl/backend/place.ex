@@ -3,14 +3,15 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   Backend Place functions
   """
   import Ecto.Query
+  alias PenguinMemories.Database.Fields.Field
+  alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Impl.Backend.API
   alias PenguinMemories.Database.Query
-  alias PenguinMemories.Database.Query.Details
-  alias PenguinMemories.Database.Query.Field
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoPlace
   alias PenguinMemories.Photos.Place
   alias PenguinMemories.Photos.PlaceAscendant
+  alias PenguinMemories.Repo
 
   @behaviour API
 
@@ -76,15 +77,21 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   end
 
   @impl API
+  @spec preload_details_from_results(results :: list(struct())) :: list(struct())
+  def preload_details_from_results(results) do
+    Repo.preload(results, [:cover_photo, :parent])
+  end
+
+  @impl API
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
     "#{result.title}"
   end
 
   @impl API
-  @spec get_subtitle_from_result(result :: map()) :: String.t()
-  def get_subtitle_from_result(%{} = result) do
-    "#{result.id}"
+  @spec get_subtitle_from_result(result :: map()) :: String.t() | nil
+  def get_subtitle_from_result(%{} = _result) do
+    nil
   end
 
   @impl API
@@ -92,12 +99,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
           result :: map(),
           icon_size :: String.t(),
           video_size :: String.t()
-        ) :: Details.t()
+        ) :: Query.Details.t()
   def get_details_from_result(%{} = result, _icon_size, _video_size) do
     icon = Query.get_icon_from_result(result, Place)
     cursor = Paginator.cursor_for_record(result, get_cursor_fields())
 
-    %Details{
+    %Query.Details{
       obj: result.o,
       icon: icon,
       videos: [],
@@ -182,23 +189,29 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   end
 
   @impl API
-  @spec get_update_fields :: list(Field.t())
+  @spec get_update_fields :: list(UpdateField.t())
   def get_update_fields do
     [
-      %Field{
+      %UpdateField{
         id: :title,
+        field_id: :title,
         title: "Title",
-        type: :string
+        type: :string,
+        change: :set
       },
-      %Field{
+      %UpdateField{
         id: :parent,
+        field_id: :parent,
         title: "Parent",
-        type: {:single, Place}
+        type: {:single, Place},
+        change: :set
       },
-      %Field{
+      %UpdateField{
         id: :revised,
+        field_id: :revised,
         title: "Revised time",
-        type: :datetime
+        type: :datetime,
+        change: :set
       }
     ]
   end

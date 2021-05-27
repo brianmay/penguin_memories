@@ -7,7 +7,6 @@ defmodule PenguinMemories.Database.Query do
   alias Ecto.Changeset
   alias Ecto.Multi
 
-  alias PenguinMemories.Accounts.User
   alias PenguinMemories.Database
   alias PenguinMemories.Database.Index
   alias PenguinMemories.Database.Types
@@ -27,7 +26,7 @@ defmodule PenguinMemories.Database.Query do
             action: String.t() | nil,
             url: String.t(),
             title: String.t(),
-            subtitle: String.t(),
+            subtitle: String.t() | nil,
             width: integer,
             height: integer,
             type: module()
@@ -49,30 +48,6 @@ defmodule PenguinMemories.Database.Query do
           }
     @enforce_keys [:url, :width, :height, :mime_type, :type]
     defstruct [:url, :width, :height, :mime_type, :type]
-  end
-
-  defmodule Field do
-    @moduledoc """
-    A field specification that can be displayed or edited
-    """
-    @type object_type :: Database.object_type()
-    @type t :: %__MODULE__{
-            id: atom,
-            title: String.t(),
-            type:
-              :string
-              | :markdown
-              | :datetime
-              | {:datetime_with_offset, atom()}
-              | :utc_offset
-              | {:single, object_type()}
-              | {:multiple, object_type()}
-              | :persons,
-            read_only: boolean(),
-            access: :private | :all
-          }
-    @enforce_keys [:id, :title, :type]
-    defstruct id: nil, title: nil, type: nil, read_only: false, access: :all
   end
 
   defmodule Details do
@@ -491,60 +466,31 @@ defmodule PenguinMemories.Database.Query do
     end
   end
 
-  @spec get_create_child_changeset(object :: struct(), attrs :: map()) :: Ecto.Changeset.t()
-  def get_create_child_changeset(object, attrs) do
-    type = object.__struct__
-    backend = Types.get_backend!(type)
-    parent_fields = backend.get_parent_fields()
-
-    changeset =
-      struct(type)
-      |> type.edit_changeset(attrs)
-
-    Enum.reduce(parent_fields, changeset, fn field, changeset ->
-      value = object.id
-      Ecto.Changeset.put_change(changeset, field, value)
-    end)
-  end
-
-  @spec get_edit_changeset(object :: struct(), attrs :: map()) :: Ecto.Changeset.t()
-  def get_edit_changeset(object, attrs) do
-    type = object.__struct__
-    type.edit_changeset(object, attrs)
-  end
-
-  @spec can_access_field?(field :: Field.t(), user :: User.t() | nil) :: boolean()
-  defp can_access_field?(%Field{} = field, user) do
-    see_private = PenguinMemories.Auth.can_see_private(user)
-
-    case {see_private, field} do
-      {true, %Field{}} -> true
-      {false, %Field{access: :private}} -> false
-      {false, %Field{}} -> true
-    end
-  end
-
-  @spec get_fields(type :: object_type, user :: User.t() | nil) :: list(Field.t())
-  def get_fields(type, user) do
-    backend = Types.get_backend!(type)
-
-    backend.get_fields()
-    |> Enum.filter(fn field -> can_access_field?(field, user) end)
-  end
-
-  @spec get_update_fields(type :: object_type, user :: User.t()) :: list(Field.t())
-  def get_update_fields(type, user) do
-    backend = Types.get_backend!(type)
-
-    backend.get_update_fields()
-    |> Enum.filter(fn field -> can_access_field?(field, user) end)
-  end
-
-  @spec get_update_changeset(enabled :: MapSet.t(), attrs :: map(), type :: object_type()) ::
+  @spec get_create_child_changeset(object :: struct(), attrs :: map(), assoc :: map()) ::
           Ecto.Changeset.t()
-  def get_update_changeset(enabled, attrs, type) do
-    type.update_changeset(struct(type), enabled, attrs)
+  def get_create_child_changeset(object, attrs, assoc) do
+    assoc =
+      if Map.has_key?(object, :parent) do
+        Map.put(assoc, :parent, object)
+      else
+        assoc
+      end
+
+    get_edit_changeset(object, attrs, assoc)
   end
+
+  @spec get_edit_changeset(object :: struct(), attrs :: map(), assoc :: map()) ::
+          Ecto.Changeset.t()
+  def get_edit_changeset(object, attrs, assoc) do
+    type = object.__struct__
+    type.edit_changeset(object, attrs, assoc)
+  end
+
+  # @spec get_update_changeset(enabled :: MapSet.t(), attrs :: map(), type :: object_type()) ::
+  #         Ecto.Changeset.t()
+  # def get_update_changeset(enabled, attrs, type) do
+  #   type.update_changeset(enabled, attrs)
+  # end
 
   @spec has_parent_changed?(changeset :: Ecto.Changeset.t()) :: boolean
   def has_parent_changed?(%Ecto.Changeset{data: object} = changeset) do
@@ -605,83 +551,78 @@ defmodule PenguinMemories.Database.Query do
     end
   end
 
-  @spec apply_update_changeset(
-          id_list :: list(integer),
-          changeset :: Changeset.t(),
-          fields :: MapSet.t(),
-          type :: module()
-        ) ::
-          {:error, String.t()} | :ok
-  def apply_update_changeset(id_list, %Changeset{} = changeset, fields, type) do
-    case Changeset.apply_action(changeset, :update) do
-      {:error, error} ->
-        {:error, "The changeset is invalid: #{inspect(error)}"}
+  # @spec apply_update_changeset(
+  #         id_list :: list(integer),
+  #         changeset :: Changeset.t(),
+  #         fields :: MapSet.t(),
+  #         type :: module()
+  #       ) ::
+  #         {:error, String.t()} | :ok
+  # def apply_update_changeset(id_list, %Changeset{} = changeset, fields, type) do
+  #   case Changeset.apply_action(changeset, :update) do
+  #     {:error, error} ->
+  #       {:error, "The changeset is invalid: #{inspect(error)}"}
 
-      {:ok, obj} ->
-        changes =
-          Enum.reduce(fields, %{}, fn field_id, acc ->
-            Map.put(acc, field_id, Map.fetch!(obj, field_id))
-          end)
+  #     {:ok, obj} ->
+  #       changes =
+  #         Enum.reduce(fields, %{}, fn field_id, acc ->
+  #           Map.put(acc, field_id, Map.fetch!(obj, field_id))
+  #         end)
 
-        apply_update_changes(id_list, changes, type)
-    end
-  end
+  #       apply_update_changes(id_list, changes, type)
+  #   end
+  # end
 
-  @spec subst_string_values(msg :: String.t(), opts :: keyword()) :: String.t()
-  defp subst_string_values(msg, opts) do
-    Enum.reduce(opts, msg, fn {key, value}, acc ->
-      String.replace(acc, "%{#{key}}", to_string(value))
-    end)
-  end
+  #   @spec subst_string_values(msg :: String.t(), opts :: keyword()) :: String.t()
+  #   defp subst_string_values(msg, opts) do
+  #     Enum.reduce(opts, msg, fn {key, value}, acc ->
+  #       String.replace(acc, "%{#{key}}", to_string(value))
+  #     end)
+  #   end
 
-  @spec errors_to_strings(changeset :: Changeset.t()) :: %{atom() => list(String.t())}
-  defp errors_to_strings(changeset) do
-    Changeset.traverse_errors(changeset, fn {msg, opts} ->
-      subst_string_values(msg, opts)
-    end)
-  end
+  #   @spec errors_to_strings(changeset :: Changeset.t()) :: %{atom() => list(String.t())}
+  #   defp errors_to_strings(changeset) do
+  #     Changeset.traverse_errors(changeset, fn {msg, opts} ->
+  #       subst_string_values(msg, opts)
+  #     end)
+  #   end
 
-  @spec apply_update_changes(id_list :: list(integer), changes :: map(), type :: object_type()) ::
-          {:error, String.t()} | :ok
-  def apply_update_changes(id_list, changes, type) do
-    multi = Multi.new()
-
-    multi =
-      Enum.reduce(id_list, multi, fn id, multi ->
-        obj =
-          query(type)
-          |> filter_by_id(id)
-          |> Repo.one()
-
-        case obj.o do
-          nil ->
-            Multi.error(multi, {:error, id}, "Cannot find object #{id}")
-
-          obj ->
-            obj_changeset = get_edit_changeset(obj, changes)
-            apply_changeset_to_multi(multi, obj_changeset, type)
-        end
-      end)
-
-    case Repo.transaction(multi) do
-      {:ok, _data} ->
-        :ok
-
-      {:error, {:update, id}, changeset, _data} ->
-        errors =
-          errors_to_strings(changeset)
-          |> Enum.map(fn {key, value} -> "#{key}: #{value}" end)
-          |> Enum.join(", ")
-
-        {:error, "The update of id #{id} failed: #{errors}"}
-
-      {:error, {:index, id}, error, _data} ->
-        {:error, "Error #{inspect(error)} while indexing id #{id}"}
-
-      {:error, {:error, id}, error, _data} ->
-        {:error, "Error looking for #{id}: #{error}"}
-    end
-  end
+  #   @spec apply_update_changes(id_list :: list(integer), changes :: map(), type :: object_type()) ::
+  #           {:error, String.t()} | :ok
+  #   def apply_update_changes(id_list, changes, type) do
+  #     multi = Multi.new()
+  #
+  #     multi =
+  #       Enum.reduce(id_list, multi, fn id, multi ->
+  #         case get_object_by_id(id, type) do
+  #           nil ->
+  #             Multi.error(multi, {:error, id}, "Cannot find object #{id}")
+  #
+  #           obj ->
+  #             obj_changeset = get_edit_changeset(obj, changes)
+  #             apply_changeset_to_multi(multi, obj_changeset, type)
+  #         end
+  #       end)
+  #
+  #     case Repo.transaction(multi) do
+  #       {:ok, _data} ->
+  #         :ok
+  #
+  #       {:error, {:update, id}, changeset, _data} ->
+  #         errors =
+  #           errors_to_strings(changeset)
+  #           |> Enum.map(fn {key, value} -> "#{key}: #{value}" end)
+  #           |> Enum.join(", ")
+  #
+  #         {:error, "The update of id #{id} failed: #{errors}"}
+  #
+  #       {:error, {:index, id}, error, _data} ->
+  #         {:error, "Error #{inspect(error)} while indexing id #{id}"}
+  #
+  #       {:error, {:error, id}, error, _data} ->
+  #         {:error, "Error looking for #{id}: #{error}"}
+  #     end
+  #   end
 
   @spec get_index_api :: module()
   defp get_index_api do
@@ -744,10 +685,10 @@ defmodule PenguinMemories.Database.Query do
     end
   end
 
-  @spec get_photo_params(id :: integer) :: map() | nil
-  def get_photo_params(id) do
-    %{
-      "album" => id
-    }
-  end
+  # @spec get_photo_params(id :: integer) :: map() | nil
+  # def get_photo_params(id) do
+  #   %{
+  #     "album" => id
+  #   }
+  # end
 end

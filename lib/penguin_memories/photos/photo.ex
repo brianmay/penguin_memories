@@ -49,6 +49,7 @@ defmodule PenguinMemories.Photos.Photo do
           categorys: list(Category.t()) | Ecto.Association.NotLoaded.t() | nil,
           place: Place.t() | Ecto.Association.NotLoaded.t() | nil,
           photographer: Person.t() | Ecto.Association.NotLoaded.t() | nil,
+          photo_persons: list(PhotoPerson.t()) | Ecto.Association.NotLoaded.t() | nil,
           photo_relations: list(PhotoRelation.t()) | Ecto.Association.NotLoaded.t() | nil,
           related: list(%{r: Relation.t(), pr: PhotoRelation.t()}) | nil
         }
@@ -79,8 +80,8 @@ defmodule PenguinMemories.Photos.Photo do
 
     many_to_many :albums, Album, join_through: PhotoAlbum, on_replace: :delete
     many_to_many :categorys, Category, join_through: PhotoCategory, on_replace: :delete
-    belongs_to :place, Place, on_replace: :delete
-    belongs_to :photographer, Person, on_replace: :delete
+    belongs_to :place, Place, on_replace: :nilify
+    belongs_to :photographer, Person, on_replace: :nilify
     has_many :photo_persons, PhotoPerson, on_replace: :delete
 
     has_many :photo_relations, PhotoRelation, foreign_key: :photo_id
@@ -136,34 +137,19 @@ defmodule PenguinMemories.Photos.Photo do
     |> cast_assoc(:photo_persons)
   end
 
-  @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
-  def update_changeset(%__MODULE__{} = photo, enabled, attrs) do
-    allowed_list = [
-      :title,
+  @spec update_changeset(object :: t(), attrs :: map(), assoc :: map(), enabled :: MapSet.t()) ::
+          Changeset.t()
+  def update_changeset(%__MODULE__{} = object, attrs, assoc, enabled) do
+    object
+    |> selective_cast(attrs, enabled, [:title, :view, :rating, :datetime, :utc_offset, :action])
+    |> selective_validate_required(enabled, [:title])
+    |> selective_put_assoc(assoc, enabled, [
       :photographer,
       :place,
-      :view,
-      :rating,
-      :description,
-      :datetime,
-      :utc_offset,
-      :action
-    ]
-
-    allowed = MapSet.new(allowed_list)
-    enabled = MapSet.intersection(enabled, allowed)
-    enabled_list = MapSet.to_list(enabled)
-
-    changeset =
-      photo
-      |> cast(attrs, enabled_list)
-      |> validate_datetime()
-
-    if MapSet.member?(enabled, :action) do
-      validate_action(changeset)
-    else
-      changeset
-    end
+      :albums,
+      :categories,
+      :cover_photo
+    ])
   end
 
   @spec to_string(t()) :: String.t()

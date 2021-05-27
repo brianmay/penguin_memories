@@ -13,9 +13,10 @@
     <% end %>
 
     <%= if @icons do %>
-      <div class="photo_list_small">
-        <%= if length(@videos) > 0 do %>
-          <div class="photo_item">
+      <%= if @num_selected == 1 and not is_nil(@selected_object) do %>
+        <% icon = hd(@icons) %>
+        <div class="photo">
+          <%= if length(@videos) > 0 do %>
             <% first = hd(@videos) %>
             <video
               phx-hook="video"
@@ -27,39 +28,39 @@
                 <source src="<%= video.url %>" type="<%= video.mime_type %>" />
               <% end %>
             </video>
-            <%= if not is_nil(@selected_object) do %>
-              <div class="title">
-                <%= @selected_object.title %>
-                (<%= @selected_object.id %>)
-              </div>
+          <% else %>
+            <%= if icon.url do %>
+              <img
+                src="<%= icon.url %>"
+                alt="<%= icon.title %>"
+                width="<%= icon.width %>"
+                height="<%= icon.height %>"
+              />
+            <% else %>
+              No image
             <% end %>
+          <% end %>
+          <div class="title">
+            <%= icon.title %>
+            (<%= icon.id %>)
           </div>
-        <% else %>
+        </div>
+      <% else %>
+        <div class="photo_list_small">
           <%= for icon <- @icons do %>
-            <div class="photo_item">
-              <%= if icon.url do %>
-                <img
-                  src="<%= icon.url %>"
-                  alt="<%= icon.title %>"
-                  width="<%= icon.width %>"
-                  height="<%= icon.height %>"
-                />
-              <% else %>
-                No image
-              <% end %>
-              <%= if @num_selected == 1 do %>
-                <div class="title">
-                  <%= @selected_object.title %>
-                  (<%= @selected_object.id %>)
-                </div>
-              <% end %>
-            </div>
+            <%=
+              Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+                icon: icon,
+                classes: [],
+                event: nil
+              )
+            %>
           <% end %>
           <%= if @more_icons do %>
             ...
           <% end %>
-        <% end %>
-      </div>
+        </div>
+      <% end %>
     <% end %>
 
     <%= if @num_selected == 1 and not is_nil(@selected_object) and @edit == nil do %>
@@ -77,7 +78,7 @@
 
     <%= if @edit == :edit do %>
       <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save", phx_target: @myself] %>
-        <%= for field <- @selected_fields do %>
+        <%= for %Fields.Field{} = field <- @selected_fields do %>
           <%= if field.read_only == false do %>
             <%= input_field @socket, @id, f, field %>
           <% end %>
@@ -100,12 +101,10 @@
 
     <%= if @edit == :update do %>
       <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save", phx_target: @myself] %>
-        <%= for field <- @selected_fields do %>
-          <%= if field.read_only == false do %>
+        <%= for %Fields.UpdateField{} = field <- @selected_fields do %>
             <% enabled = MapSet.member?(@enabled, field.id) %>
             <%= checkbox_field f, field_to_enable_field_id(field), value: enabled %>
             <%= input_field @socket, @id, f, field, disabled: not enabled %>
-          <% end %>
         <% end %>
         <div>
           <span><input type="submit" class="btn btn-primary" value="Save"</span>

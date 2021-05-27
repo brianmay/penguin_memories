@@ -9,8 +9,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
   import Phoenix.HTML.Form
   alias Phoenix.HTML.Form
 
+  alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Query
-  alias PenguinMemories.Database.Query.Field
   alias PenguinMemories.Database.Query.Filter
   alias PenguinMemories.Database.Query.Icon
 
@@ -50,7 +50,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
 
     selected =
       case {single_choice, raw_value} do
-        {true, nil} -> []
+        {_, nil} -> []
         {true, value} -> [value]
         {false, _} -> raw_value
       end
@@ -201,12 +201,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       end
 
     {module, id} = socket.assigns.updates
-    # IO.inspect(socket.assigns.updates)
-    # IO.inspect(self())
-    # send(socket.assigns.updates, {:selected, socket.assigns.field.id, value})
-    send_update(module, id: id, status: :selected, field_id: socket.assigns.field.id, value: value)
 
-    # IO.inspect(value)
-    # Changeset.put_change(socket.assigns.form.source, socket.assigns.field.id, value) |> IO.inspect()
+    send_update(module, id: id, status: :selected, field_id: socket.assigns.field.id, value: value)
   end
 end

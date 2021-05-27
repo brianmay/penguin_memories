@@ -4,6 +4,8 @@ defmodule PenguinMemories.Photos.Place do
   import Ecto.Changeset
   alias Ecto.Changeset
 
+  import PenguinMemories.Photos.Private
+
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PlaceAscendant
 
@@ -35,7 +37,7 @@ defmodule PenguinMemories.Photos.Place do
         }
 
   schema "pm_place" do
-    belongs_to :cover_photo, Photo, on_replace: :delete
+    belongs_to :cover_photo, Photo, on_replace: :nilify
     field :title, :string
     field :description, :string
     field :address, :string
@@ -47,7 +49,7 @@ defmodule PenguinMemories.Photos.Place do
     field :url, :string
     field :private_notes, :string
     field :revised, :utc_datetime
-    belongs_to :parent, PenguinMemories.Photos.Place, on_replace: :delete
+    belongs_to :parent, PenguinMemories.Photos.Place, on_replace: :nilify
     has_many :children, PenguinMemories.Photos.Place, foreign_key: :parent_id
     has_many :ascendants, PenguinMemories.Photos.PlaceAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.PlaceAscendant, foreign_key: :ascendant_id
@@ -76,17 +78,12 @@ defmodule PenguinMemories.Photos.Place do
     |> validate_required([:title])
   end
 
-  @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
-  def update_changeset(%__MODULE__{} = place, enabled, attrs) do
-    allowed_list = [:title, :parent_id, :revised]
-    allowed = MapSet.new(allowed_list)
-    enabled = MapSet.intersection(enabled, allowed)
-    enabled_list = MapSet.to_list(enabled)
-    required = MapSet.new([:title])
-    required_list = MapSet.to_list(MapSet.intersection(enabled, required))
-
-    place
-    |> cast(attrs, enabled_list)
-    |> validate_required(required_list)
+  @spec update_changeset(object :: t(), attrs :: map(), assoc :: map(), enabled :: MapSet.t()) ::
+          Changeset.t()
+  def update_changeset(%__MODULE__{} = object, attrs, assoc, enabled) do
+    object
+    |> selective_cast(attrs, enabled, [:title, :revised])
+    |> selective_validate_required(enabled, [:title])
+    |> selective_put_assoc(assoc, enabled, [:parent, :cover_photo])
   end
 end

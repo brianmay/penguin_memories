@@ -4,6 +4,8 @@ defmodule PenguinMemories.Photos.Person do
   import Ecto.Changeset
   alias Ecto.Changeset
 
+  import PenguinMemories.Photos.Private
+
   alias PenguinMemories.Photos.PersonAscendant
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoPerson
@@ -42,17 +44,17 @@ defmodule PenguinMemories.Photos.Person do
         }
 
   schema "pm_person" do
-    belongs_to :cover_photo, Photo, on_replace: :delete
+    belongs_to :cover_photo, Photo, on_replace: :nilify
     field :title, :string
     field :called, :string
     field :sort_name, :string
     field :date_of_birth, :date
     field :date_of_death, :date
-    belongs_to :home, PenguinMemories.Photos.Place, on_replace: :delete
-    belongs_to :work, PenguinMemories.Photos.Place, on_replace: :delete
-    belongs_to :father, PenguinMemories.Photos.Person, on_replace: :delete
-    belongs_to :mother, PenguinMemories.Photos.Person, on_replace: :delete
-    belongs_to :spouse, PenguinMemories.Photos.Person, on_replace: :delete
+    belongs_to :home, PenguinMemories.Photos.Place, on_replace: :nilify
+    belongs_to :work, PenguinMemories.Photos.Place, on_replace: :nilify
+    belongs_to :father, PenguinMemories.Photos.Person, on_replace: :nilify
+    belongs_to :mother, PenguinMemories.Photos.Person, on_replace: :nilify
+    belongs_to :spouse, PenguinMemories.Photos.Person, on_replace: :nilify
     field :description, :string
     field :private_notes, :string
     field :email, :string
@@ -87,17 +89,12 @@ defmodule PenguinMemories.Photos.Person do
     |> validate_required([:title])
   end
 
-  @spec update_changeset(t(), MapSet.t(), map()) :: Changeset.t()
-  def update_changeset(%__MODULE__{} = person, enabled, attrs) do
-    allowed_list = [:title, :mother_id, :father_id, :revised]
-    allowed = MapSet.new(allowed_list)
-    enabled = MapSet.intersection(enabled, allowed)
-    enabled_list = MapSet.to_list(enabled)
-    required = MapSet.new([:title])
-    required_list = MapSet.to_list(MapSet.intersection(enabled, required))
-
-    person
-    |> cast(attrs, enabled_list)
-    |> validate_required(required_list)
+  @spec update_changeset(object :: t(), attrs :: map(), assoc :: map(), enabled :: MapSet.t()) ::
+          Changeset.t()
+  def update_changeset(%__MODULE__{} = object, attrs, assoc, enabled) do
+    object
+    |> selective_cast(attrs, enabled, [:title, :revised])
+    |> selective_validate_required(enabled, [:title])
+    |> selective_put_assoc(assoc, enabled, [:mother, :father, :spouse, :work, :home, :cover_photo])
   end
 end

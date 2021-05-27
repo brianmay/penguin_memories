@@ -9,8 +9,8 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
   import Phoenix.HTML.Form
   alias Phoenix.HTML.Form
 
+  alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Query
-  alias PenguinMemories.Database.Query.Field
   alias PenguinMemories.Database.Query.Filter
   alias PenguinMemories.Database.Query.Icon
 

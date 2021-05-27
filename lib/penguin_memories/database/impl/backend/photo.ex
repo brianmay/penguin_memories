@@ -3,10 +3,10 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   Backend Photo functions
   """
   import Ecto.Query
+  alias PenguinMemories.Database.Fields.Field
+  alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Impl.Backend.API
   alias PenguinMemories.Database.Query
-  alias PenguinMemories.Database.Query.Details
-  alias PenguinMemories.Database.Query.Field
   alias PenguinMemories.Format
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.Relation
@@ -104,6 +104,16 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   end
 
   @impl API
+  @spec preload_details_from_results(results :: list(struct())) :: list(struct())
+  def preload_details_from_results(results) do
+    pp_query = from pp in PenguinMemories.Photos.PhotoPerson, order_by: pp.position
+
+    results
+    |> Repo.preload([:albums, :categorys, :place, :photographer])
+    |> Repo.preload(photo_persons: pp_query)
+  end
+
+  @impl API
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
     case result.o.title do
@@ -113,7 +123,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   end
 
   @impl API
-  @spec get_subtitle_from_result(result :: map()) :: String.t()
+  @spec get_subtitle_from_result(result :: map()) :: String.t() | nil
   def get_subtitle_from_result(%{} = result) do
     Format.display_datetime_offset(result.datetime, result.o.utc_offset)
   end
@@ -123,7 +133,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
           result :: map(),
           icon_size :: String.t(),
           video_size :: String.t()
-        ) :: Details.t()
+        ) :: Query.Details.t()
   def get_details_from_result(%{} = result, _icon_size, video_size) do
     icon = Query.get_icon_from_result(result, Photo)
     videos = Query.get_videos_for_photo(result.o.id, video_size)
@@ -142,7 +152,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
     o = %Photo{result.o | related: related}
     cursor = Paginator.cursor_for_record(result, get_cursor_fields())
 
-    %Details{
+    %Query.Details{
       obj: o,
       icon: icon,
       videos: videos,
@@ -303,48 +313,92 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   end
 
   @impl API
-  @spec get_update_fields() :: list(Field.t())
+  @spec get_update_fields() :: list(UpdateField.t())
   def get_update_fields do
     [
-      %Field{
+      %UpdateField{
         id: :title,
+        field_id: :title,
         title: "Title",
-        type: :string
+        type: :string,
+        change: :set
       },
-      %Field{
+      %UpdateField{
         id: :photographer,
+        field_id: :photographer,
         title: "Photographer",
-        type: {:single, PenguinMemories.Photos.Person}
+        type: {:single, PenguinMemories.Photos.Person},
+        change: :set
       },
-      %Field{
+      %UpdateField{
         id: :place,
+        field_id: :place,
         title: "Place",
-        type: {:single, PenguinMemories.Photos.Place}
+        type: {:single, PenguinMemories.Photos.Place},
+        change: :set
       },
-      %Field{
+      %UpdateField{
+        id: :album_add,
+        field_id: :albums,
+        title: "Album Add",
+        type: {:multiple, PenguinMemories.Photos.Album},
+        change: :add
+      },
+      %UpdateField{
+        id: :album_delete,
+        field_id: :albums,
+        title: "Album Delete",
+        type: {:multiple, PenguinMemories.Photos.Album},
+        change: :delete
+      },
+      %UpdateField{
+        id: :category_add,
+        field_id: :categorys,
+        title: "Category Add",
+        type: {:multiple, PenguinMemories.Photos.Category},
+        change: :add
+      },
+      %UpdateField{
+        id: :category_delete,
+        field_id: :categorys,
+        title: "Category Delete",
+        type: {:multiple, PenguinMemories.Photos.Category},
+        change: :delete
+      },
+      %UpdateField{
         id: :view,
+        field_id: :view,
         title: "View",
-        type: :string
+        type: :string,
+        change: :set
       },
-      %Field{
+      %UpdateField{
         id: :rating,
+        field_id: :rating,
         title: "Rating",
-        type: :string
+        type: :string,
+        change: :set
       },
-      %Field{
+      %UpdateField{
         id: :datetime,
+        field_id: :datetime,
         title: "Time",
-        type: {:datetime_with_offset, :utc_offset}
+        type: {:datetime_with_offset, :utc_offset},
+        change: :set
       },
-      %Field{
+      %UpdateField{
         id: :utc_offset,
+        field_id: :offset,
         title: "UTC offset",
-        type: :utc_offset
+        type: :utc_offset,
+        change: :set
       },
-      %Field{
+      %UpdateField{
         id: :action,
+        field_id: :action,
         title: "Action",
-        type: :string
+        type: :string,
+        change: :set
       }
     ]
   end
