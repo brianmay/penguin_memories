@@ -2,10 +2,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   @moduledoc """
   Backend Person functions
   """
+  alias Ecto.Changeset
+  import Ecto.Changeset
   import Ecto.Query
+
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Impl.Backend.API
+  alias PenguinMemories.Database.Impl.Backend.Private
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Photos.Person
   alias PenguinMemories.Photos.PersonAscendant
@@ -196,5 +200,47 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
         change: :set
       }
     ]
+  end
+
+  @impl API
+  @spec edit_changeset(object :: Person.t(), attrs :: map(), assoc :: map()) :: Changeset.t()
+  def edit_changeset(%Person{} = person, attrs, assoc) do
+    person
+    |> cast(attrs, [
+      :cover_photo_id,
+      :title,
+      :called,
+      :sort_name,
+      :date_of_birth,
+      :date_of_death,
+      :description,
+      :private_notes,
+      :email,
+      :revised
+    ])
+    |> validate_required([:title])
+    |> Private.put_all_assoc(assoc, [:mother, :father, :spouse, :work, :home, :cover_photo])
+  end
+
+  @impl API
+  @spec update_changeset(
+          object :: Person.t(),
+          attrs :: map(),
+          assoc :: map(),
+          enabled :: MapSet.t()
+        ) ::
+          Changeset.t()
+  def update_changeset(%Person{} = object, attrs, assoc, enabled) do
+    object
+    |> Private.selective_cast(attrs, enabled, [:title, :revised])
+    |> Private.selective_validate_required(enabled, [:title])
+    |> Private.selective_put_assoc(assoc, enabled, [
+      :mother,
+      :father,
+      :spouse,
+      :work,
+      :home,
+      :cover_photo
+    ])
   end
 end

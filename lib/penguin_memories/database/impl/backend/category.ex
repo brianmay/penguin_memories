@@ -2,10 +2,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
   @moduledoc """
   Backend Category functions
   """
+  alias Ecto.Changeset
+  import Ecto.Changeset
   import Ecto.Query
+
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Impl.Backend.API
+  alias PenguinMemories.Database.Impl.Backend.Private
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Photos.Category
   alias PenguinMemories.Photos.CategoryAscendant
@@ -176,5 +180,36 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
         change: :set
       }
     ]
+  end
+
+  @impl API
+  @spec edit_changeset(object :: Category.t(), attrs :: map(), assoc :: map()) :: Changeset.t()
+  def edit_changeset(%Category{} = category, attrs, assoc) do
+    category
+    |> cast(attrs, [
+      :cover_photo_id,
+      :title,
+      :description,
+      :private_notes,
+      :revised,
+      :parent_id
+    ])
+    |> validate_required([:title])
+    |> Private.put_all_assoc(assoc, [:parent, :cover_photo])
+  end
+
+  @impl API
+  @spec update_changeset(
+          object :: Category.t(),
+          attrs :: map(),
+          assoc :: map(),
+          enabled :: MapSet.t()
+        ) ::
+          Changeset.t()
+  def update_changeset(%Category{} = object, attrs, assoc, enabled) do
+    object
+    |> Private.selective_cast(attrs, enabled, [:title, :revised])
+    |> Private.selective_validate_required(enabled, [:title])
+    |> Private.selective_put_assoc(assoc, enabled, [:parent, :cover_photo])
   end
 end

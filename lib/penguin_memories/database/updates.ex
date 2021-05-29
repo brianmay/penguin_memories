@@ -28,6 +28,12 @@ defmodule PenguinMemories.Database.Updates do
     defstruct field_id: nil, change: nil, type: nil, value: nil
   end
 
+  @spec get_object_backend(object :: struct()) ::
+          PenguinMemories.Database.Types.backend_type()
+  defp get_object_backend(%{__struct__: type}) do
+    Types.get_backend!(type)
+  end
+
   @spec get_query_type(query :: Ecto.Query.t()) :: object_type()
   defp get_query_type(%Ecto.Query{} = query) do
     {_, type} = query.from.source
@@ -134,7 +140,7 @@ defmodule PenguinMemories.Database.Updates do
   @spec get_update_changeset(object :: struct(), updates :: list(UpdateChange.t())) ::
           Ecto.Changeset.t()
   def get_update_changeset(object, updates) do
-    type = object.__struct__
+    backend = get_object_backend(object)
 
     enabled =
       Enum.reduce(updates, MapSet.new(), fn %UpdateChange{field_id: id}, enabled ->
@@ -142,7 +148,7 @@ defmodule PenguinMemories.Database.Updates do
       end)
 
     {:ok, changes, assoc} = apply_update_to_object(updates, object, %{}, %{})
-    type.update_changeset(object, changes, assoc, enabled)
+    backend.update_changeset(object, changes, assoc, enabled)
   end
 
   @spec apply_updates_to_object(updates :: list(UpdateChange.t()), object :: struct()) ::

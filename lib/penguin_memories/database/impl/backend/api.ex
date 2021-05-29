@@ -2,6 +2,7 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
   @moduledoc """
   Backend API used for object types
   """
+  alias Ecto.Changeset
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Query.Details
@@ -28,4 +29,13 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
 
   @callback get_fields() :: list(Field.t())
   @callback get_update_fields() :: list(UpdateField.t())
+
+  @callback edit_changeset(object :: struct(), attrs :: map(), assoc :: map()) :: Changeset.t()
+  @callback update_changeset(
+              object :: struct(),
+              attrs :: map(),
+              assoc :: map(),
+              enabled :: MapSet.t()
+            ) ::
+              Changeset.t()
 end

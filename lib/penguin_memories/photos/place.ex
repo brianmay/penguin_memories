@@ -1,10 +1,6 @@
 defmodule PenguinMemories.Photos.Place do
   @moduledoc "A location"
   use Ecto.Schema
-  import Ecto.Changeset
-  alias Ecto.Changeset
-
-  import PenguinMemories.Photos.Private
 
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PlaceAscendant
@@ -55,35 +51,5 @@ defmodule PenguinMemories.Photos.Place do
     has_many :descendants, PenguinMemories.Photos.PlaceAscendant, foreign_key: :ascendant_id
     has_many :photos, PenguinMemories.Photos.Photo, foreign_key: :place_id
     timestamps()
-  end
-
-  @spec edit_changeset(t(), map()) :: Changeset.t()
-  def edit_changeset(%__MODULE__{} = place, attrs) do
-    place
-    |> cast(attrs, [
-      :cover_photo_id,
-      :title,
-      :description,
-      :address,
-      :address2,
-      :city,
-      :state,
-      :postcode,
-      :country,
-      :url,
-      :private_notes,
-      :parent_id,
-      :revised
-    ])
-    |> validate_required([:title])
-  end
-
-  @spec update_changeset(object :: t(), attrs :: map(), assoc :: map(), enabled :: MapSet.t()) ::
-          Changeset.t()
-  def update_changeset(%__MODULE__{} = object, attrs, assoc, enabled) do
-    object
-    |> selective_cast(attrs, enabled, [:title, :revised])
-    |> selective_validate_required(enabled, [:title])
-    |> selective_put_assoc(assoc, enabled, [:parent, :cover_photo])
   end
 end

@@ -1,10 +1,6 @@
 defmodule PenguinMemories.Photos.Person do
   @moduledoc "An person"
   use Ecto.Schema
-  import Ecto.Changeset
-  alias Ecto.Changeset
-
-  import PenguinMemories.Photos.Private
 
   alias PenguinMemories.Photos.PersonAscendant
   alias PenguinMemories.Photos.Photo
@@ -64,37 +60,5 @@ defmodule PenguinMemories.Photos.Person do
     has_many :descendants, PenguinMemories.Photos.PersonAscendant, foreign_key: :ascendant_id
     many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoPerson
     timestamps()
-  end
-
-  @spec edit_changeset(t(), map()) :: Changeset.t()
-  def edit_changeset(%__MODULE__{} = person, attrs) do
-    person
-    |> cast(attrs, [
-      :cover_photo_id,
-      :title,
-      :called,
-      :sort_name,
-      :date_of_birth,
-      :date_of_death,
-      :home_id,
-      :work_id,
-      :father_id,
-      :mother_id,
-      :spouse_id,
-      :description,
-      :private_notes,
-      :email,
-      :revised
-    ])
-    |> validate_required([:title])
-  end
-
-  @spec update_changeset(object :: t(), attrs :: map(), assoc :: map(), enabled :: MapSet.t()) ::
-          Changeset.t()
-  def update_changeset(%__MODULE__{} = object, attrs, assoc, enabled) do
-    object
-    |> selective_cast(attrs, enabled, [:title, :revised])
-    |> selective_validate_required(enabled, [:title])
-    |> selective_put_assoc(assoc, enabled, [:mother, :father, :spouse, :work, :home, :cover_photo])
   end
 end

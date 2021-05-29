@@ -1,12 +1,7 @@
 defmodule PenguinMemories.Photos.Photo do
   @moduledoc "A single photo"
   use Ecto.Schema
-  import Ecto.Changeset
-  alias Ecto.Changeset
 
-  import PenguinMemories.Photos.Private
-
-  alias PenguinMemories.Database.Query
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.Category
   alias PenguinMemories.Photos.File
@@ -87,69 +82,6 @@ defmodule PenguinMemories.Photos.Photo do
     has_many :photo_relations, PhotoRelation, foreign_key: :photo_id
 
     timestamps()
-  end
-
-  @spec validate_datetime(Changeset.t()) :: Changeset.t()
-  defp validate_datetime(%Changeset{data: %__MODULE__{}} = changeset) do
-    validate_pair(changeset, :datetime, :utc_offset)
-  end
-
-  @spec validate_delete(Changeset.t()) :: Changeset.t()
-  defp validate_delete(changeset) do
-    id = get_field(changeset, :id)
-
-    if get_change(changeset, :action) == "D" do
-      case Query.can_delete?(id, PenguinMemories.Photos.Photo) do
-        :yes -> changeset
-        {:no, error} -> add_error(changeset, :action, error)
-      end
-    else
-      changeset
-    end
-  end
-
-  @spec validate_action(Changeset.t()) :: Changeset.t()
-  defp validate_action(changeset) do
-    validate_inclusion(changeset, :action, ["D", "R", "M", "auto", "90", "180", "270"])
-  end
-
-  @spec edit_changeset(t(), map()) :: Changeset.t()
-  def edit_changeset(%__MODULE__{} = photo, attrs) do
-    photo
-    |> cast(attrs, [
-      :title,
-      :photographer_id,
-      :view,
-      :rating,
-      :description,
-      :datetime,
-      :utc_offset,
-      :action,
-      :private_notes
-    ])
-    |> validate_action()
-    |> validate_delete()
-    |> validate_datetime()
-    |> cast_assoc(:albums)
-    |> cast_assoc(:categorys)
-    |> cast_assoc(:place)
-    |> cast_assoc(:photographer)
-    |> cast_assoc(:photo_persons)
-  end
-
-  @spec update_changeset(object :: t(), attrs :: map(), assoc :: map(), enabled :: MapSet.t()) ::
-          Changeset.t()
-  def update_changeset(%__MODULE__{} = object, attrs, assoc, enabled) do
-    object
-    |> selective_cast(attrs, enabled, [:title, :view, :rating, :datetime, :utc_offset, :action])
-    |> selective_validate_required(enabled, [:title])
-    |> selective_put_assoc(assoc, enabled, [
-      :photographer,
-      :place,
-      :albums,
-      :categories,
-      :cover_photo
-    ])
   end
 
   @spec to_string(t()) :: String.t()

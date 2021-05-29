@@ -2,10 +2,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   @moduledoc """
   Backend Photo functions
   """
+  alias Ecto.Changeset
+  import Ecto.Changeset
   import Ecto.Query
+
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Impl.Backend.API
+  alias PenguinMemories.Database.Impl.Backend.Private
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Format
   alias PenguinMemories.Photos.Photo
@@ -401,5 +405,78 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         change: :set
       }
     ]
+  end
+
+  @spec validate_datetime(Changeset.t()) :: Changeset.t()
+  defp validate_datetime(%Changeset{data: %Photo{}} = changeset) do
+    Private.validate_pair(changeset, :datetime, :utc_offset)
+  end
+
+  @spec validate_delete(Changeset.t()) :: Changeset.t()
+  defp validate_delete(changeset) do
+    id = get_field(changeset, :id)
+
+    if get_change(changeset, :action) == "D" do
+      case Query.can_delete?(id, PenguinMemories.Photos.Photo) do
+        :yes -> changeset
+        {:no, error} -> add_error(changeset, :action, error)
+      end
+    else
+      changeset
+    end
+  end
+
+  @spec validate_action(Changeset.t()) :: Changeset.t()
+  defp validate_action(changeset) do
+    validate_inclusion(changeset, :action, ["D", "R", "M", "auto", "90", "180", "270"])
+  end
+
+  @impl API
+  @spec edit_changeset(object :: Photo.t(), attrs :: map(), assoc :: map()) :: Changeset.t()
+  def edit_changeset(%Photo{} = photo, attrs, assoc) do
+    photo
+    |> cast(attrs, [
+      :title,
+      :photographer_id,
+      :view,
+      :rating,
+      :description,
+      :datetime,
+      :utc_offset,
+      :action,
+      :private_notes
+    ])
+    |> validate_action()
+    |> validate_delete()
+    |> validate_datetime()
+    |> Private.put_all_assoc(assoc, [:albums, :categorys, :place, :photographer, :photo_persons])
+  end
+
+  @impl API
+  @spec update_changeset(
+          object :: Photo.t(),
+          attrs :: map(),
+          assoc :: map(),
+          enabled :: MapSet.t()
+        ) ::
+          Changeset.t()
+  def update_changeset(%Photo{} = object, attrs, assoc, enabled) do
+    object
+    |> Private.selective_cast(attrs, enabled, [
+      :title,
+      :view,
+      :rating,
+      :datetime,
+      :utc_offset,
+      :action
+    ])
+    |> Private.selective_validate_required(enabled, [:title])
+    |> Private.selective_put_assoc(assoc, enabled, [
+      :photographer,
+      :place,
+      :albums,
+      :categories,
+      :cover_photo
+    ])
   end
 end

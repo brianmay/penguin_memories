@@ -89,6 +89,12 @@ defmodule PenguinMemories.Database.Query do
     type
   end
 
+  @spec get_object_backend(object :: struct()) ::
+          PenguinMemories.Database.Types.backend_type()
+  defp get_object_backend(%{__struct__: type}) do
+    Types.get_backend!(type)
+  end
+
   @spec get_query_backend(query :: Ecto.Query.t()) ::
           PenguinMemories.Database.Types.backend_type()
   defp get_query_backend(%Ecto.Query{} = query) do
@@ -482,15 +488,9 @@ defmodule PenguinMemories.Database.Query do
   @spec get_edit_changeset(object :: struct(), attrs :: map(), assoc :: map()) ::
           Ecto.Changeset.t()
   def get_edit_changeset(object, attrs, assoc) do
-    type = object.__struct__
-    type.edit_changeset(object, attrs, assoc)
+    backend = get_object_backend(object)
+    backend.edit_changeset(object, attrs, assoc)
   end
-
-  # @spec get_update_changeset(enabled :: MapSet.t(), attrs :: map(), type :: object_type()) ::
-  #         Ecto.Changeset.t()
-  # def get_update_changeset(enabled, attrs, type) do
-  #   type.update_changeset(enabled, attrs)
-  # end
 
   @spec has_parent_changed?(changeset :: Ecto.Changeset.t()) :: boolean
   def has_parent_changed?(%Ecto.Changeset{data: object} = changeset) do

@@ -2,10 +2,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   @moduledoc """
   Backend Place functions
   """
+  alias Ecto.Changeset
+  import Ecto.Changeset
   import Ecto.Query
+
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Impl.Backend.API
+  alias PenguinMemories.Database.Impl.Backend.Private
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoPlace
@@ -214,5 +218,43 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
         change: :set
       }
     ]
+  end
+
+  @impl API
+  @spec edit_changeset(object :: Place.t(), attrs :: map(), assoc :: map()) :: Changeset.t()
+  def edit_changeset(%Place{} = place, attrs, assoc) do
+    place
+    |> cast(attrs, [
+      :cover_photo_id,
+      :title,
+      :description,
+      :address,
+      :address2,
+      :city,
+      :state,
+      :postcode,
+      :country,
+      :url,
+      :private_notes,
+      :parent_id,
+      :revised
+    ])
+    |> validate_required([:title])
+    |> Private.put_all_assoc(assoc, [:parent, :cover_photo])
+  end
+
+  @impl API
+  @spec update_changeset(
+          object :: Place.t(),
+          attrs :: map(),
+          assoc :: map(),
+          enabled :: MapSet.t()
+        ) ::
+          Changeset.t()
+  def update_changeset(%Place{} = object, attrs, assoc, enabled) do
+    object
+    |> Private.selective_cast(attrs, enabled, [:title, :revised])
+    |> Private.selective_validate_required(enabled, [:title])
+    |> Private.selective_put_assoc(assoc, enabled, [:parent, :cover_photo])
   end
 end

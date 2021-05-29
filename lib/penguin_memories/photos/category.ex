@@ -1,10 +1,6 @@
 defmodule PenguinMemories.Photos.Category do
   @moduledoc "A category"
   use Ecto.Schema
-  import Ecto.Changeset
-  alias Ecto.Changeset
-
-  import PenguinMemories.Photos.Private
 
   alias PenguinMemories.Photos.CategoryAscendant
   alias PenguinMemories.Photos.Photo
@@ -42,28 +38,5 @@ defmodule PenguinMemories.Photos.Category do
     has_many :descendants, PenguinMemories.Photos.CategoryAscendant, foreign_key: :ascendant_id
     many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoCategory
     timestamps()
-  end
-
-  @spec edit_changeset(t(), map()) :: Changeset.t()
-  def edit_changeset(%__MODULE__{} = category, attrs) do
-    category
-    |> cast(attrs, [
-      :cover_photo_id,
-      :title,
-      :description,
-      :private_notes,
-      :revised,
-      :parent_id
-    ])
-    |> validate_required([:title])
-  end
-
-  @spec update_changeset(object :: t(), attrs :: map(), assoc :: map(), enabled :: MapSet.t()) ::
-          Changeset.t()
-  def update_changeset(%__MODULE__{} = object, attrs, assoc, enabled) do
-    object
-    |> selective_cast(attrs, enabled, [:title, :revised])
-    |> selective_validate_required(enabled, [:title])
-    |> selective_put_assoc(assoc, enabled, [:parent, :cover_photo])
   end
 end

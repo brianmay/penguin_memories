@@ -1,4 +1,4 @@
-defmodule PenguinMemories.Photos.Private do
+defmodule PenguinMemories.Database.Impl.Backend.Private do
   @moduledoc false
   alias Ecto.Changeset
   import Ecto.Changeset
