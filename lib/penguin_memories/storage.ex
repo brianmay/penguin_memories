@@ -16,10 +16,22 @@ defmodule PenguinMemories.Storage do
 
   @spec get_sizes() :: %{required(String.t()) => list(SizeRequirement.t())}
   def get_sizes do
-    Application.get_env(:penguin_memories, :sizes)
-    |> Enum.map(fn {key, list} ->
-      r = Enum.map(list, fn v -> struct(SizeRequirement, v) end)
-      {key, r}
+    sizes = Application.get_env(:penguin_memories, :sizes)
+    formats = Application.get_env(:penguin_memories, :formats)
+
+    Enum.reduce(sizes, %{}, fn {key, size}, result ->
+      result_for_size =
+        Enum.reduce(formats, [], fn format, result_for_size ->
+          sr = %SizeRequirement{
+            max_width: size.max_width,
+            max_height: size.max_height,
+            format: format
+          }
+
+          [sr | result_for_size]
+        end)
+
+      Map.put(result, key, result_for_size)
     end)
     |> Enum.into(%{})
   end
