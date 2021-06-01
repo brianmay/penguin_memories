@@ -1,6 +1,6 @@
 <% target = assigns[:target] %>
 <div
-  class="<%= icon_classes(@classes, @icon) %>"
+  class="photo_item <%= icon_classes(@icon) %>"
   phx-click="<%= @event %>"
   phx-value-type="<%= PenguinMemories.Database.Types.get_name!(@icon.type) %>"
   phx-value-id="<%= @icon.id %>"

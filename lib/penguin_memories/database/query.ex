@@ -219,13 +219,10 @@ defmodule PenguinMemories.Database.Query do
           as: :icon,
           select_merge: %{
             icon: %{
-              title: o.title,
-              utc_offset: o.utc_offset,
               dir: f.dir,
               name: f.name,
               height: f.height,
               width: f.width,
-              action: o.action
             }
           }
 
@@ -615,79 +612,6 @@ defmodule PenguinMemories.Database.Query do
     end
   end
 
-  # @spec apply_update_changeset(
-  #         id_list :: list(integer),
-  #         changeset :: Changeset.t(),
-  #         fields :: MapSet.t(),
-  #         type :: module()
-  #       ) ::
-  #         {:error, String.t()} | :ok
-  # def apply_update_changeset(id_list, %Changeset{} = changeset, fields, type) do
-  #   case Changeset.apply_action(changeset, :update) do
-  #     {:error, error} ->
-  #       {:error, "The changeset is invalid: #{inspect(error)}"}
-
-  #     {:ok, obj} ->
-  #       changes =
-  #         Enum.reduce(fields, %{}, fn field_id, acc ->
-  #           Map.put(acc, field_id, Map.fetch!(obj, field_id))
-  #         end)
-
-  #       apply_update_changes(id_list, changes, type)
-  #   end
-  # end
-
-  #   @spec subst_string_values(msg :: String.t(), opts :: keyword()) :: String.t()
-  #   defp subst_string_values(msg, opts) do
-  #     Enum.reduce(opts, msg, fn {key, value}, acc ->
-  #       String.replace(acc, "%{#{key}}", to_string(value))
-  #     end)
-  #   end
-
-  #   @spec errors_to_strings(changeset :: Changeset.t()) :: %{atom() => list(String.t())}
-  #   defp errors_to_strings(changeset) do
-  #     Changeset.traverse_errors(changeset, fn {msg, opts} ->
-  #       subst_string_values(msg, opts)
-  #     end)
-  #   end
-
-  #   @spec apply_update_changes(id_list :: list(integer), changes :: map(), type :: object_type()) ::
-  #           {:error, String.t()} | :ok
-  #   def apply_update_changes(id_list, changes, type) do
-  #     multi = Multi.new()
-  #
-  #     multi =
-  #       Enum.reduce(id_list, multi, fn id, multi ->
-  #         case get_object_by_id(id, type) do
-  #           nil ->
-  #             Multi.error(multi, {:error, id}, "Cannot find object #{id}")
-  #
-  #           obj ->
-  #             obj_changeset = get_edit_changeset(obj, changes)
-  #             apply_changeset_to_multi(multi, obj_changeset)
-  #         end
-  #       end)
-  #
-  #     case Repo.transaction(multi) do
-  #       {:ok, _data} ->
-  #         :ok
-  #
-  #       {:error, {:update, id}, changeset, _data} ->
-  #         errors =
-  #           errors_to_strings(changeset)
-  #           |> Enum.map(fn {key, value} -> "#{key}: #{value}" end)
-  #           |> Enum.join(", ")
-  #
-  #         {:error, "The update of id #{id} failed: #{errors}"}
-  #
-  #       {:error, {:index, id}, error, _data} ->
-  #         {:error, "Error #{inspect(error)} while indexing id #{id}"}
-  #
-  #       {:error, {:error, id}, error, _data} ->
-  #         {:error, "Error looking for #{id}: #{error}"}
-  #     end
-  #   end
-
   @spec get_index_api :: module()
   defp get_index_api do
     Application.get_env(:penguin_memories, :index_api)
@@ -708,6 +632,16 @@ defmodule PenguinMemories.Database.Query do
   end
 
   @spec do_delete(object :: struct()) :: :ok | {:error, String.t()}
+  defp do_delete(%Photo{} = photo) do
+    result = get_edit_changeset(photo, %{action: "D"}, %{})
+    |> Repo.update()
+
+    case result do
+      {:ok, _} -> :ok
+      {:error, _} -> {:error, "Cannot delete photo"}
+    end
+  end
+
   defp do_delete(object) do
     type = object.__struct__
     backend = Types.get_backend!(type)

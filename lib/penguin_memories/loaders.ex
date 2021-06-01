@@ -79,7 +79,7 @@ defmodule PenguinMemories.Loaders do
         request.filter,
         request.before_key,
         request.after_key,
-        2,
+        20,
         "thumb",
         request.type
       )

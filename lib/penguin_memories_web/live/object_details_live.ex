@@ -14,6 +14,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Photos
   alias PenguinMemoriesWeb.FieldHelpers
+  alias PenguinMemoriesWeb.IconHelpers
   alias PenguinMemoriesWeb.Router.Helpers, as: Routes
 
   @impl true

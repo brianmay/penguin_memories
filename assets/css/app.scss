@@ -77,7 +77,7 @@
         color: #333;
     }
 
-    &:HOVER {
+    &:hover {
         border: 1px solid #000;
     }
 
@@ -94,15 +94,14 @@
 
 /* PHOTO LIST */
 .parents {
-    border: 1px solid #dddddd;
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
-    margin-bottom: 10px;
+    align-items: center;
+    margin-top: 10px;
 
     .arrow {
         // padding-top: 90px;
-        vertical-align: center;
+        vertical-align: middle;
     }
 }
 
@@ -113,6 +112,7 @@
     user-select: none;
 
     .selected {
+        color: #212529;
         background: #F39814;
     }
 
@@ -122,6 +122,7 @@
     }
 
     .selecting {
+        color: #212529;
         background: #FECA40;
     }
 
@@ -133,7 +134,8 @@
 .photo_list_with_controls {
     position: relative;
     border: 1px solid #dddddd;
-    margin-bottom: 10px;
+    margin-top: 10px;
+    padding: 5px;
 
     .btn-prev {
         position: absolute;
@@ -156,47 +158,40 @@
     }
 }
 
-.photo_list_small {
-    .photo_item {
-        display: inline-block;
-    }
+.photo_table {
+    width: 400px;
+}
+
+form {
+    width: 400px;
 }
 
 .search_form {
     border: 1px solid #dddddd;
-    margin-bottom: 10px;
+    margin-top: 10px;
     padding: 5px;
 }
 
 .list_detail {
     border: 1px solid #dddddd;
-    margin-bottom: 10px;
+    margin-top: 10px;
     padding: 5px;
 }
 
 .select_detail {
     border: 1px solid #dddddd;
-    margin-bottom: 10px;
+    margin-top: 10px;
     padding: 5px;
 }
 
 .photo_detail {
     position: relative;
-    min-height: 400px;
     border: 1px solid #dddddd;
+    margin-top: 10px;
+    padding: 5px;
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
-    margin-bottom: 10px;
-
-    .photo_table {
-        width: 400px;
-    }
-
-    form {
-        display: inline-block;
-        width: 400px;
-    }
 
     .btn-prev {
         position: absolute;
@@ -214,6 +209,10 @@
         z-index: 11;
     }
 
+    .photo_table, form {
+        margin-left: 10px;
+    }
+
     &.big {
         position: absolute;
         background: black;
@@ -224,7 +223,7 @@
         left: 0;
         top: 0;
 
-        .photo_list_small {
+        .photo {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -236,6 +235,20 @@
         .photo_table {
             display: none;
         }
+
+        .btn-prev:hover .hover, .btn-next:hover .hover {
+            display: none;
+        }
+    }
+
+    &.removed {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
+
+    &.regenerate {
+        background: #CCE;
+        color: #333;
     }
 }
 
@@ -249,6 +262,7 @@
     .selected {
         border: 1px solid black;
         border-radius: 0.25em;
+        color: #212529;
         background: #88ff88;
         padding: 4px;
         display: inline-block
@@ -259,20 +273,25 @@
     }
 }
 
+.item {
+    border: 1px solid #dddddd;
+    border-radius: 0.25em;
+    color: #212529;
+    background: #ffff88;
+    padding: 4px;
+    margin: 4px;
+    display: inline-block;
+
+    &:hover {
+        border: 1px solid #000;
+    }
+}
+
 .hoverable {
     position: relative;
-
-    .item {
-        border: 1px solid #dddddd;
-        border-radius: 0.25em;
-        background: #ffff88;
-        padding: 4px;
-        margin: 4px;
-        display: inline-block
-    }
-
     .hover {
         display: none;
+        color: #212529;
         background: white;
         margin: 0;
         left: 10px;
@@ -283,10 +302,6 @@
 }
 
 .hoverable:hover {
-    .item {
-        border: 1px solid black;
-    }
-
     .hover {
         display: inline-block;
     }
