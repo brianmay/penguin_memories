@@ -59,10 +59,11 @@ defmodule PenguinMemories.Database.Query do
             icon: Icon.t() | nil,
             videos: list(Video.t()),
             cursor: String.t(),
-            type: Database.object_type()
+            type: Database.object_type(),
+            parents: list(Icon.t()) | nil
           }
     @enforce_keys [:obj, :icon, :videos, :cursor, :type]
-    defstruct [:obj, :icon, :videos, :cursor, :type]
+    defstruct [:obj, :icon, :videos, :cursor, :type, :parents]
   end
 
   defmodule Filter do
@@ -73,9 +74,9 @@ defmodule PenguinMemories.Database.Query do
     @type t :: %__MODULE__{
             ids: MapSet.t() | nil,
             query: String.t() | nil,
-            reference: {object_type(), integer()} | nil
+            reference_type_id: {object_type(), integer()} | nil
           }
-    defstruct [:ids, :query, :reference]
+    defstruct [:ids, :query, :reference_type_id]
   end
 
   @spec get_image_url() :: String.t()
@@ -93,6 +94,22 @@ defmodule PenguinMemories.Database.Query do
           PenguinMemories.Database.Types.backend_type()
   defp get_object_backend(%{__struct__: type}) do
     Types.get_backend!(type)
+  end
+
+  @spec get_cursor_by_id(id :: integer(), type :: object_type()) :: String.t() | nil
+  def get_cursor_by_id(id, type) do
+    backend = Types.get_backend!(type)
+
+    object =
+      type
+      |> query()
+      |> filter_by_id(id)
+      |> Repo.one()
+
+    case object do
+      nil -> nil
+      object -> Paginator.cursor_for_record(object, backend.get_cursor_fields())
+    end
   end
 
   @spec get_query_backend(query :: Ecto.Query.t()) ::
@@ -159,11 +176,11 @@ defmodule PenguinMemories.Database.Query do
     backend = get_query_backend(query)
 
     query
-    |> filter_if_set(filter.ids, &backend.filter_by_id_map/2)
+    |> filter_if_set(filter.ids, &filter_by_id_map/2)
     # |> filter_if_set(filter.photo_id, &backend.filter_by_photo_id/2)
     # |> filter_if_set(filter.parent_id, &backend.filter_by_parent_id/2)
     |> filter_if_set(filter.query, &filter_by_query/2)
-    |> filter_if_set(filter.reference, &backend.filter_by_reference/2)
+    |> filter_if_set(filter.reference_type_id, &backend.filter_by_reference/2)
   end
 
   @spec filter_by_ascendants(query :: Ecto.Query.t(), id :: integer) :: Ecto.Query.t()
@@ -330,6 +347,20 @@ defmodule PenguinMemories.Database.Query do
     end)
   end
 
+  @spec count_results(Filter.t(), type :: object_type()) :: integer()
+  def count_results(%Filter{} = filter, type) do
+    type
+    |> query()
+    |> filter_by_filter(filter)
+    |> exclude(:preload)
+    |> exclude(:select)
+    |> exclude(:order_by)
+    |> select([object: o], struct(o, [:id]))
+    |> subquery
+    |> select(count("*"))
+    |> Repo.one!()
+  end
+
   @spec query_icons(
           filter :: Filter.t(),
           limit :: integer,
@@ -404,7 +435,17 @@ defmodule PenguinMemories.Database.Query do
         nil
 
       result ->
-        backend.get_details_from_result(result, icon_size, video_size)
+        parents =
+          id
+          |> query_parents(type)
+          |> Enum.group_by(fn {_icon, position} -> position end)
+          |> Enum.map(fn {position, list} ->
+            {position, Enum.map(list, fn {icon, _} -> icon end)}
+          end)
+          |> Enum.sort_by(fn {position, _} -> -position end)
+
+        details = backend.get_details_from_result(result, icon_size, video_size)
+        %Details{details | parents: parents}
     end
   end
 
@@ -482,7 +523,8 @@ defmodule PenguinMemories.Database.Query do
         assoc
       end
 
-    get_edit_changeset(object, attrs, assoc)
+    type = object.__struct__
+    get_edit_changeset(struct(type), attrs, assoc)
   end
 
   @spec get_edit_changeset(object :: struct(), attrs :: map(), assoc :: map()) ::
@@ -492,50 +534,68 @@ defmodule PenguinMemories.Database.Query do
     backend.edit_changeset(object, attrs, assoc)
   end
 
-  @spec has_parent_changed?(changeset :: Ecto.Changeset.t()) :: boolean
-  def has_parent_changed?(%Ecto.Changeset{data: object} = changeset) do
-    type = object.__struct__
+  @spec get_changed_parents(changeset :: Ecto.Changeset.t()) :: list(integer())
+  defp get_changed_parents(%Ecto.Changeset{} = changeset) do
+    type = changeset.data.__struct__
     backend = Types.get_backend!(type)
     parent_fields = backend.get_parent_fields()
 
-    Enum.any?(parent_fields, fn field ->
-      case Ecto.Changeset.fetch_change(changeset, field) do
-        :error -> false
-        {:ok, _value} -> true
-      end
+    Enum.map(parent_fields, fn field ->
+      Ecto.Changeset.fetch_change(changeset, field)
     end)
+    |> Enum.filter(fn
+      {:ok, _value} -> true
+      :error -> false
+    end)
+    |> Enum.map(fn
+      {:ok, nil} -> nil
+      {:ok, value} -> value.data.id
+    end)
+  end
+
+  @spec fix_index(changeset :: Ecto.Changeset.t(), cache :: Index.cache_type()) ::
+          {:ok, Index.cache_type()}
+  def fix_index(%Ecto.Changeset{} = changeset, cache) do
+    type = changeset.data.__struct__
+    parent_ids = get_changed_parents(changeset)
+
+    case parent_ids do
+      [] ->
+        {:ok, cache}
+
+      list_ids ->
+        cache =
+          Enum.reduce(list_ids, cache, fn
+            nil, cache ->
+              cache
+
+            parent_id, cache ->
+              {:ok, cache} = Index.fix_index_tree(parent_id, type, cache)
+              cache
+          end)
+
+        Index.fix_index_tree(changeset.data.id, type, cache)
+    end
   end
 
   @spec apply_changeset_to_multi(
           multi :: Multi.t(),
-          changeset :: Changeset.t(),
-          type :: object_type()
+          changeset :: Changeset.t()
         ) :: Multi.t()
-  defp apply_changeset_to_multi(%Multi{} = multi, %Changeset{} = changeset, type) do
+  defp apply_changeset_to_multi(%Multi{} = multi, %Changeset{} = changeset) do
     id = changeset.data.id
 
     multi
     |> Multi.insert_or_update({:update, id}, changeset)
-    |> Multi.run({:index, id}, fn _, data ->
-      case has_parent_changed?(changeset) do
-        false ->
-          nil
-
-        true ->
-          obj = Map.fetch!(data, {:update, id})
-          :ok = Index.fix_index_tree(obj.id, type)
-      end
-
-      {:ok, nil}
-    end)
+    |> Multi.run({:index, id}, fn _, _ -> fix_index(changeset, %{}) end)
   end
 
-  @spec apply_edit_changeset(changeset :: Changeset.t(), type :: object_type()) ::
+  @spec apply_edit_changeset(changeset :: Changeset.t()) ::
           {:error, Changeset.t(), String.t()} | {:ok, map()}
-  def apply_edit_changeset(%Changeset{} = changeset, type) do
+  def apply_edit_changeset(%Changeset{} = changeset) do
     result =
       Multi.new()
-      |> apply_changeset_to_multi(changeset, type)
+      |> apply_changeset_to_multi(changeset)
       |> Repo.transaction()
 
     case result do
@@ -600,7 +660,7 @@ defmodule PenguinMemories.Database.Query do
   #
   #           obj ->
   #             obj_changeset = get_edit_changeset(obj, changes)
-  #             apply_changeset_to_multi(multi, obj_changeset, type)
+  #             apply_changeset_to_multi(multi, obj_changeset)
   #         end
   #       end)
   #

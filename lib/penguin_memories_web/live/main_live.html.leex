@@ -1,0 +1,44 @@
+<%
+  has_reference = @reference_type_id != nil
+  is_photos = @objects.type == Photos.Photo
+
+  render_objects =
+    case {is_photos, has_reference} do
+      {false, _} -> true
+      {true, false} -> true
+      _ -> false
+    end
+
+  render_photos =
+    case {is_photos, has_reference} do
+      {false, true} -> true
+      _ -> false
+    end
+%>
+
+<%= if render_objects or render_photos do %>
+  <form method="get" phx-submit="search" novalidate="">
+    <div class="form-group">
+      <input
+        class="form-control"
+        name="query"
+        placeholder="Search"
+        type="text"
+        value="<%= @query %>"
+      />
+    </div>
+    <input type="submit" class="btn btn-primary" value="Search" />
+  </form>
+<% end %>
+
+<%= if @reference_type_id do %>
+  <%= live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: :reference) %>
+<% end %>
+
+<%= if render_objects do %>
+  <%= live_render(@socket, PenguinMemoriesWeb.ObjectListLive, id: :objects) %>
+<% end %>
+
+<%= if render_photos do %>
+  <%= live_render(@socket, PenguinMemoriesWeb.ObjectListLive, id: :photos) %>
+<% end %>

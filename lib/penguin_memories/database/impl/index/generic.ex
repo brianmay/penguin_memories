@@ -9,8 +9,8 @@ defmodule PenguinMemories.Database.Impl.Index.Generic do
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Repo
 
-  @callback get_parent_fields() :: list(atom())
-  @callback get_index_type() :: module() | nil
+  # @callback get_parent_id_fields() :: list(atom())
+  # @callback get_index_type() :: module() | nil
 
   @type object_type :: Database.object_type()
 
@@ -20,7 +20,7 @@ defmodule PenguinMemories.Database.Impl.Index.Generic do
   @spec get_parent_ids(id :: integer, type :: object_type) :: list(integer())
   def get_parent_ids(id, type) when is_integer(id) do
     backend = Types.get_backend!(type)
-    fields = backend.get_parent_fields()
+    fields = backend.get_parent_id_fields()
 
     case fields do
       [] ->
@@ -44,7 +44,7 @@ defmodule PenguinMemories.Database.Impl.Index.Generic do
   @spec get_child_ids(id :: integer, type :: object_type) :: list(integer())
   def get_child_ids(id, type) do
     backend = Types.get_backend!(type)
-    fields = backend.get_parent_fields()
+    fields = backend.get_parent_id_fields()
 
     dynamic =
       Enum.reduce(fields, false, fn field_name, dynamic ->

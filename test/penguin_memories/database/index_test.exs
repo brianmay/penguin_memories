@@ -264,7 +264,7 @@ defmodule PenguinMemories.Database.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(1, @dummy_type)
+      {:ok, _} = Index.fix_index_tree(1, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 1}])
@@ -309,7 +309,7 @@ defmodule PenguinMemories.Database.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(3, @dummy_type)
+      {:ok, _} = Index.fix_index_tree(3, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 98}]),
@@ -357,7 +357,7 @@ defmodule PenguinMemories.Database.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(3, @dummy_type)
+      {:ok, _} = Index.fix_index_tree(3, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 98}]),
@@ -405,7 +405,7 @@ defmodule PenguinMemories.Database.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(3, @dummy_type)
+      {:ok, _} = Index.fix_index_tree(3, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 98}]),
@@ -453,7 +453,7 @@ defmodule PenguinMemories.Database.IndexTest do
         :ok
       end)
 
-      :ok = Index.fix_index_tree(3, @dummy_type)
+      {:ok, _} = Index.fix_index_tree(3, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{1, 98}]),

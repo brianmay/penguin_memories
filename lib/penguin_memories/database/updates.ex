@@ -5,6 +5,8 @@ defmodule PenguinMemories.Database.Updates do
   import Ecto.Query
 
   alias PenguinMemories.Database
+  alias PenguinMemories.Database.Index
+  alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Repo
 
@@ -148,22 +150,35 @@ defmodule PenguinMemories.Database.Updates do
       end)
 
     {:ok, changes, assoc} = apply_update_to_object(updates, object, %{}, %{})
-    backend.update_changeset(object, changes, assoc, enabled)
+    changeset = backend.update_changeset(object, changes, assoc, enabled)
+
+    %{changeset | action: :update}
   end
 
   @spec apply_updates_to_object(updates :: list(UpdateChange.t()), object :: struct()) ::
-          :ok | {:error, String.t()}
+          {:ok, Ecto.Changeset.t(), struct()} | {:error, String.t()}
   defp apply_updates_to_object(updates, object) do
     changeset = get_update_changeset(object, updates)
 
     case Repo.update(changeset) do
-      {:ok, _} -> :ok
+      {:ok, new_obj} -> {:ok, changeset, new_obj}
       {:error, _} -> {:error, "Update of object #{object.id} failed"}
     end
   end
 
-  @spec rollback_if_error(result :: :ok | {:error, String.t()}) :: :ok
-  defp rollback_if_error(:ok), do: :ok
+  @spec fix_index(
+          result :: {:ok, Ecto.Changeset.t(), struct()} | {:error, String.t()},
+          cache :: Index.cache_type()
+        ) :: {:ok, Index.cache_type()} | {:error, String.t()}
+  defp fix_index({:error, _} = rc, _cache), do: rc
+
+  defp fix_index({:ok, %Ecto.Changeset{} = changeset, _new_obj}, cache) do
+    Query.fix_index(changeset, cache)
+  end
+
+  @spec rollback_if_error(result :: {:ok, Index.cache_type()} | {:error, String.t()}) ::
+          Index.cache_type()
+  defp rollback_if_error({:ok, cache}), do: cache
   defp rollback_if_error({:error, reason}), do: Repo.rollback(reason)
 
   @spec decode_result({:ok, :ok} | {:error, String.t()}) :: :ok | {:error, String.t()}
@@ -179,10 +194,11 @@ defmodule PenguinMemories.Database.Updates do
       query
       |> select_merge([object: o], %{o: o})
       |> Repo.stream()
-      |> Stream.map(fn result ->
+      |> Stream.scan(%{}, fn result, cache ->
         [obj] = backend.preload_details_from_results([result.o])
 
         apply_updates_to_object(updates, obj)
+        |> fix_index(cache)
         |> rollback_if_error()
       end)
       |> Stream.run()

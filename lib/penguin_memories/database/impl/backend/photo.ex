@@ -35,6 +35,10 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   def get_parent_fields, do: []
 
   @impl API
+  @spec get_parent_id_fields :: list(atom())
+  def get_parent_id_fields, do: []
+
+  @impl API
   @spec get_index_type :: module() | nil
   def get_index_type, do: nil
 

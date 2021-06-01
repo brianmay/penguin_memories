@@ -4,108 +4,91 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   """
   use PenguinMemoriesWeb, :live_view
 
+  # alias Ecto.Changeset
   alias Elixir.Phoenix.LiveView.Socket
-  alias PenguinMemories.Auth
+
+  # alias PenguinMemories.Accounts.User
+  # alias PenguinMemories.Auth
+  alias PenguinMemories.Database
+  # alias PenguinMemories.Database.Fields
   alias PenguinMemories.Database.Query
-  alias PenguinMemories.Database.Query.Filter
-  alias PenguinMemories.Database.Query.Icon
   alias PenguinMemories.Database.Types
+  alias PenguinMemories.Loaders
+  alias PenguinMemories.Urls
+  # alias PenguinMemories.Photos
+  # alias PenguinMemoriesWeb.FieldHelpers
+  # alias PenguinMemoriesWeb.Router.Helpers, as: Routes
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, session, socket) do
+  def mount(_params, _session, socket) do
+    # user =
+    #   case Auth.load_user(session) do
+    #     {:ok, %User{} = user} -> user
+    #     :not_logged_in -> nil
+    #   end
+
+    # request = session["request"]
+    # url = session["url"]
+
     assigns = [
-      selected_ids: MapSet.new()
+      # user: user,
+      request: nil,
+      url: nil,
+      selected_ids: MapSet.new(),
+      last_clicked_id: nil,
+      response: nil,
+      selected_pid: nil,
+      update_pid: nil
     ]
 
-    assigns =
-      case Auth.load_user(session) do
-        {:ok, user} ->
-          [{:user, user} | assigns]
+    socket = assign(socket, assigns)
 
-        {:error, error} ->
-          [{:error, "There was an error logging the user in: #{inspect(error)}"} | assigns]
+    if connected?(socket) do
+      send(socket.parent_pid, {:child_pid, socket.id, self()})
+    end
 
-        :not_logged_in ->
-          assigns
-      end
-      |> Keyword.put_new(:error, nil)
-      |> Keyword.put_new(:user, nil)
-
-    PenguinMemoriesWeb.Endpoint.subscribe("refresh")
-    {:ok, assign(socket, assigns)}
-  end
-
-  @spec uri_merge(URI.t(), %{required(String.t()) => String.t()}, list(String.t())) :: URI.t()
-  defp uri_merge(uri, merge, delete) do
-    query =
-      case uri.query do
-        nil -> %{}
-        query -> URI.decode_query(query)
-      end
-
-    query = Map.drop(query, delete)
-    query = Map.merge(query, merge)
-    query = URI.encode_query(query)
-    %URI{uri | query: query}
-  end
-
-  @spec uri_to_path(URI.t()) :: URI.t()
-  defp uri_to_path(%URI{} = uri) do
-    %{uri | authority: nil, host: nil, scheme: nil}
+    # PenguinMemoriesWeb.Endpoint.subscribe("refresh")
+    {:ok, socket}
   end
 
   @impl true
-  def handle_params(params, uri, socket) do
-    requested_before_key = params["before"]
-    requested_after_key = params["after"]
+  def handle_event("select", params, socket) do
+    %{"id" => clicked_id, "ctrlKey" => ctrl_key, "shiftKey" => shift_key, "altKey" => alt_key} =
+      params
 
-    {:ok, type} = Types.get_type_for_name(params["type"])
+    clicked_id = to_int(clicked_id)
 
-    parsed_uri = uri |> URI.parse() |> uri_to_path()
+    {selected_ids, socket} =
+      cond do
+        ctrl_key ->
+          s = toggle(socket.assigns.selected_ids, clicked_id)
+          {s, socket}
 
-    reference =
-      case {params["id"], params["references"]} do
-        {nil, nil} ->
-          nil
+        shift_key ->
+          s =
+            toggle_range(
+              socket.assigns.selected_ids,
+              socket.assigns.response.icons,
+              socket.assigns.last_clicked_id,
+              clicked_id
+            )
 
-        {id, nil} ->
-          {id, ""} = Integer.parse(id)
-          {type, id}
+          {s, socket}
 
-        {_, value} ->
-          [type, id] = String.split(value, ":", max_parts: 2)
-          {:ok, type} = Types.get_type_for_name(type)
-          {id, ""} = Integer.parse(id)
-          {type, id}
+        alt_key ->
+          type_name = Types.get_name!(socket.assigns.request.type)
+          url = Routes.main_path(socket, :index, type_name, clicked_id)
+          socket = push_patch(socket, to: url)
+          {socket.assigns.selected_ids, socket}
+
+        true ->
+          {MapSet.new([clicked_id]), socket}
       end
-
-    ids =
-      case params["ids"] do
-        nil ->
-          nil
-
-        value ->
-          value
-          |> String.split(",")
-          |> MapSet.new()
-      end
-
-    filter = %Filter{
-      ids: ids,
-      reference: reference,
-      query: params["query"]
-    }
 
     assigns = [
-      type: type,
-      active: Types.get_name!(type),
-      parsed_uri: parsed_uri,
-      requested_before_key: requested_before_key,
-      requested_after_key: requested_after_key,
-      filter: filter,
-      last_clicked_id: nil,
-      show_selected: false
+      selected_ids: selected_ids,
+      last_clicked_id: clicked_id
     ]
 
     socket =
@@ -116,75 +99,188 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {:noreply, socket}
   end
 
-  @spec get_filter(assigns :: map()) :: map()
-  defp get_filter(assigns) do
-    case assigns.show_selected do
-      false -> assigns.filter
-      true -> %Filter{ids: assigns.filter}
+  @impl true
+  def handle_event("show-selected", _params, socket) do
+    name = socket.assigns.request.show_selected_name
+    before_name = socket.assigns.request.before_name
+    after_name = socket.assigns.request.after_name
+
+    url =
+      socket.assigns.url
+      |> Urls.url_merge(%{name => true}, [before_name, after_name])
+      |> URI.to_string()
+
+    socket = push_patch(socket, to: url)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("show-all", _params, socket) do
+    name = socket.assigns.request.show_selected_name
+
+    url =
+      socket.assigns.url
+      |> Urls.url_merge(%{}, [name])
+      |> URI.to_string()
+
+    socket = push_patch(socket, to: url)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("select-none", _params, socket) do
+    {:noreply, socket |> assign(selected_ids: MapSet.new()) |> reload()}
+  end
+
+  @impl true
+  def handle_event("select-all", _params, socket) do
+    {:noreply, socket |> assign(selected_ids: :all) |> reload()}
+  end
+
+  @impl true
+  def handle_info(
+        {:parameters, %Loaders.ListRequest{} = request, %URI{} = url, %URI{} = host_uri},
+        socket
+      ) do
+    assigns = [
+      # user: socket.assigns.user,
+      request: request,
+      url: url
+      # selected_ids: MapSet.new(),
+      # show_selected: false,
+      # last_clicked_id: nil
+    ]
+
+    socket = %Socket{socket | host_uri: host_uri}
+    socket = assign(socket, assigns) |> reload()
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:select_object, id}, socket) do
+    socket = assign(socket, selected_ids: MapSet.new([id])) |> reload()
+    {:noreply, socket}
+  end
+
+  # @impl true
+  # def handle_info(%{topic: "refresh"}, socket) do
+  #   socket = reload(socket)
+  #   {:noreply, socket}
+  # end
+
+  @impl true
+  def handle_info({:child_pid, "selected", pid}, socket) do
+    socket = assign(socket, selected_pid: pid)
+    :ok = notify_selected_child(socket)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:child_pid, "update", pid}, socket) do
+    socket = assign(socket, update_pid: pid)
+    :ok = notify_update_child(socket)
+    {:noreply, socket}
+  end
+
+  @spec get_prev_next_icons(
+          selection_id :: integer,
+          filter :: Query.Filter.t(),
+          type :: Database.object_type()
+        ) :: {Query.Icon.t() | nil, Query.Icon.t() | nil}
+  def get_prev_next_icons(selection_id, filter, type) do
+    case Query.get_cursor_by_id(selection_id, type) do
+      nil ->
+        {nil, nil}
+
+      cursor ->
+        prev_icon = Query.get_prev_next_id(filter, cursor, nil, "thumb", type)
+        next_icon = Query.get_prev_next_id(filter, nil, cursor, "thumb", type)
+        {prev_icon, next_icon}
     end
   end
 
-  def reload(socket) do
-    type = socket.assigns.type
-    parsed_uri = socket.assigns.parsed_uri
-    requested_before_key = socket.assigns.requested_before_key
-    requested_after_key = socket.assigns.requested_after_key
-    filter = get_filter(socket.assigns)
+  @spec notify_update_child(Socket.t()) :: :ok
+  defp notify_update_child(%Socket{} = socket) do
+    if socket.assigns.update_pid != nil do
+      type = socket.assigns.request.type
+      filter = get_update_filter(socket.assigns)
+      pid = socket.assigns.update_pid
+      send(pid, {:parameters, filter, type})
+    end
 
-    parents =
-      case socket.assigns.filter.reference do
-        nil ->
-          []
-
-        reference ->
-          {ref_type, ref_id} = reference
-
-          ref_id
-          |> Query.query_parents(ref_type)
-          |> Enum.group_by(fn {_icon, position} -> position end)
-          |> Enum.map(fn {position, list} ->
-            {position, Enum.map(list, fn {icon, _} -> icon end)}
-          end)
-          |> Enum.sort_by(fn {position, _} -> -position end)
-      end
-
-    {icons, before_key, after_key, total_count} =
-      Query.get_page_icons(filter, requested_before_key, requested_after_key, 10, "thumb", type)
-
-    before_url =
-      case before_key do
-        nil ->
-          nil
-
-        key ->
-          parsed_uri
-          |> uri_merge(%{"before" => key}, ["after"])
-          |> URI.to_string()
-      end
-
-    after_url =
-      case after_key do
-        nil ->
-          nil
-
-        key ->
-          parsed_uri
-          |> uri_merge(%{"after" => key}, ["before"])
-          |> URI.to_string()
-      end
-
-    assigns = [
-      icons: icons,
-      parse_url: parsed_uri,
-      before_url: before_url,
-      after_url: after_url,
-      total_count: total_count,
-      parents: parents
-    ]
-
-    assign(socket, assigns)
+    :ok
   end
 
+  @spec notify_selected_child(Socket.t()) :: :ok
+  defp notify_selected_child(%Socket{} = socket) do
+    if socket.assigns.selected_pid != nil do
+      case get_single_selection(socket.assigns.selected_ids) do
+        nil ->
+          :ok
+
+        selection_id ->
+          type = socket.assigns.request.type
+          filter = get_filter(socket.assigns)
+          {prev_icon, next_icon} = get_prev_next_icons(selection_id, filter, type)
+
+          pid = socket.assigns.selected_pid
+          send(pid, {:parameters, type, selection_id, socket.host_uri, prev_icon, next_icon})
+      end
+    end
+
+    :ok
+  end
+
+  @spec count_selections(selected_ids :: MapSet.t() | :all) :: integer() | :infinity
+  def count_selections(:all), do: :infinity
+  def count_selections(selected_ids), do: MapSet.size(selected_ids)
+
+  @spec get_single_selection(selected_ids :: MapSet.t()) :: integer() | nil
+  def get_single_selection(selected_ids) do
+    case count_selections(selected_ids) do
+      :infinity ->
+        nil
+
+      1 ->
+        [id] = MapSet.to_list(selected_ids)
+        id
+
+      _ ->
+        nil
+    end
+  end
+
+  @spec reload(Socket.t()) :: Socket.t()
+  defp reload(%Socket{} = socket) do
+    :ok = notify_selected_child(socket)
+    :ok = notify_update_child(socket)
+
+    request = get_request(socket.assigns)
+    response = Loaders.load_objects(request, socket.assigns.url)
+    assign(socket, response: response)
+  end
+
+  @spec icon_classes(Query.Icon.t(), MapSet.t(), integer) :: list(String.t())
+  defp icon_classes(%Query.Icon{} = icon, selected_ids, last_clicked_id) do
+    result = []
+
+    result =
+      cond do
+        last_clicked_id == icon.id -> ["last_clicked" | result]
+        true -> result
+      end
+
+    result =
+      cond do
+        selected_ids == :all -> ["selected" | result]
+        MapSet.member?(selected_ids, icon.id) -> ["selected" | result]
+        true -> result
+      end
+
+    result
+  end
+
+  @spec toggle(mapset :: MapSet.t(), id :: integer()) :: MapSet.t()
   defp toggle(mapset, id) do
     cond do
       MapSet.member?(mapset, id) ->
@@ -210,10 +306,37 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     end
   end
 
-  defp num_selected(mapset) do
-    MapSet.size(mapset)
+  # defp num_selected(mapset) do
+  #   MapSet.size(mapset)
+  # end
+  @spec get_update_filter(assigns :: map()) :: map()
+  defp get_update_filter(assigns) do
+    case assigns.selected_ids do
+      :all -> assigns.request.filter
+      selected_ids -> %Query.Filter{ids: selected_ids}
+    end
   end
 
+  @spec get_filter(assigns :: map()) :: map()
+  defp get_filter(assigns) do
+    case assigns.request.show_selected_value do
+      false -> assigns.request.filter
+      true -> get_update_filter(assigns)
+    end
+  end
+
+  @spec get_request(assigns :: map()) :: Loaders.ListRequest.t()
+  def get_request(assigns) do
+    filter = get_filter(assigns)
+    %Loaders.ListRequest{assigns.request | filter: filter}
+  end
+
+  @spec toggle_range(
+          mapset :: MapSet.t(),
+          icons :: Query.Icon.t(),
+          last_clicked_id :: integer(),
+          clicked_id :: integer
+        ) :: MapSet.t()
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp toggle_range(mapset, icons, last_clicked_id, clicked_id) do
     new_state = MapSet.member?(mapset, last_clicked_id)
@@ -253,135 +376,6 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       1 -> mapset
       2 -> new_mapset
     end
-  end
-
-  @impl true
-  @spec handle_event(String.t(), any, Phoenix.LiveView.Socket.t()) ::
-          {:noreply, Phoenix.LiveView.Socket.t()}
-  def handle_event("goto", params, socket) do
-    %{"id" => id, "type" => type} = params
-    id = to_int(id)
-    {:ok, type} = Types.get_type_for_name(type)
-    type_name = Types.get_name!(type)
-    url = Routes.object_list_path(socket, :index, type_name, id)
-
-    socket =
-      cond do
-        type == socket.assigns.type -> push_patch(socket, to: url)
-        true -> push_redirect(socket, to: url)
-      end
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("search", params, socket) do
-    %{"query" => query} = params
-
-    search =
-      if query == "" do
-        %{}
-      else
-        %{"query" => query}
-      end
-
-    url =
-      socket.assigns.parsed_uri
-      |> uri_merge(search, ["before", "after", "query"])
-      |> URI.to_string()
-
-    socket = push_patch(socket, to: url)
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("select", params, socket) do
-    %{"id" => clicked_id, "ctrlKey" => ctrl_key, "shiftKey" => shift_key, "altKey" => alt_key} =
-      params
-
-    clicked_id = to_int(clicked_id)
-
-    {selected_ids, socket} =
-      cond do
-        ctrl_key ->
-          s = toggle(socket.assigns.selected_ids, clicked_id)
-          {s, socket}
-
-        shift_key ->
-          s =
-            toggle_range(
-              socket.assigns.selected_ids,
-              socket.assigns.icons,
-              socket.assigns.last_clicked_id,
-              clicked_id
-            )
-
-          {s, socket}
-
-        alt_key ->
-          type_name = socket.assigns.type.get_type_name()
-          url = Routes.object_list_path(socket, :index, type_name, clicked_id)
-          socket = push_patch(socket, to: url)
-          {socket.assigns.selected_ids, socket}
-
-        true ->
-          {MapSet.new([clicked_id]), socket}
-      end
-
-    assigns = [
-      selected_ids: selected_ids,
-      last_clicked_id: clicked_id
-    ]
-
-    {:noreply, assign(socket, assigns)}
-  end
-
-  @impl true
-  def handle_event("show-selected", _params, socket) do
-    {:noreply, socket |> assign(show_selected: true) |> reload()}
-  end
-
-  @impl true
-  def handle_event("select-none", _params, socket) do
-    {:noreply, socket |> assign(show_selected: false, selected_ids: MapSet.new()) |> reload()}
-  end
-
-  @impl true
-  def handle_event("show-all", _params, socket) do
-    {:noreply, socket |> assign(show_selected: false) |> reload()}
-  end
-
-  @impl true
-  def handle_event("select-object", %{"id" => id}, socket) do
-    id = to_int(id)
-    socket = assign(socket, selected_ids: MapSet.new([id]), num_selected: 1) |> reload()
-    {:noreply, socket}
-  end
-
-  @spec icon_classes(Icon.t(), MapSet.t(), integer) :: list(String.t())
-  defp icon_classes(%Icon{} = icon, selected_ids, last_clicked_id) do
-    result = []
-
-    result =
-      cond do
-        last_clicked_id == icon.id -> ["last_clicked" | result]
-        true -> result
-      end
-
-    result =
-      cond do
-        MapSet.member?(selected_ids, icon.id) -> ["selected" | result]
-        true -> result
-      end
-
-    result
-  end
-
-  @impl true
-  def handle_info(%{topic: "refresh"}, socket) do
-    socket = reload(socket)
-    send_update(PenguinMemoriesWeb.ObjectDetailComponent, id: :detail, status: "refresh")
-    {:noreply, socket}
   end
 
   @spec to_int(String.t()) :: integer

@@ -34,7 +34,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
             form: Form.t(),
             single_choice: boolean(),
             type: Query.object_type(),
-            updates: {module(), String.t()}
+            updates: pid()
           },
           Phoenix.LiveView.Socket.t()
         ) :: {:ok, Phoenix.LiveView.Socket.t()}
@@ -200,8 +200,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
         {false, v} -> v
       end
 
-    {module, id} = socket.assigns.updates
-
-    send_update(module, id: id, status: :selected, field_id: socket.assigns.field.id, value: value)
+    pid = socket.assigns.updates
+    send(pid, {:selected, socket.assigns.field.id, value})
   end
 end

@@ -51,8 +51,8 @@ defmodule PenguinMemoriesWeb.Router do
     live "/login", SessionLive, :login
     post "/login", SessionController, :login
     post "/logout", SessionController, :logout
-    live "/:type/", ObjectListLive, :index
-    live "/:type/:id/", ObjectListLive, :index
+    live "/:type/", MainLive, :index
+    live "/:type/:id/", MainLive, :index
   end
 
   # Other scopes may use custom stacks.

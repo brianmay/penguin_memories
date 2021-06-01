@@ -242,7 +242,9 @@
 }
 
 .hoverable {
-    .non_hover {
+    position: relative;
+
+    .item {
         border: 1px solid #dddddd;
         border-radius: 0.25em;
         background: #ffff88;
@@ -255,24 +257,20 @@
         display: none;
         background: white;
         margin: 0;
+        left: 10px;
+        top: 10px;
+        position: absolute;
+        z-index: 100;
     }
-
-
 }
 
 .hoverable:hover {
-    position: relative;
-
-    .non_hover {
+    .item {
         border: 1px solid black;
     }
 
     .hover {
-        left: 10px;
-        top: 10px;
-        position: absolute;
         display: inline-block;
-        z-index: 1;
     }
 
 }

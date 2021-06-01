@@ -1,0 +1,163 @@
+<%= if @details do %>
+  <% type_name = PenguinMemories.Database.Types.get_name!(@type) %>
+  <% fields = Fields.get_fields(@type, @user) %>
+
+  <div class="photo_detail <%= if @big do %>big<% end %>">
+    <%= if @error do %>
+      <div class="alert alert-danger">
+        <%= @error %>
+      </div>
+    <% end %>
+
+    <%= if length(@details.parents) > 0 do %>
+      <div class="parents">
+        <%= for {_position, icons} <- @details.parents do %>
+          <%=
+            Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
+              icons: icons,
+              classes: [],
+              event: "goto"
+            )
+          %>
+          <div class="arrow">🠆</div>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="photo">
+      <%= if length(@details.videos) > 0 do %>
+        <% first = hd(@details.videos) %>
+        <video
+          phx-hook="video"
+          controls="controls"
+          width="<%= first.width %>"
+          height="<%= first.height %>"
+        >
+          <%= for video <- @details.videos do %>
+            <source src="<%= video.url %>" type="<%= video.mime_type %>" />
+          <% end %>
+        </video>
+      <% else %>
+        <%= if @details.icon.url do %>
+          <img
+            src="<%= @details.icon.url %>"
+            alt="<%= @details.icon.title %>"
+            width="<%= @details.icon.width %>"
+            height="<%= @details.icon.height %>"
+          />
+        <% else %>
+          No image
+        <% end %>
+      <% end %>
+      <div class="title">
+        <%= @details.icon.title %>
+      </div>
+    </div>
+
+    <%= if @mode == :display do %>
+      <table class="photo_table table table-hover">
+        <tbody>
+          <%= for field <- fields do %>
+            <tr>
+              <th><%= field.title %></th>
+              <td><%= FieldHelpers.output_field(@details.obj, field) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+
+    <%= if @mode == :edit do %>
+      <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save"] %>
+        <%= for %Fields.Field{} = field <- fields do %>
+          <%= if field.read_only == false do %>
+            <%= FieldHelpers.input_field @socket, f, field %>
+          <% end %>
+        <% end %>
+        <div>
+          <span
+            ><input type="submit" class="btn btn-primary" value="Save"
+          /></span>
+          <span
+            ><input
+              type="button"
+              class="btn btn-danger"
+              phx-click="cancel"
+              value="Cancel"
+          /></span>
+        </div>
+      </form>
+    <% end %>
+
+    <div class="buttons">
+      <%= if @mode == :display do %>
+        <%= live_redirect to: Routes.main_path(@socket, :index, type_name, @details.icon.id), class: "btn btn-secondary" do %>
+          Goto
+        <% end %>
+
+        <%= if @prev_icon do %>
+          <div class="hoverable btn-prev">
+            <div
+              class="btn btn-secondary"
+              phx-click="select-object"
+              phx-value-id="<%= @prev_icon.id %>"
+            >
+              &lt;
+            </div>
+            <div class="hover">
+              <%=
+                Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+                  icon: @prev_icon,
+                  classes: [],
+                  event: "select-object"
+                )
+              %>
+            </div>
+          </div>
+        <% end %>
+
+        <%= if @next_icon do %>
+          <div class="hoverable btn-next">
+            <div
+              class="btn btn-secondary"
+              phx-click="select-object"
+              phx-value-id="<%= @next_icon.id %>"
+            >
+              &gt;
+            </div>
+            <div class="hover">
+              <%=
+                Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+                  icon: @next_icon,
+                  classes: [],
+                  event: "select-object"
+                )
+              %>
+            </div>
+          </div>
+        <% end %>
+
+        <%= if @big do %>
+          <div class="btn btn-secondary" phx-click="unbig">Unbig</div>
+        <% else %>
+          <div class="btn btn-secondary" phx-click="big">Big</div>
+        <% end %>
+
+        <% url = get_photo_url(@socket, @details.obj) %>
+        <%= if url do %>
+          <%= live_redirect to: url, class: "btn btn-secondary" do %>
+            Photos
+          <% end %>
+        <% end %>
+
+        <%= if Auth.can_edit(@user) do %>
+          <div class="btn btn-secondary" phx-click="create">Create</div>
+          <div class="btn btn-secondary" phx-click="edit">Edit</div>
+          <div class="btn btn-secondary" phx-click="delete">Delete</div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% else %>
+  LOADING
+<% end %>

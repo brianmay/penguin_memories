@@ -125,11 +125,9 @@ defmodule PenguinMemories.Database.Index do
     end
   end
 
-  @spec fix_index_tree(integer, object_type) :: :ok
-  def fix_index_tree(id, type) when is_integer(id) do
+  @spec fix_index_tree(integer, object_type, cache_type) :: {:ok, cache_type}
+  def fix_index_tree(id, type, cache \\ %{}) when is_integer(id) do
     api = get_index_api()
-
-    cache = %{}
     {_, cache} = fix_index_parents(id, type, MapSet.new(), cache)
 
     # Note we have to descend all children even if we have seen the parent
@@ -139,11 +137,11 @@ defmodule PenguinMemories.Database.Index do
     seen = MapSet.new()
     children = api.get_child_ids(id, type)
 
-    {_, _} =
+    {_, cache} =
       Enum.reduce(children, {seen, cache}, fn
         child, {seen, cache} -> fix_index_children(child, type, seen, cache)
       end)
 
-    :ok
+    {:ok, cache}
   end
 end

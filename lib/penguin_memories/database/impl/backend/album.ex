@@ -32,7 +32,11 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
 
   @impl API
   @spec get_parent_fields :: list(atom())
-  def get_parent_fields, do: [:parent_id]
+  def get_parent_fields, do: [:parent]
+
+  @impl API
+  @spec get_parent_id_fields :: list(atom())
+  def get_parent_id_fields, do: [:parent_id]
 
   @impl API
   @spec get_index_type :: module() | nil

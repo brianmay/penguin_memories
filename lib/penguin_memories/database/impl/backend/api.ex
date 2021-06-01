@@ -11,6 +11,7 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
   @callback get_plural_name :: String.t()
   @callback get_cursor_fields :: list(atom())
   @callback get_parent_fields() :: list(atom())
+  @callback get_parent_id_fields() :: list(atom())
   @callback get_index_type() :: module() | nil
   @callback query() :: Ecto.Query.t()
   @callback filter_by_photo_id(query :: Ecto.Query.t(), photo_id :: integer) :: Ecto.Query.t()
