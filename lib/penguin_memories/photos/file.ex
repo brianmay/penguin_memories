@@ -13,7 +13,7 @@ defmodule PenguinMemories.Photos.File do
           height: integer() | nil,
           is_video: boolean() | nil,
           mime_type: String.t() | nil,
-          name: String.t() | nil,
+          filename: String.t() | nil,
           num_bytes: integer() | nil,
           sha256_hash: binary() | nil,
           size_key: String.t() | nil,
@@ -29,7 +29,7 @@ defmodule PenguinMemories.Photos.File do
     field :height, :integer
     field :is_video, :boolean, default: false
     field :mime_type, :string
-    field :name, :string
+    field :filename, :string
     field :num_bytes, :integer
     field :sha256_hash, :binary
     field :size_key, :string
@@ -46,7 +46,7 @@ defmodule PenguinMemories.Photos.File do
       :width,
       :height,
       :dir,
-      :name,
+      :filename,
       :is_video,
       :mime_type,
       :sha256_hash,
@@ -57,7 +57,7 @@ defmodule PenguinMemories.Photos.File do
       :width,
       :height,
       :dir,
-      :name,
+      :filename,
       :is_video,
       :mime_type,
       :sha256_hash,
@@ -67,6 +67,6 @@ defmodule PenguinMemories.Photos.File do
 
   @spec to_string(t()) :: String.t()
   def to_string(%__MODULE__{} = file) do
-    "#{file.id}:#{file.dir}/#{file.name}"
+    "#{file.id}:#{file.dir}/#{file.filename}"
   end
 end

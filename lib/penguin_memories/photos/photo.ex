@@ -31,7 +31,7 @@ defmodule PenguinMemories.Photos.Photo do
           focus_dist: float | nil,
           iso_equiv: integer | nil,
           metering_mode: String.t() | nil,
-          name: String.t() | nil,
+          filename: String.t() | nil,
           dir: String.t() | nil,
           photographer_id: integer | nil,
           place_id: integer | nil,
@@ -64,7 +64,7 @@ defmodule PenguinMemories.Photos.Photo do
     field :focus_dist, :float
     field :iso_equiv, :integer
     field :metering_mode, :string
-    field :name, :string
+    field :filename, :string
     field :dir, :string
     field :rating, :float
     field :title, :string
@@ -86,6 +86,6 @@ defmodule PenguinMemories.Photos.Photo do
 
   @spec to_string(t()) :: String.t()
   def to_string(%__MODULE__{} = photo) do
-    "#{photo.id}:#{photo.dir}/#{photo.name}"
+    "#{photo.id}:#{photo.dir}/#{photo.filename}"
   end
 end

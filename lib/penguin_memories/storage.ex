@@ -63,7 +63,7 @@ defmodule PenguinMemories.Storage do
 
   @spec get_photo_file_path(File.t()) :: String.t()
   def get_photo_file_path(%File{} = file) do
-    build_path(file.dir, file.name)
+    build_path(file.dir, file.filename)
   end
 
   @spec get_photo_file_media(File.t()) :: {:ok, Media.t()} | {:error, String.t()}
@@ -77,8 +77,8 @@ defmodule PenguinMemories.Storage do
     "#{path}.#{extension}"
   end
 
-  @spec build_new_name(Photo.t(), Media.t()) :: String.t()
-  defp build_new_name(%Photo{} = photo, %Media{} = media) do
+  @spec build_new_filename(Photo.t(), Media.t()) :: String.t()
+  defp build_new_filename(%Photo{} = photo, %Media{} = media) do
     extension = Media.get_extension(media)
 
     photo.id
@@ -90,10 +90,10 @@ defmodule PenguinMemories.Storage do
   @spec check_conflicts(boolean, String.t(), String.t()) :: :ok | {:error, String.t()}
   defp check_conflicts(false, _, _), do: :ok
 
-  defp check_conflicts(true, file_dir, name) do
-    path = build_path(file_dir, name)
+  defp check_conflicts(true, file_dir, filename) do
+    path = build_path(file_dir, filename)
 
-    with [] <- Conflicts.get_file_dir_conflicts(file_dir, name),
+    with [] <- Conflicts.get_file_dir_conflicts(file_dir, filename),
          {:error, _} <- stat(path) do
       :ok
     else
@@ -105,7 +105,7 @@ defmodule PenguinMemories.Storage do
   @spec build_file_from_media(Photo.t(), Media.t(), String.t(), keyword()) ::
           {:ok, File.t()} | {:error, String.t()}
   def build_file_from_media(%Photo{} = photo, %Media{} = media, size_key, opts \\ []) do
-    name = build_new_name(photo, media)
+    filename = build_new_filename(photo, media)
     size = Media.get_size(media)
     sha256_hash = Media.get_sha256_hash(media)
     num_bytes = Media.get_num_bytes(media)
@@ -113,18 +113,18 @@ defmodule PenguinMemories.Storage do
     is_video = Media.is_video(media)
 
     file_dir = build_file_dir(photo.dir, size_key, is_video)
-    dest_path = build_path(file_dir, name)
+    dest_path = build_path(file_dir, filename)
 
     check_conflicts = Keyword.get(opts, :check_conflicts, false)
 
-    with :ok <- check_conflicts(check_conflicts, file_dir, name),
+    with :ok <- check_conflicts(check_conflicts, file_dir, filename),
          {:ok, _} <- Media.copy(media, dest_path) do
       file = %File{
         size_key: size_key,
         width: size.width,
         height: size.height,
         dir: file_dir,
-        name: name,
+        filename: filename,
         is_video: is_video,
         mime_type: format,
         sha256_hash: sha256_hash,

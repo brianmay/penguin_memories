@@ -28,7 +28,7 @@ defmodule PenguinMemories.Database.Impl.Index.GenericTest do
     opts = Keyword.put_new(opts, :datetime, datetime)
     opts = Keyword.put_new(opts, :utc_offset, 0)
     opts = Keyword.put_new(opts, :dir, "a")
-    opts = Keyword.put_new(opts, :name, "a.jpg")
+    opts = Keyword.put_new(opts, :filename, "a.jpg")
     struct(module, opts) |> Repo.insert!()
   end
 

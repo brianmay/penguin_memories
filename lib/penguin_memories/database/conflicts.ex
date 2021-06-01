@@ -13,7 +13,7 @@ defmodule PenguinMemories.Database.Conflicts do
   def get_file_dir_conflicts(new_dir, new_name) do
     file_query =
       from f in File,
-        where: f.dir == ^new_dir and f.name == ^new_name
+        where: f.dir == ^new_dir and f.filename == ^new_name
 
     Repo.all(file_query)
   end

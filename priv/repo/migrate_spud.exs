@@ -63,7 +63,7 @@ defmodule ImportPhotos do
         datetime: f(photo.datetime, fn v -> DateTime.truncate(v, :second) end),
         utc_offset: photo.utc_offset,
         dir: s(photo.path),
-        name: s(photo.name),
+        filename: s(photo.name),
         action: "R",
         view: s(photo.view)
       }
@@ -113,7 +113,7 @@ defmodule ImportPhotoFiles do
            height: spf.height,
            mime_type: spf.mime_type,
            dir: spf.dir,
-           name: spf.name,
+           filename: spf.name,
            is_video: spf.is_video,
            sha256_hash: spf.sha256_hash,
            num_bytes: spf.num_bytes,
@@ -124,8 +124,7 @@ defmodule ImportPhotoFiles do
     )
     |> Repo.stream()
     |> Stream.each(fn {src, photo} ->
-      IO.inspect(src)
-      path = Storage.build_path(src.dir, src.name)
+      path = Storage.build_path(src.dir, src.filename)
       {:ok, media} = Media.get_media(path, src.mime_type)
 
       true = Media.get_num_bytes(media) == src.num_bytes
@@ -147,7 +146,6 @@ defmodule ImportPhotoFiles do
           camera_model: new_photo.camera_model,
           focus_dist: new_photo.focus_dist
         )
-        |> IO.inspect()
         |> Repo.update!()
       end
 
@@ -157,7 +155,7 @@ defmodule ImportPhotoFiles do
         height: src.height,
         mime_type: src.mime_type,
         dir: src.dir,
-        name: src.name,
+        filename: src.filename,
         is_video: src.is_video,
         sha256_hash: src.sha256_hash,
         num_bytes: src.num_bytes,

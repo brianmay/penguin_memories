@@ -7,7 +7,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateFiles do
       add(:width, :integer, null: false)
       add(:height, :integer, null: false)
       add(:dir, :text, null: false)
-      add(:name, :text, null: false)
+      add(:filename, :text, null: false)
       add(:mime_type, :text, null: false)
       add(:is_video, :boolean, default: false, null: false)
       add(:sha256_hash, :binary, null: false)
@@ -18,7 +18,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateFiles do
     end
 
     create(index(:pm_photo_file, [:photo_id, :size_key, :mime_type], unique: true))
-    create(index(:pm_photo_file, [:dir, :name], unique: true))
+    create(index(:pm_photo_file, [:dir, :filename], unique: true))
     create(index(:pm_photo_file, [:size_key, :sha256_hash, :num_bytes]))
   end
 end

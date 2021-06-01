@@ -247,7 +247,7 @@ defmodule PenguinMemories.Upload do
     upload_date = Keyword.get(opts, :date, default_date)
 
     timezone = Keyword.get(opts, :timezone, "Australia/Melbourne")
-    name = Keyword.get(opts, :name, Path.basename(path))
+    filename = Keyword.get(opts, :filename, Path.basename(path))
 
     exif = Media.get_exif(media)
     offset = get_camera_offset(exif["EXIF:Model"])
@@ -265,7 +265,7 @@ defmodule PenguinMemories.Upload do
 
     photo = %Photo{
       dir: photo_dir,
-      name: name,
+      filename: filename,
       datetime: utc_datetime,
       utc_offset: trunc((local_datetime.utc_offset + local_datetime.std_offset) / 60),
       action: "R"
@@ -351,7 +351,7 @@ defmodule PenguinMemories.Upload do
         Enum.each(photos, fn photo ->
           pr = %PhotoRelation{
             relation_id: relation.id,
-            title: photo.name
+            title: photo.filename
           }
 
           prs =

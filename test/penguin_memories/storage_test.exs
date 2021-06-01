@@ -61,7 +61,7 @@ defmodule PenguinMemories.StorageTest do
 
     file = %File{
       dir: "a/b",
-      name: "c.jpg"
+      filename: "c.jpg"
     }
 
     assert Storage.get_photo_file_path(file) == "#{image_dir}/a/b/c.jpg"
@@ -72,7 +72,7 @@ defmodule PenguinMemories.StorageTest do
 
     file = %File{
       dir: "a/b",
-      name: "c.jpg",
+      filename: "c.jpg",
       mime_type: "image/penguin"
     }
 
@@ -91,7 +91,7 @@ defmodule PenguinMemories.StorageTest do
 
     photo = %Photo{
       id: 1,
-      name: "test.wot",
+      filename: "test.wot",
       dir: "1/2/3"
     }
 
@@ -102,7 +102,7 @@ defmodule PenguinMemories.StorageTest do
 
     assert %File{
              photo_id: 1,
-             name: "00000001.jpg",
+             filename: "00000001.jpg",
              dir: "thumb/thumb/1/2/3",
              height: 100,
              width: 100,

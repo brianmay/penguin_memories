@@ -18,7 +18,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
 
       # filesystem - used for creating new image files
       add(:dir, :text, null: false)
-      add(:name, :text, null: false)
+      add(:filename, :text, null: false)
 
       # exif values
       add(:aperture, :float)
@@ -44,8 +44,8 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
     create(index(:pm_photo, [:utc_offset]))
 
     # filesystem - used for creating new image files
-    create(index(:pm_photo, [:dir, :name]))
-    create(index(:pm_photo, [:name]))
+    create(index(:pm_photo, [:dir, :filename]))
+    create(index(:pm_photo, [:filename]))
 
     # exif values
     create(index(:pm_photo, [:aperture]))

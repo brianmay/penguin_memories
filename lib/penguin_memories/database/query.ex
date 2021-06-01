@@ -220,7 +220,7 @@ defmodule PenguinMemories.Database.Query do
           select_merge: %{
             icon: %{
               dir: f.dir,
-              name: f.name,
+              filename: f.filename,
               height: f.height,
               width: f.width,
             }
@@ -237,7 +237,7 @@ defmodule PenguinMemories.Database.Query do
           select_merge: %{
             icon: %{
               dir: f.dir,
-              name: f.name,
+              filename: f.filename,
               height: f.height,
               width: f.width
             }
@@ -251,7 +251,7 @@ defmodule PenguinMemories.Database.Query do
 
     url =
       if result.icon.dir do
-        "#{get_image_url()}/#{result.icon.dir}/#{result.icon.name}"
+        "#{get_image_url()}/#{result.icon.dir}/#{result.icon.filename}"
       end
 
     title = backend.get_title_from_result(result)
@@ -281,7 +281,7 @@ defmodule PenguinMemories.Database.Query do
         order_by: [asc: j.order],
         select_merge: %{
           dir: f.dir,
-          name: f.name,
+          filename: f.filename,
           height: f.height,
           width: f.width,
           mime_type: f.mime_type
@@ -292,7 +292,7 @@ defmodule PenguinMemories.Database.Query do
     Enum.map(entries, fn result ->
       url =
         if result.dir do
-          "#{get_image_url()}/#{result.dir}/#{result.name}"
+          "#{get_image_url()}/#{result.dir}/#{result.filename}"
         end
 
       %Video{
