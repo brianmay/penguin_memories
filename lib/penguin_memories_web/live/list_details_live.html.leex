@@ -1,0 +1,38 @@
+<%= if @type != Photos.Photo do %>
+  <div class="list_detail">
+    <%= if @error do %>
+      <div class="alert alert-danger">
+        <%= @error %>
+      </div>
+    <% end %>
+
+    <%= if @changeset do %>
+      <% fields = Fields.get_fields(@type, @user) %>
+      <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save"] %>
+        <%= for %Fields.Field{} = field <- fields do %>
+          <%= if field.read_only == false do %>
+            <%= FieldHelpers.input_field @socket, f, field %>
+          <% end %>
+        <% end %>
+        <div>
+          <span
+            ><input type="submit" class="btn btn-primary" value="Save"
+          /></span>
+          <span
+            ><input
+              type="button"
+              class="btn btn-danger"
+              phx-click="cancel"
+              value="Cancel"
+          /></span>
+        </div>
+      </form>
+    <% end %>
+
+    <div class="buttons">
+      <%= if is_nil(@changeset) and Auth.can_edit(@user) do %>
+        <div class="btn btn-secondary" phx-click="create">Create</div>
+      <% end %>
+    </div>
+  </div>
+<% end %>

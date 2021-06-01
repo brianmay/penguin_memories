@@ -172,8 +172,8 @@ defmodule PenguinMemories.Database.Updates do
         ) :: {:ok, Index.cache_type()} | {:error, String.t()}
   defp fix_index({:error, _} = rc, _cache), do: rc
 
-  defp fix_index({:ok, %Ecto.Changeset{} = changeset, _new_obj}, cache) do
-    Query.fix_index(changeset, cache)
+  defp fix_index({:ok, %Ecto.Changeset{} = changeset, new_obj}, cache) do
+    Query.fix_index(changeset, new_obj.id, cache)
   end
 
   @spec rollback_if_error(result :: {:ok, Index.cache_type()} | {:error, String.t()}) ::

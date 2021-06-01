@@ -26,7 +26,9 @@ defmodule PenguinMemoriesWeb.MainLive do
       end
 
     socket = assign(socket, assigns)
-    socket = assign(socket, reference_pid: nil, objects_pid: nil, photos_pid: nil)
+
+    socket =
+      assign(socket, reference_pid: nil, objects_pid: nil, photos_pid: nil, details_pid: nil)
 
     PenguinMemoriesWeb.Endpoint.subscribe("refresh")
     {:ok, socket}
@@ -115,6 +117,13 @@ defmodule PenguinMemoriesWeb.MainLive do
   end
 
   @impl true
+  def handle_info({:child_pid, "details", pid}, socket) do
+    type = socket.assigns.objects.type
+    send(pid, {:parameters, type})
+    {:noreply, assign(socket, details_pid: pid)}
+  end
+
+  @impl true
   def handle_info({:child_pid, "reference", pid}, socket) do
     {type, id} = socket.assigns.reference_type_id
     send(pid, {:parameters, type, id, socket.host_uri, nil, nil})
@@ -141,6 +150,12 @@ defmodule PenguinMemoriesWeb.MainLive do
 
   @spec reload(Socket.t()) :: :ok
   defp reload(socket) do
+    if socket.assigns.details_pid != nil do
+      pid = socket.assigns.details_pid
+      type = socket.assigns.objects.type
+      send(pid, {:parameters, type})
+    end
+
     if socket.assigns.reference_pid != nil do
       pid = socket.assigns.reference_pid
       {type, id} = socket.assigns.reference_type_id

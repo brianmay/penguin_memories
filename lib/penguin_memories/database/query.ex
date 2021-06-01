@@ -514,7 +514,7 @@ defmodule PenguinMemories.Database.Query do
   end
 
   @spec get_create_child_changeset(object :: struct(), attrs :: map(), assoc :: map()) ::
-          Ecto.Changeset.t()
+          {map(), Ecto.Changeset.t()}
   def get_create_child_changeset(object, attrs, assoc) do
     assoc =
       if Map.has_key?(object, :parent) do
@@ -524,7 +524,7 @@ defmodule PenguinMemories.Database.Query do
       end
 
     type = object.__struct__
-    get_edit_changeset(struct(type), attrs, assoc)
+    {assoc, get_edit_changeset(struct(type), attrs, assoc)}
   end
 
   @spec get_edit_changeset(object :: struct(), attrs :: map(), assoc :: map()) ::
@@ -553,9 +553,10 @@ defmodule PenguinMemories.Database.Query do
     end)
   end
 
-  @spec fix_index(changeset :: Ecto.Changeset.t(), cache :: Index.cache_type()) ::
+  @spec fix_index(changeset :: Ecto.Changeset.t(), id :: integer(), cache :: Index.cache_type()) ::
           {:ok, Index.cache_type()}
-  def fix_index(%Ecto.Changeset{} = changeset, cache) do
+  def fix_index(%Ecto.Changeset{} = changeset, id, cache) do
+    # We can't use the id value from the changeset, because it will be nil for new objects.+
     type = changeset.data.__struct__
     parent_ids = get_changed_parents(changeset)
 
@@ -574,7 +575,7 @@ defmodule PenguinMemories.Database.Query do
               cache
           end)
 
-        Index.fix_index_tree(changeset.data.id, type, cache)
+        Index.fix_index_tree(id, type, cache)
     end
   end
 
@@ -587,7 +588,10 @@ defmodule PenguinMemories.Database.Query do
 
     multi
     |> Multi.insert_or_update({:update, id}, changeset)
-    |> Multi.run({:index, id}, fn _, _ -> fix_index(changeset, %{}) end)
+    |> Multi.run({:index, id}, fn _, data ->
+      obj = Map.fetch!(data, {:update, id})
+      fix_index(changeset, obj.id, %{})
+    end)
   end
 
   @spec apply_edit_changeset(changeset :: Changeset.t()) ::

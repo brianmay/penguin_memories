@@ -1,4 +1,4 @@
-defmodule PenguinMemoriesWeb.ObjectDetailsLive do
+defmodule PenguinMemoriesWeb.ListDetailsLive do
   @moduledoc """
   Live view to display list of objects
   """
@@ -25,23 +25,19 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
         :not_logged_in -> nil
       end
 
-    # type = session["type"]
-    # id = session["id"]
-    # fields = Fields.get_fields(type, user)
-
     assigns = [
       user: user,
       type: nil,
-      id: nil,
-      big: false,
-      mode: :display,
-      prev_icon: nil,
-      next_icon: nil,
+      # id: nil,
+      # big: false,
+      # mode: :display,
+      # prev_icon: nil,
+      # next_icon: nil,
       error: nil,
       changeset: nil,
       edit_obj: nil,
-      action: nil,
-      details: nil,
+      # action: nil,
+      # details: nil,
       assoc: %{}
     ]
 
@@ -55,28 +51,28 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:ok, socket}
   end
 
-  @impl true
-  @spec handle_event(String.t(), any, Phoenix.LiveView.Socket.t()) ::
-          {:noreply, Phoenix.LiveView.Socket.t()}
-  def handle_event("goto", params, socket) do
-    %{"id" => id, "type" => type} = params
-    id = to_int(id)
-    {:ok, type} = Types.get_type_for_name(type)
-    type_name = Types.get_name!(type)
-    url = Routes.main_path(socket, :index, type_name, id)
-    socket = push_redirect(socket, to: url)
-    {:noreply, socket}
-  end
+  # @impl true
+  # @spec handle_event(String.t(), any, Phoenix.LiveView.Socket.t()) ::
+  #         {:noreply, Phoenix.LiveView.Socket.t()}
+  # def handle_event("goto", params, socket) do
+  #   %{"id" => id, "type" => type} = params
+  #   id = to_int(id)
+  #   {:ok, type} = Types.get_type_for_name(type)
+  #   type_name = Types.get_name!(type)
+  #   url = Routes.main_path(socket, :index, type_name, id)
+  #   socket = push_redirect(socket, to: url)
+  #   {:noreply, socket}
+  # end
 
-  @impl true
-  def handle_event("big", _params, %Socket{} = socket) do
-    {:noreply, assign(socket, :big, true) |> reload()}
-  end
+  # @impl true
+  # def handle_event("big", _params, %Socket{} = socket) do
+  #   {:noreply, assign(socket, :big, true) |> reload()}
+  # end
 
-  @impl true
-  def handle_event("unbig", _params, %Socket{} = socket) do
-    {:noreply, assign(socket, :big, false) |> reload()}
-  end
+  # @impl true
+  # def handle_event("unbig", _params, %Socket{} = socket) do
+  #   {:noreply, assign(socket, :big, false) |> reload()}
+  # end
 
   def handle_event("create", _params, %Socket{} = socket) do
     if Auth.can_edit(socket.assigns.user) do
@@ -86,23 +82,23 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     end
   end
 
-  @impl true
-  def handle_event("edit", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
-      handle_edit(socket)
-    else
-      {:noreply, assign(socket, :error, "Permission denied")}
-    end
-  end
+  # @impl true
+  # def handle_event("edit", _params, %Socket{} = socket) do
+  #   if Auth.can_edit(socket.assigns.user) do
+  #     handle_edit(socket)
+  #   else
+  #     {:noreply, assign(socket, :error, "Permission denied")}
+  #   end
+  # end
 
-  @impl true
-  def handle_event("delete", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
-      handle_delete(socket)
-    else
-      {:noreply, assign(socket, :error, "Permission denied")}
-    end
-  end
+  # @impl true
+  # def handle_event("delete", _params, %Socket{} = socket) do
+  #   if Auth.can_edit(socket.assigns.user) do
+  #     handle_delete(socket)
+  #   else
+  #     {:noreply, assign(socket, :error, "Permission denied")}
+  #   end
+  # end
 
   @impl true
   def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
@@ -125,9 +121,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @impl true
   def handle_event("cancel", _params, %Socket{} = socket) do
     assigns = [
-      mode: :display,
-      changeset: nil,
       error: nil,
+      changeset: nil,
       edit_obj: nil
     ]
 
@@ -142,16 +137,14 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   @impl true
-  def handle_info({:parameters, type, id, %URI{} = host_uri, prev_icon, next_icon}, socket) do
-    assigns = [
-      type: type,
-      id: id,
-      prev_icon: prev_icon,
-      next_icon: next_icon
-    ]
+  def handle_info({:parameters, type}, socket) do
+    socket =
+      if socket.assigns.type != type do
+        assign(socket, type: type) |> reload()
+      else
+        socket
+      end
 
-    socket = %Socket{socket | host_uri: host_uri}
-    socket = assign(socket, assigns) |> reload()
     {:noreply, socket}
   end
 
@@ -170,63 +163,61 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @spec handle_create(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_create(%Socket{} = socket) do
-    {assoc, changeset} = Query.get_create_child_changeset(socket.assigns.details.obj, %{}, %{})
+    type = socket.assigns.type
+    changeset = Query.get_edit_changeset(struct(type), %{}, %{})
 
     assigns = [
-      mode: :edit,
+      error: nil,
       changeset: changeset,
       edit_object: changeset.data,
-      action: :insert,
-      assoc: assoc,
-      error: nil
+      assoc: %{}
     ]
 
     {:noreply, assign(socket, assigns)}
   end
 
-  @spec handle_edit(Socket.t()) :: {:noreply, Socket.t()}
-  defp handle_edit(%Socket{} = socket) do
-    changeset = Query.get_edit_changeset(socket.assigns.details.obj, %{}, %{})
-    changeset = %{changeset | action: :update}
+  # @spec handle_edit(Socket.t()) :: {:noreply, Socket.t()}
+  # defp handle_edit(%Socket{} = socket) do
+  #   changeset = Query.get_edit_changeset(socket.assigns.details.obj, %{}, %{})
+  #   changeset = %{changeset | action: :update}
 
-    assigns = [
-      mode: :edit,
-      changeset: changeset,
-      edit_object: changeset.data,
-      action: :update,
-      assoc: %{},
-      error: nil
-    ]
+  #   assigns = [
+  #     mode: :edit,
+  #     changeset: changeset,
+  #     edit_object: changeset.data,
+  #     action: :update,
+  #     assoc: %{}
+  #   ]
 
-    {:noreply, assign(socket, assigns)}
-  end
+  #   {:noreply, assign(socket, assigns)}
+  # end
 
-  @spec handle_delete(Socket.t()) :: {:noreply, Socket.t()}
-  defp handle_delete(%Socket{} = socket) do
-    {socket, assigns} =
-      case Query.delete(socket.assigns.details.obj) do
-        {:error, error} ->
-          assigns = [
-            error: error
-          ]
+  # @spec handle_delete(Socket.t()) :: {:noreply, Socket.t()}
+  # defp handle_delete(%Socket{} = socket) do
+  #   {socket, assigns} =
+  #     case Query.delete(socket.assigns.details.obj) do
+  #       {:error, error} ->
+  #         assigns = [
+  #           error: error
+  #         ]
 
-          {socket, assigns}
+  #         {socket, assigns}
 
-        :ok ->
-          PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
-          type_name = Types.get_name!(socket.assigns.type)
-          url = Routes.main_path(socket, :index, type_name)
-          socket = push_redirect(socket, to: url)
+  #       :ok ->
+  #         PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+  #         type_name = Types.get_name!(socket.assigns.type)
+  #         url = Routes.main_path(socket, :index, type_name)
+  #         socket = push_redirect(socket, to: url)
 
-          assigns = [
-            error: nil
-          ]
+  #         assigns = [
+  #           error: nil
+  #         ]
 
-          {socket, assigns}
-      end
+  #         {socket, assigns}
+  #     end
 
-    {:noreply, assign(socket, assigns)}
-  end
+  #   {:noreply, assign(socket, assigns)}
+  # end
 
   @spec handle_validate(Socket.t(), map()) :: {:noreply, Socket.t()}
   def handle_validate(%Socket{} = socket, params) do
@@ -256,16 +247,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
         {:ok, object} ->
           PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
 
-          socket =
-            case socket.assigns.action do
-              :insert ->
-                type_name = Types.get_name!(socket.assigns.type)
-                url = Routes.main_path(socket, :index, type_name, object.id)
-                push_redirect(socket, to: url)
-
-              _ ->
-                socket
-            end
+          type_name = Types.get_name!(socket.assigns.type)
+          url = Routes.main_path(socket, :index, type_name, object.id)
+          socket = push_redirect(socket, to: url)
 
           assigns = [
             mode: :display,
@@ -282,7 +266,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @spec get_edit_changeset(Socket.t(), map()) :: Changeset.t()
   defp get_edit_changeset(%Socket{} = socket, params) do
     changeset = Query.get_edit_changeset(socket.assigns.edit_object, params, socket.assigns.assoc)
-    changeset = %{changeset | action: socket.assigns.action}
+    changeset = %{changeset | action: :insert}
 
     changeset =
       Enum.reduce(socket.assigns.assoc, changeset, fn {key, value}, changeset ->
@@ -294,32 +278,28 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @spec reload(Socket.t()) :: Socket.t()
   def reload(%Socket{} = socket) do
-    {icon_size, video_size} =
-      case socket.assigns.big do
-        false -> {"mid", "mid"}
-        true -> {"large", "large"}
-      end
+    assigns = [
+      error: nil,
+      changeset: nil,
+      edit_obj: nil
+    ]
 
-    type = socket.assigns.type
-    id = socket.assigns.id
-
-    details = Query.get_details(id, icon_size, video_size, type)
-    assign(socket, :details, details)
+    assign(socket, assigns)
   end
 
-  @spec get_photo_url(Socket.t(), reference :: struct()) :: String.t() | nil
-  defp get_photo_url(%Socket{}, %Photos.Photo{}), do: nil
+  # @spec get_photo_url(Socket.t(), reference :: struct()) :: String.t() | nil
+  # defp get_photo_url(%Socket{}, %Photos.Photo{}), do: nil
 
-  defp get_photo_url(%Socket{} = socket, %{__struct__: type, id: id}) do
-    name = Types.get_name!(type)
+  # defp get_photo_url(%Socket{} = socket, %{__struct__: type, id: id}) do
+  #   name = Types.get_name!(type)
 
-    params = %{
-      reference: "#{name}/#{id}"
-    }
+  #   params = %{
+  #     reference: "#{name}/#{id}"
+  #   }
 
-    query = URI.encode_query(params)
-    Routes.main_path(socket, :index, "photo") <> "?" <> query
-  end
+  #   query = URI.encode_query(params)
+  #   Routes.main_path(socket, :index, "photo") <> "?" <> query
+  # end
 
   @spec to_int(String.t()) :: integer
   defp to_int(int) do

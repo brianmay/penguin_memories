@@ -51,18 +51,10 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @impl true
   def handle_info({:parameters, %Query.Filter{} = filter, type}, socket) do
-    count = Query.count_results(filter, type)
-
     assigns = [
-      # user: socket.assigns.user,
-      # request: request,
-      # url: url,
       filter: filter,
       type: type,
-      count: count
-      # selected_ids: MapSet.new(),
-      # show_selected: false,
-      # last_clicked_id: nil
+      count: nil
     ]
 
     # socket = %Socket{socket | host_uri: host_uri}
@@ -75,6 +67,15 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     assoc = Map.put(socket.assigns.assoc, id, value)
     socket = assign(socket, assoc: assoc)
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("update", _params, %Socket{} = socket) do
+    if Auth.can_edit(socket.assigns.user) do
+      handle_update(socket)
+    else
+      {:noreply, assign(socket, :error, "Permission denied")}
+    end
   end
 
   @impl true
@@ -97,8 +98,32 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @impl true
   def handle_event("cancel", _params, %Socket{} = socket) do
-    socket = reload(socket)
-    {:noreply, socket}
+    assigns = [
+      error: nil,
+      changeset: nil,
+      enabled: nil,
+      assoc: nil
+    ]
+
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @spec handle_update(Socket.t()) :: {:noreply, Socket.t()}
+  defp handle_update(%Socket{} = socket) do
+    type = socket.assigns.type
+    enabled = MapSet.new()
+    obj = struct(type)
+    changeset = Updates.get_update_changeset(obj, [])
+    changeset = %{changeset | action: :update}
+
+    assigns = [
+      error: nil,
+      changeset: changeset,
+      enabled: enabled,
+      assoc: %{}
+    ]
+
+    {:noreply, assign(socket, assigns)}
   end
 
   @spec handle_validate(Socket.t(), map()) :: {:noreply, Socket.t()}
@@ -217,31 +242,9 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @spec reload(Socket.t()) :: Socket.t()
   defp reload(%Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
-      type = socket.assigns.type
-      enabled = MapSet.new()
-      obj = struct(type)
-      changeset = Updates.get_update_changeset(obj, [])
-
-      assigns = [
-        error: nil,
-        changeset: changeset,
-        # edit_object: changeset.data,
-        enabled: enabled,
-        assoc: %{}
-      ]
-
-      assign(socket, assigns)
-    else
-      assigns = [
-        error: nil,
-        changeset: nil,
-        # edit_object: changeset.data,
-        enabled: nil,
-        assoc: nil
-      ]
-
-      assign(socket, assigns)
-    end
+    filter = socket.assigns.filter
+    type = socket.assigns.type
+    count = Query.count_results(filter, type)
+    assign(socket, count: count)
   end
 end

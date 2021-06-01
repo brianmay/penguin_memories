@@ -131,6 +131,11 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
         type: :string
       },
       %Field{
+        id: :sort_name,
+        title: "Sort Name",
+        type: :string
+      },
+      %Field{
         id: :mother,
         title: "Mother",
         type: {:single, Person}
@@ -222,7 +227,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
       :email,
       :revised
     ])
-    |> validate_required([:title])
+    |> validate_required([:title, :sort_name])
     |> Private.put_all_assoc(assoc, [:mother, :father, :spouse, :work, :home, :cover_photo])
   end
 
@@ -236,8 +241,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
           Changeset.t()
   def update_changeset(%Person{} = object, attrs, assoc, enabled) do
     object
-    |> Private.selective_cast(attrs, enabled, [:title, :revised])
-    |> Private.selective_validate_required(enabled, [:title])
+    |> Private.selective_cast(attrs, enabled, [:title, :sort_name, :revised])
+    |> Private.selective_validate_required(enabled, [:title, :sort_name])
     |> Private.selective_put_assoc(assoc, enabled, [
       :mother,
       :father,

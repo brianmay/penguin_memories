@@ -28,6 +28,12 @@
         </div>
       </form>
     <% end %>
+
+    <div class="buttons">
+      <%= if @changeset == nil and Auth.can_edit(@user) do %>
+        <div class="btn btn-secondary" phx-click="update">Bulk Update</div>
+      <% end %>
+    </div>
   </div>
 <% else %>
   LOADING

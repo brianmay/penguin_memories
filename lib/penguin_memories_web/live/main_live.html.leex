@@ -17,22 +17,26 @@
 %>
 
 <%= if render_objects or render_photos do %>
-  <form method="get" phx-submit="search" novalidate="">
-    <div class="form-group">
-      <input
-        class="form-control"
-        name="query"
-        placeholder="Search"
-        type="text"
-        value="<%= @query %>"
-      />
-    </div>
-    <input type="submit" class="btn btn-primary" value="Search" />
-  </form>
+  <div class="search_form">
+    <form method="get" phx-submit="search" novalidate="">
+      <div class="form-group">
+        <input
+          class="form-control"
+          name="query"
+          placeholder="Search"
+          type="text"
+          value="<%= @query %>"
+        />
+      </div>
+      <input type="submit" class="btn btn-primary" value="Search" />
+    </form>
+  </div>
 <% end %>
 
 <%= if @reference_type_id do %>
   <%= live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: :reference) %>
+<% else %>
+  <%= live_render(@socket, PenguinMemoriesWeb.ListDetailsLive, id: :details) %>
 <% end %>
 
 <%= if render_objects do %>
