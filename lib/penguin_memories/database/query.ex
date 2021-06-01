@@ -222,7 +222,7 @@ defmodule PenguinMemories.Database.Query do
               dir: f.dir,
               filename: f.filename,
               height: f.height,
-              width: f.width,
+              width: f.width
             }
           }
 
@@ -633,8 +633,9 @@ defmodule PenguinMemories.Database.Query do
 
   @spec do_delete(object :: struct()) :: :ok | {:error, String.t()}
   defp do_delete(%Photo{} = photo) do
-    result = get_edit_changeset(photo, %{action: "D"}, %{})
-    |> Repo.update()
+    result =
+      get_edit_changeset(photo, %{action: "D"}, %{})
+      |> Repo.update()
 
     case result do
       {:ok, _} -> :ok

@@ -1,4 +1,7 @@
 defmodule PenguinMemoriesWeb.IconHelpers do
+  @moduledoc """
+  Helper functions to display icon details
+  """
   alias PenguinMemories.Database.Query.Icon
 
   @spec icon_classes(Icon.t()) :: String.t()
