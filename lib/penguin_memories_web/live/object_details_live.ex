@@ -25,10 +25,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
         :not_logged_in -> nil
       end
 
-    # type = session["type"]
-    # id = session["id"]
-    # fields = Fields.get_fields(type, user)
-
     assigns = [
       user: user,
       type: nil,
@@ -51,7 +47,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       send(socket.parent_pid, {:child_pid, socket.id, self()})
     end
 
-    # PenguinMemoriesWeb.Endpoint.subscribe("refresh")
     {:ok, socket}
   end
 
@@ -154,12 +149,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     socket = assign(socket, assigns) |> reload()
     {:noreply, socket}
   end
-
-  # @impl true
-  # def handle_info(%{topic: "refresh"}, socket) do
-  #   socket = reload(socket)
-  #   {:noreply, socket}
-  # end
 
   @impl true
   def handle_info({:selected, id, value}, %Socket{} = socket) do

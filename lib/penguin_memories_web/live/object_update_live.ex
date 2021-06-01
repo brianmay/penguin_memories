@@ -12,13 +12,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
   alias PenguinMemories.Database.Fields
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Updates
-  # alias PenguinMemories.Database.Types
-  # alias PenguinMemories.Loaders
-  # alias PenguinMemories.Repo
-  # alias PenguinMemories.Urls
-  # alias PenguinMemories.Photos
   alias PenguinMemoriesWeb.FieldHelpers
-  # alias PenguinMemoriesWeb.Router.Helpers, as: Routes
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
@@ -57,7 +51,6 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
       count: nil
     ]
 
-    # socket = %Socket{socket | host_uri: host_uri}
     socket = assign(socket, assigns) |> reload()
     {:noreply, socket}
   end

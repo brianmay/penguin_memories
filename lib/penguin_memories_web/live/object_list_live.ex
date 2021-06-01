@@ -4,35 +4,18 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   """
   use PenguinMemoriesWeb, :live_view
 
-  # alias Ecto.Changeset
   alias Elixir.Phoenix.LiveView.Socket
 
-  # alias PenguinMemories.Accounts.User
-  # alias PenguinMemories.Auth
   alias PenguinMemories.Database
-  # alias PenguinMemories.Database.Fields
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Loaders
   alias PenguinMemories.Urls
-  # alias PenguinMemories.Photos
-  # alias PenguinMemoriesWeb.FieldHelpers
-  # alias PenguinMemoriesWeb.Router.Helpers, as: Routes
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(_params, _session, socket) do
-    # user =
-    #   case Auth.load_user(session) do
-    #     {:ok, %User{} = user} -> user
-    #     :not_logged_in -> nil
-    #   end
-
-    # request = session["request"]
-    # url = session["url"]
-
     assigns = [
-      # user: user,
       request: nil,
       url: nil,
       selected_ids: MapSet.new(),
@@ -48,7 +31,6 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       send(socket.parent_pid, {:child_pid, socket.id, self()})
     end
 
-    # PenguinMemoriesWeb.Endpoint.subscribe("refresh")
     {:ok, socket}
   end
 
@@ -143,12 +125,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
         socket
       ) do
     assigns = [
-      # user: socket.assigns.user,
       request: request,
       url: url
-      # selected_ids: MapSet.new(),
-      # show_selected: false,
-      # last_clicked_id: nil
     ]
 
     socket = %Socket{socket | host_uri: host_uri}
@@ -161,12 +139,6 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     socket = assign(socket, selected_ids: MapSet.new([id])) |> reload()
     {:noreply, socket}
   end
-
-  # @impl true
-  # def handle_info(%{topic: "refresh"}, socket) do
-  #   socket = reload(socket)
-  #   {:noreply, socket}
-  # end
 
   @impl true
   def handle_info({:child_pid, "selected", pid}, socket) do
@@ -306,9 +278,6 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     end
   end
 
-  # defp num_selected(mapset) do
-  #   MapSet.size(mapset)
-  # end
   @spec get_update_filter(assigns :: map()) :: map()
   defp get_update_filter(assigns) do
     case assigns.selected_ids do
