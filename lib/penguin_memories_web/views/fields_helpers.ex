@@ -112,7 +112,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     related_icons =
       Enum.map(related, fn result ->
         icon = Map.get(icons, result.pr.photo_id)
-        icon = %Query.Icon{icon | title: result.pr.title, subtitle: nil, action: nil}
+        icon = %Query.Icon{icon | name: result.pr.name, subtitle: nil, action: nil}
         Map.put(result, :icon, icon)
       end)
       |> Enum.group_by(fn value -> value.r end, fn value -> value.icon end)
@@ -120,7 +120,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     Enum.map(related_icons, fn {related, icons} ->
       [
         raw("<div>"),
-        related.title,
+        related.name,
         display_markdown(related.description),
         display_icons(icons),
         raw("</div>")
@@ -139,7 +139,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
           keyword()
         ) :: any()
   def input_field(%Socket{} = socket, form, field, opts \\ []) do
-    opts = [{:label, field.title} | opts]
+    opts = [{:label, field.name} | opts]
 
     case field.type do
       :markdown ->

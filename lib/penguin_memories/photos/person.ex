@@ -12,7 +12,7 @@ defmodule PenguinMemories.Photos.Person do
           id: integer() | nil,
           cover_photo_id: integer() | nil,
           cover_photo: Photo.t() | Ecto.Association.NotLoaded.t(),
-          title: String.t() | nil,
+          name: String.t() | nil,
           called: String.t() | nil,
           sort_name: String.t() | nil,
           date_of_birth: Date.t() | nil,
@@ -41,7 +41,7 @@ defmodule PenguinMemories.Photos.Person do
 
   schema "pm_person" do
     belongs_to :cover_photo, Photo, on_replace: :nilify
-    field :title, :string
+    field :name, :string
     field :called, :string
     field :sort_name, :string
     field :date_of_birth, :date

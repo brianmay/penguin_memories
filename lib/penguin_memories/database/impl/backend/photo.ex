@@ -50,7 +50,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       select: %{
         datetime: o.datetime,
         id: o.id,
-        o: %{action: o.action, title: o.title, filename: o.filename, utc_offset: o.utc_offset}
+        o: %{action: o.action, name: o.name, filename: o.filename, utc_offset: o.utc_offset}
       },
       order_by: [asc: o.datetime, asc: o.id]
   end
@@ -124,9 +124,9 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   @impl API
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
-    case result.o.title do
+    case result.o.name do
       nil -> result.o.filename
-      title -> title
+      name -> name
     end
   end
 
@@ -174,146 +174,146 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   def get_fields do
     [
       %Field{
-        id: :title,
-        title: "Title",
+        id: :name,
+        name: "Name",
         type: :string
       },
       %Field{
         id: :dir,
-        title: "Directory",
+        name: "Directory",
         type: :string,
         read_only: true
       },
       %Field{
         id: :filename,
-        title: "File Name",
+        name: "File Name",
         type: :string,
         read_only: true
       },
       %Field{
         id: :albums,
-        title: "Albums",
+        name: "Albums",
         type: {:multiple, PenguinMemories.Photos.Album}
       },
       %Field{
         id: :categorys,
-        title: "Categories",
+        name: "Categories",
         type: {:multiple, PenguinMemories.Photos.Category}
       },
       %Field{
         id: :place,
-        title: "Place",
+        name: "Place",
         type: {:single, PenguinMemories.Photos.Place}
       },
       %Field{
         id: :photographer,
-        title: "Photographer",
+        name: "Photographer",
         type: {:single, PenguinMemories.Photos.Person}
       },
       %Field{
         id: :photo_persons,
-        title: "Persons",
+        name: "Persons",
         type: :persons
       },
       %Field{
         id: :related,
-        title: "Related",
+        name: "Related",
         type: :related,
         read_only: true
       },
       %Field{
         id: :view,
-        title: "View",
+        name: "View",
         type: :string
       },
       %Field{
         id: :rating,
-        title: "Rating",
+        name: "Rating",
         type: :string
       },
       %Field{
         id: :description,
-        title: "Description",
+        name: "Description",
         type: :markdown
       },
       %Field{
         id: :private_notes,
-        title: "Private Notes",
+        name: "Private Notes",
         type: :markdown,
         access: :private
       },
       %Field{
         id: :datetime,
-        title: "Time",
+        name: "Time",
         type: {:datetime_with_offset, :utc_offset}
       },
       %Field{
         id: :utc_offset,
-        title: "UTC offset",
+        name: "UTC offset",
         type: :utc_offset
       },
       %Field{
         id: :action,
-        title: "Action",
+        name: "Action",
         type: :string
       },
       %Field{
         id: :camera_make,
-        title: "Camera Make",
+        name: "Camera Make",
         type: :string,
         read_only: true
       },
       %Field{
         id: :camera_model,
-        title: "Camera Model",
+        name: "Camera Model",
         type: :string,
         read_only: true
       },
       %Field{
         id: :flash_used,
-        title: "Flash Used",
+        name: "Flash Used",
         type: :string,
         read_only: true
       },
       %Field{
         id: :focal_length,
-        title: "Focal Length",
+        name: "Focal Length",
         type: :string,
         read_only: true
       },
       %Field{
         id: :exposure_time,
-        title: "Exposure Time",
+        name: "Exposure Time",
         type: :string,
         read_only: true
       },
       %Field{
         id: :aperture,
-        title: "Aperture",
+        name: "Aperture",
         type: :string,
         read_only: true
       },
       %Field{
         id: :iso_equiv,
-        title: "ISO",
+        name: "ISO",
         type: :string,
         read_only: true
       },
       %Field{
         id: :metering_mode,
-        title: "Metering Mode",
+        name: "Metering Mode",
         type: :string,
         read_only: true
       },
       %Field{
         id: :focus_dist,
-        title: "Focus Distance",
+        name: "Focus Distance",
         type: :string,
         read_only: true
       },
       %Field{
         id: :ccd_width,
-        title: "CCD Width",
+        name: "CCD Width",
         type: :string,
         read_only: true
       }
@@ -325,86 +325,86 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   def get_update_fields do
     [
       %UpdateField{
-        id: :title,
-        field_id: :title,
-        title: "Title",
+        id: :name,
+        field_id: :name,
+        name: "Name",
         type: :string,
         change: :set
       },
       %UpdateField{
         id: :photographer,
         field_id: :photographer,
-        title: "Photographer",
+        name: "Photographer",
         type: {:single, PenguinMemories.Photos.Person},
         change: :set
       },
       %UpdateField{
         id: :place,
         field_id: :place,
-        title: "Place",
+        name: "Place",
         type: {:single, PenguinMemories.Photos.Place},
         change: :set
       },
       %UpdateField{
         id: :album_add,
         field_id: :albums,
-        title: "Album Add",
+        name: "Album Add",
         type: {:multiple, PenguinMemories.Photos.Album},
         change: :add
       },
       %UpdateField{
         id: :album_delete,
         field_id: :albums,
-        title: "Album Delete",
+        name: "Album Delete",
         type: {:multiple, PenguinMemories.Photos.Album},
         change: :delete
       },
       %UpdateField{
         id: :category_add,
         field_id: :categorys,
-        title: "Category Add",
+        name: "Category Add",
         type: {:multiple, PenguinMemories.Photos.Category},
         change: :add
       },
       %UpdateField{
         id: :category_delete,
         field_id: :categorys,
-        title: "Category Delete",
+        name: "Category Delete",
         type: {:multiple, PenguinMemories.Photos.Category},
         change: :delete
       },
       %UpdateField{
         id: :view,
         field_id: :view,
-        title: "View",
+        name: "View",
         type: :string,
         change: :set
       },
       %UpdateField{
         id: :rating,
         field_id: :rating,
-        title: "Rating",
+        name: "Rating",
         type: :string,
         change: :set
       },
       %UpdateField{
         id: :datetime,
         field_id: :datetime,
-        title: "Time",
+        name: "Time",
         type: {:datetime_with_offset, :utc_offset},
         change: :set
       },
       %UpdateField{
         id: :utc_offset,
         field_id: :offset,
-        title: "UTC offset",
+        name: "UTC offset",
         type: :utc_offset,
         change: :set
       },
       %UpdateField{
         id: :action,
         field_id: :action,
-        title: "Action",
+        name: "Action",
         type: :string,
         change: :set
       }
@@ -440,7 +440,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   def edit_changeset(%Photo{} = photo, attrs, assoc) do
     photo
     |> cast(attrs, [
-      :title,
+      :name,
       :photographer_id,
       :view,
       :rating,
@@ -467,14 +467,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   def update_changeset(%Photo{} = object, attrs, assoc, enabled) do
     object
     |> Private.selective_cast(attrs, enabled, [
-      :title,
+      :name,
       :view,
       :rating,
       :datetime,
       :utc_offset,
       :action
     ])
-    |> Private.selective_validate_required(enabled, [:title])
+    |> Private.selective_validate_required(enabled, [:name])
     |> Private.selective_put_assoc(assoc, enabled, [
       :photographer,
       :place,

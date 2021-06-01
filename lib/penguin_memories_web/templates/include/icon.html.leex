@@ -11,14 +11,14 @@
   <%= if @icon.url do %>
     <img
       src="<%= @icon.url %>"
-      alt="<%= @icon.title %>"
+      alt="<%= @icon.name %>"
       width="<%= @icon.width %>"
       height="<%= @icon.height %>"
     />
   <% else %>
     No image
   <% end %>
-  <div class="title"><%= @icon.title %></div>
+  <div class="name"><%= @icon.name %></div>
   <%= if @icon.subtitle do %>
     <div class="subtitle"><%= @icon.subtitle %></div>
   <% end %>

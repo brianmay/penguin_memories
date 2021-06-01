@@ -4,7 +4,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePlaces do
   def change do
     create table(:pm_place) do
       add(:cover_photo_id, references(:pm_photo, on_delete: :nilify_all))
-      add(:title, :text, null: false)
+      add(:name, :text, null: false)
       add(:description, :text)
       add(:address, :text)
       add(:address2, :text)
@@ -22,7 +22,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePlaces do
     end
 
     create(index(:pm_place, [:cover_photo_id]))
-    create(index(:pm_place, [:title]))
+    create(index(:pm_place, [:name]))
     create(index(:pm_place, [:revised]))
     create(index(:pm_place, [:parent_id]))
 

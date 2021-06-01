@@ -4,7 +4,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
   def change do
     create table(:pm_person) do
       add(:cover_photo_id, references(:pm_photo, on_delete: :nilify_all))
-      add(:title, :text, null: false)
+      add(:name, :text, null: false)
       add(:called, :text)
       add(:sort_name, :text, null: false)
       add(:date_of_birth, :date)
@@ -24,7 +24,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
     end
 
     create(index(:pm_person, [:cover_photo_id]))
-    create(index(:pm_person, [:title]))
+    create(index(:pm_person, [:name]))
     create(index(:pm_person, [:revised]))
     create(index(:pm_person, [:home_id]))
     create(index(:pm_person, [:work_id]))

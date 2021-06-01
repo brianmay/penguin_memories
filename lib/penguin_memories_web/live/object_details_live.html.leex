@@ -43,7 +43,7 @@
           <%= if @details.icon.url do %>
             <img
               src="<%= @details.icon.url %>"
-              alt="<%= @details.icon.title %>"
+              alt="<%= @details.icon.name %>"
               width="<%= @details.icon.width %>"
               height="<%= @details.icon.height %>"
             />
@@ -51,8 +51,8 @@
             No image
           <% end %>
         <% end %>
-        <div class="title">
-          <%= @details.icon.title %>
+        <div class="name">
+          <%= @details.icon.name %>
         </div>
       </div>
 
@@ -131,7 +131,7 @@
         <tbody>
           <%= for field <- fields do %>
             <tr>
-              <th><%= field.title %></th>
+              <th><%= field.name %></th>
               <td><%= FieldHelpers.output_field(@details.obj, field) %></td>
             </tr>
           <% end %>

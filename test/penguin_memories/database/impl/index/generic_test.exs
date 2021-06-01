@@ -14,17 +14,17 @@ defmodule PenguinMemories.Database.Impl.Index.GenericTest do
   alias PenguinMemories.Photos.Place
 
   @spec create(module(), String.t(), keyword()) :: struct()
-  defp create(module, title, opts \\ [])
+  defp create(module, name, opts \\ [])
 
-  defp create(Person = module, title, opts) do
-    opts = Keyword.put(opts, :title, title)
-    opts = Keyword.put(opts, :sort_name, title)
+  defp create(Person = module, name, opts) do
+    opts = Keyword.put(opts, :name, name)
+    opts = Keyword.put(opts, :sort_name, name)
     struct(module, opts) |> Repo.insert!()
   end
 
-  defp create(Photo = module, title, opts) do
+  defp create(Photo = module, name, opts) do
     datetime = ~U[2000-01-01 12:00:00Z]
-    opts = Keyword.put(opts, :title, title)
+    opts = Keyword.put(opts, :name, name)
     opts = Keyword.put_new(opts, :datetime, datetime)
     opts = Keyword.put_new(opts, :utc_offset, 0)
     opts = Keyword.put_new(opts, :dir, "a")
@@ -32,8 +32,8 @@ defmodule PenguinMemories.Database.Impl.Index.GenericTest do
     struct(module, opts) |> Repo.insert!()
   end
 
-  defp create(module, title, opts) do
-    opts = Keyword.put(opts, :title, title)
+  defp create(module, name, opts) do
+    opts = Keyword.put(opts, :name, name)
     struct(module, opts) |> Repo.insert!()
   end
 

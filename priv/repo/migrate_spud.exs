@@ -56,7 +56,7 @@ defmodule ImportPhotos do
     |> Stream.map(fn photo ->
       %Photo{
         id: photo.id,
-        title: s(photo.title),
+        name: s(photo.title),
         description: s(photo.description),
         private_notes: s(photo.comment),
         rating: photo.rating,
@@ -179,7 +179,7 @@ defmodule ImportAlbums do
     |> Stream.map(fn album ->
       %Album{
         id: album.id,
-        title: s(album.title),
+        name: s(album.title),
         revised: f(album.revised, fn v -> DateTime.truncate(v, :second) end),
         description: s(album.description),
         cover_photo_id: album.cover_photo_id
@@ -237,7 +237,7 @@ defmodule ImportCategorys do
     |> Stream.map(fn category ->
       %Category{
         id: category.id,
-        title: s(category.title),
+        name: s(category.title),
         description: s(category.description),
         cover_photo_id: category.cover_photo_id
       }
@@ -306,19 +306,19 @@ defmodule ImportPersons do
     from("spud_person", select: ^columns, order_by: :id)
     |> Repo.stream()
     |> Stream.map(fn person ->
-      title =
+      name =
         [s(person.first_name), s(person.middle_name), s(person.last_name)]
         |> Enum.reject(fn v -> is_nil(v) end)
         |> Enum.join(" ")
 
       sort_name =
         case s(person.last_name) do
-          nil -> title
+          nil -> name
           last_name -> last_name
         end
 
       %Person{
-        title: title,
+        name: name,
         date_of_birth: person.dob,
         private_notes: s(person.notes),
         work_id: person.work_id,
@@ -409,7 +409,7 @@ defmodule ImportPlaces do
     |> Stream.map(fn place ->
       %Place{
         id: place.id,
-        title: s(place.title),
+        name: s(place.title),
         postcode: s(place.postcode),
         url: s(place.url),
         description: s(place.description),

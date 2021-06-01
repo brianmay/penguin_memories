@@ -297,14 +297,14 @@ defmodule PenguinMemories.Upload do
   end
 
   @spec get_upload_album(String.t()) :: Album.t()
-  def get_upload_album(title) do
-    parent = Repo.one!(from a in Album, where: a.title == "Uploads")
+  def get_upload_album(name) do
+    parent = Repo.one!(from a in Album, where: a.name == "Uploads")
 
-    case Repo.one(from a in Album, where: a.parent_id == ^parent.id and a.title == ^title) do
+    case Repo.one(from a in Album, where: a.parent_id == ^parent.id and a.name == ^name) do
       nil ->
         album =
           %Album{
-            title: title,
+            name: name,
             parent_id: parent.id
           }
           |> Ecto.Changeset.change()
@@ -332,7 +332,7 @@ defmodule PenguinMemories.Upload do
             on: pr.relation_id == r.id,
             join: p in Photo,
             on: pr.photo_id == p.id,
-            where: p.id in ^ids and r.title == ^related_title,
+            where: p.id in ^ids and r.name == ^related_title,
             order_by: [desc: p.id],
             limit: 1
 
@@ -340,7 +340,7 @@ defmodule PenguinMemories.Upload do
           case Repo.one(query) do
             nil ->
               %Relation{
-                title: related_title
+                name: related_title
               }
               |> Repo.insert!()
 
@@ -351,7 +351,7 @@ defmodule PenguinMemories.Upload do
         Enum.each(photos, fn photo ->
           pr = %PhotoRelation{
             relation_id: relation.id,
-            title: photo.filename
+            name: photo.filename
           }
 
           prs =

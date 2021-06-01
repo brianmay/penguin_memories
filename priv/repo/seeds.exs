@@ -20,7 +20,7 @@
   })
 
 PenguinMemories.Repo.insert!(%PenguinMemories.Photos.Album{
-  title: "Uploads"
+  name: "Uploads"
 })
 
 %PenguinMemories.Photos.FileOrder{size_key: "thumb", mime_type: "image/jpeg", order: 0}

@@ -3,7 +3,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
 
   def change do
     create table(:pm_photo) do
-      add(:title, :text)
+      add(:name, :text)
       add(:rating, :float)
       add(:action, :text)
       add(:description, :text)
@@ -35,7 +35,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhoto do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create(index(:pm_photo, [:title]))
+    create(index(:pm_photo, [:name]))
     create(index(:pm_photo, [:rating]))
     create(index(:pm_photo, [:action]))
 

@@ -36,7 +36,7 @@ defmodule PenguinMemories.Photos.Photo do
           photographer_id: integer | nil,
           place_id: integer | nil,
           rating: float | nil,
-          title: String.t() | nil,
+          name: String.t() | nil,
           view: String.t() | nil,
           utc_offset: integer() | nil,
           files: list(File.t()) | Ecto.Association.NotLoaded.t() | nil,
@@ -67,7 +67,7 @@ defmodule PenguinMemories.Photos.Photo do
     field :filename, :string
     field :dir, :string
     field :rating, :float
-    field :title, :string
+    field :name, :string
     field :view, :string
     field :utc_offset, :integer
     field :related, :any, virtual: true

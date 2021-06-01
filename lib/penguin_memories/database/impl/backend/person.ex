@@ -48,7 +48,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   def query do
     from o in Person,
       as: :object,
-      select: %{sort_name: o.sort_name, id: o.id, o: %{title: o.title}},
+      select: %{sort_name: o.sort_name, id: o.id, o: %{name: o.name}},
       order_by: [asc: o.sort_name, asc: o.id]
   end
 
@@ -93,7 +93,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   @impl API
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
-    "#{result.o.title}"
+    "#{result.o.name}"
   end
 
   @impl API
@@ -126,65 +126,65 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   def get_fields do
     [
       %Field{
-        id: :title,
-        title: "Title",
+        id: :name,
+        name: "Name",
         type: :string
       },
       %Field{
         id: :sort_name,
-        title: "Sort Name",
+        name: "Sort Name",
         type: :string
       },
       %Field{
         id: :mother,
-        title: "Mother",
+        name: "Mother",
         type: {:single, Person}
       },
       %Field{
         id: :father,
-        title: "Father",
+        name: "Father",
         type: {:single, Person}
       },
       %Field{
         id: :spouse,
-        title: "Spouse",
+        name: "Spouse",
         type: {:single, Person}
       },
       %Field{
         id: :home,
-        title: "Home",
+        name: "Home",
         type: {:single, Place}
       },
       %Field{
         id: :work,
-        title: "Work",
+        name: "Work",
         type: {:single, Place}
       },
       %Field{
         id: :email,
-        title: "E-Mail",
+        name: "E-Mail",
         type: :string,
         access: :private
       },
       %Field{
         id: :description,
-        title: "Description",
+        name: "Description",
         type: :markdown
       },
       %Field{
         id: :private_notes,
-        title: "Private Notes",
+        name: "Private Notes",
         type: :markdown,
         access: :private
       },
       %Field{
         id: :cover_photo,
-        title: "Cover Photo",
+        name: "Cover Photo",
         type: {:single, PenguinMemories.Photos.Photo}
       },
       %Field{
         id: :revised,
-        title: "Revised time",
+        name: "Revised time",
         type: :datetime
       }
     ]
@@ -195,16 +195,16 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   def get_update_fields do
     [
       %UpdateField{
-        id: :title,
-        field_id: :title,
-        title: "Title",
+        id: :name,
+        field_id: :name,
+        name: "Name",
         type: :string,
         change: :set
       },
       %UpdateField{
         id: :revised,
         field_id: :revised,
-        title: "Revised time",
+        name: "Revised time",
         type: :datetime,
         change: :set
       }
@@ -217,7 +217,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
     person
     |> cast(attrs, [
       :cover_photo_id,
-      :title,
+      :name,
       :called,
       :sort_name,
       :date_of_birth,
@@ -227,7 +227,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
       :email,
       :revised
     ])
-    |> validate_required([:title, :sort_name])
+    |> validate_required([:name, :sort_name])
     |> Private.put_all_assoc(assoc, [:mother, :father, :spouse, :work, :home, :cover_photo])
   end
 
@@ -241,8 +241,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
           Changeset.t()
   def update_changeset(%Person{} = object, attrs, assoc, enabled) do
     object
-    |> Private.selective_cast(attrs, enabled, [:title, :sort_name, :revised])
-    |> Private.selective_validate_required(enabled, [:title, :sort_name])
+    |> Private.selective_cast(attrs, enabled, [:name, :sort_name, :revised])
+    |> Private.selective_validate_required(enabled, [:name, :sort_name])
     |> Private.selective_put_assoc(assoc, enabled, [
       :mother,
       :father,

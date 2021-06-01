@@ -3,7 +3,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhotoRelation do
 
   def change do
     create table(:pm_relation) do
-      add(:title, :text, null: false)
+      add(:name, :text, null: false)
       add(:description, :text)
       add(:private_notes, :text)
       timestamps(type: :utc_datetime_usec)
@@ -12,7 +12,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePhotoRelation do
     create table(:pm_photo_relation) do
       add(:photo_id, references(:pm_photo, on_delete: :delete_all), null: false)
       add(:relation_id, references(:pm_relation, on_delete: :delete_all), null: false)
-      add(:title, :text, null: false)
+      add(:name, :text, null: false)
       timestamps(type: :utc_datetime_usec)
     end
 

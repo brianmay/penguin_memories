@@ -25,14 +25,14 @@ defmodule PenguinMemories.Database.Query do
             id: integer,
             action: String.t() | nil,
             url: String.t(),
-            title: String.t(),
+            name: String.t(),
             subtitle: String.t() | nil,
             width: integer,
             height: integer,
             type: module()
           }
-    @enforce_keys [:id, :action, :url, :title, :subtitle, :width, :height, :type]
-    defstruct [:id, :action, :url, :title, :subtitle, :width, :height, :type]
+    @enforce_keys [:id, :action, :url, :name, :subtitle, :width, :height, :type]
+    defstruct [:id, :action, :url, :name, :subtitle, :width, :height, :type]
   end
 
   defmodule Video do
@@ -142,7 +142,7 @@ defmodule PenguinMemories.Database.Query do
   def filter_by_query(%Ecto.Query{} = query, query_string) do
     filtered_search = ["%", String.replace(query_string, "%", ""), "%"]
     filtered_search = Enum.join(filtered_search)
-    dynamic = dynamic([o], ilike(o.title, ^filtered_search))
+    dynamic = dynamic([o], ilike(o.name, ^filtered_search))
 
     dynamic =
       case Integer.parse(query_string) do
@@ -254,7 +254,7 @@ defmodule PenguinMemories.Database.Query do
         "#{get_image_url()}/#{result.icon.dir}/#{result.icon.filename}"
       end
 
-    title = backend.get_title_from_result(result)
+    name = backend.get_title_from_result(result)
     subtitle = backend.get_subtitle_from_result(result)
     action = if type == Photo, do: result.o.action
 
@@ -262,7 +262,7 @@ defmodule PenguinMemories.Database.Query do
       id: result.id,
       action: action,
       url: url,
-      title: title,
+      name: name,
       subtitle: subtitle,
       height: result.icon.height,
       width: result.icon.width,

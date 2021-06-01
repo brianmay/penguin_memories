@@ -11,7 +11,7 @@ defmodule PenguinMemories.Photos.Place do
           id: integer() | nil,
           cover_photo_id: integer() | nil,
           cover_photo: Photo.t() | Ecto.Association.NotLoaded.t(),
-          title: String.t() | nil,
+          name: String.t() | nil,
           description: String.t() | nil,
           address: String.t() | nil,
           address2: String.t() | nil,
@@ -34,7 +34,7 @@ defmodule PenguinMemories.Photos.Place do
 
   schema "pm_place" do
     belongs_to :cover_photo, Photo, on_replace: :nilify
-    field :title, :string
+    field :name, :string
     field :description, :string
     field :address, :string
     field :address2, :string

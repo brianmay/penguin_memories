@@ -29,7 +29,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
 
   @impl API
   @spec get_cursor_fields :: list(atom())
-  def get_cursor_fields, do: [:title, :id]
+  def get_cursor_fields, do: [:name, :id]
 
   @impl API
   @spec get_parent_fields :: list(atom())
@@ -48,8 +48,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   def query do
     from o in Place,
       as: :object,
-      select: %{title: o.title, id: o.id},
-      order_by: [asc: o.title, asc: o.id]
+      select: %{name: o.name, id: o.id},
+      order_by: [asc: o.name, asc: o.id]
   end
 
   @impl API
@@ -93,7 +93,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   @impl API
   @spec get_title_from_result(result :: map()) :: String.t()
   def get_title_from_result(%{} = result) do
-    "#{result.title}"
+    "#{result.name}"
   end
 
   @impl API
@@ -126,71 +126,71 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   def get_fields do
     [
       %Field{
-        id: :title,
-        title: "Title",
+        id: :name,
+        name: "Name",
         type: :string
       },
       %Field{
         id: :parent,
-        title: "Parent",
+        name: "Parent",
         type: {:single, Place}
       },
       %Field{
         id: :address,
-        title: "Address 1",
+        name: "Address 1",
         type: :string,
         access: :private
       },
       %Field{
         id: :address2,
-        title: "Address 2",
+        name: "Address 2",
         type: :string,
         access: :private
       },
       %Field{
         id: :city,
-        title: "City",
+        name: "City",
         type: :string
       },
       %Field{
         id: :state,
-        title: "State",
+        name: "State",
         type: :string
       },
       %Field{
         id: :postcode,
-        title: "Postcode",
+        name: "Postcode",
         type: :string
       },
       %Field{
         id: :country,
-        title: "Country",
+        name: "Country",
         type: :string
       },
       %Field{
         id: :url,
-        title: "URL",
+        name: "URL",
         type: :string
       },
       %Field{
         id: :description,
-        title: "Description",
+        name: "Description",
         type: :markdown
       },
       %Field{
         id: :private_notes,
-        title: "Private Notes",
+        name: "Private Notes",
         type: :markdown,
         access: :private
       },
       %Field{
         id: :cover_photo,
-        title: "Cover Photo",
+        name: "Cover Photo",
         type: {:single, Photo}
       },
       %Field{
         id: :revised,
-        title: "Revised time",
+        name: "Revised time",
         type: :datetime
       }
     ]
@@ -201,23 +201,23 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   def get_update_fields do
     [
       %UpdateField{
-        id: :title,
-        field_id: :title,
-        title: "Title",
+        id: :name,
+        field_id: :name,
+        name: "Name",
         type: :string,
         change: :set
       },
       %UpdateField{
         id: :parent,
         field_id: :parent,
-        title: "Parent",
+        name: "Parent",
         type: {:single, Place},
         change: :set
       },
       %UpdateField{
         id: :revised,
         field_id: :revised,
-        title: "Revised time",
+        name: "Revised time",
         type: :datetime,
         change: :set
       }
@@ -230,7 +230,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
     place
     |> cast(attrs, [
       :cover_photo_id,
-      :title,
+      :name,
       :description,
       :address,
       :address2,
@@ -243,7 +243,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
       :parent_id,
       :revised
     ])
-    |> validate_required([:title])
+    |> validate_required([:name])
     |> Private.put_all_assoc(assoc, [:parent, :cover_photo])
   end
 
@@ -257,8 +257,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
           Changeset.t()
   def update_changeset(%Place{} = object, attrs, assoc, enabled) do
     object
-    |> Private.selective_cast(attrs, enabled, [:title, :revised])
-    |> Private.selective_validate_required(enabled, [:title])
+    |> Private.selective_cast(attrs, enabled, [:name, :revised])
+    |> Private.selective_validate_required(enabled, [:name])
     |> Private.selective_put_assoc(assoc, enabled, [:parent, :cover_photo])
   end
 end

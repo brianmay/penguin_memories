@@ -5,7 +5,7 @@
   <% feedback_for = get_feedback_for(@form, dummy_field_id) %>
 
   <div class="form-group" phx_feedback_for="<%= feedback_for %>">
-    <%= label(@form, dummy_field_id, @field.title, class: "control-label") %>
+    <%= label(@form, dummy_field_id, @field.name, class: "control-label") %>
     <div class="autoselect form-control <%= field_class %>">
       <%= for obj <- @selected do %>
         <% icon = Map.get(@icons, obj.id) %>
@@ -15,7 +15,7 @@
             phx-click="remove"
             phx-value-id="<%= icon.id %>"
             phx-target="<%= @myself %>"
-          ><%= icon.title %></span>
+          ><%= icon.name %></span>
         <% end %>
       <% end %>
       <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, value: @text, disabled: @disabled) %>

@@ -27,13 +27,13 @@ defmodule PenguinMemories.Database.Fields do
 
     @type t :: %__MODULE__{
             id: atom,
-            title: String.t(),
+            name: String.t(),
             type: field_type(),
             read_only: boolean(),
             access: :private | :all
           }
-    @enforce_keys [:id, :title, :type]
-    defstruct id: nil, title: nil, type: nil, read_only: false, access: :all
+    @enforce_keys [:id, :name, :type]
+    defstruct id: nil, name: nil, type: nil, read_only: false, access: :all
   end
 
   defmodule UpdateField do
@@ -47,13 +47,13 @@ defmodule PenguinMemories.Database.Fields do
     @type t :: %__MODULE__{
             id: atom(),
             field_id: atom(),
-            title: String.t(),
+            name: String.t(),
             type: field_type(),
             access: :private | :all,
             change: change_type
           }
-    @enforce_keys [:id, :field_id, :title, :type, :change]
-    defstruct id: nil, field_id: nil, title: nil, type: nil, access: :all, change: nil
+    @enforce_keys [:id, :field_id, :name, :type, :change]
+    defstruct id: nil, field_id: nil, name: nil, type: nil, access: :all, change: nil
   end
 
   @spec can_access_field?(field :: Field.t() | UpdateField.t(), user :: User.t() | nil) ::

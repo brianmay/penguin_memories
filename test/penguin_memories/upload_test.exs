@@ -47,13 +47,13 @@ defmodule PenguinMemories.Uploadtest do
   test "get_upload_album/1" do
     root_album =
       %Album{
-        title: "Uploads"
+        name: "Uploads"
       }
       |> Repo.insert!()
 
     album = Upload.get_upload_album("test")
     %Album{} = album
-    assert album.title == "test"
+    assert album.name == "test"
     assert album.parent_id == root_album.id
   end
 
@@ -63,7 +63,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test"
+        name: "test"
       }
       |> Repo.insert!()
 
@@ -109,7 +109,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
-    assert photo.title == nil
+    assert photo.name == nil
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
@@ -124,7 +124,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test"
+        name: "test"
       }
       |> Repo.insert!()
 
@@ -170,7 +170,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
-    assert photo.title == nil
+    assert photo.name == nil
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
@@ -185,7 +185,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test"
+        name: "test"
       }
       |> Repo.insert!()
 
@@ -231,7 +231,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
-    assert photo.title == nil
+    assert photo.name == nil
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
@@ -246,7 +246,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test"
+        name: "test"
       }
       |> Repo.insert!()
 
@@ -292,7 +292,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
-    assert photo.title == nil
+    assert photo.name == nil
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
@@ -307,7 +307,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test"
+        name: "test"
       }
       |> Repo.insert!()
 
@@ -353,7 +353,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
-    assert photo.title == nil
+    assert photo.name == nil
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
@@ -368,7 +368,7 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        title: "test"
+        name: "test"
       }
       |> Repo.insert!()
 
@@ -414,7 +414,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.photographer_id == nil
     assert photo.place_id == nil
     assert photo.rating == nil
-    assert photo.title == nil
+    assert photo.name == nil
     %DateTime{} = photo.updated_at
     assert photo.view == nil
 
@@ -426,7 +426,7 @@ defmodule PenguinMemories.Uploadtest do
   @tag :slow
   test "upload_directory/2 exif works" do
     %Album{
-      title: "Uploads"
+      name: "Uploads"
     }
     |> Repo.insert!()
 

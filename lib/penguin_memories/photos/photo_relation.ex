@@ -12,13 +12,13 @@ defmodule PenguinMemories.Photos.PhotoRelation do
   @type t :: %__MODULE__{
           photo_id: Photo.t() | Ecto.Association.NotLoaded.t() | nil,
           relation_id: Relation.t() | Ecto.Association.NotLoaded.t() | nil,
-          title: String.t() | nil
+          name: String.t() | nil
         }
 
   schema "pm_photo_relation" do
     belongs_to :photo, Photo
     belongs_to :relation, Relation
-    field :title, :string
+    field :name, :string
     timestamps()
   end
 end

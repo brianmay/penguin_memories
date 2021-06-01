@@ -4,7 +4,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateAlbums do
   def change do
     create table(:pm_album) do
       add(:cover_photo_id, references(:pm_photo, on_delete: :nilify_all))
-      add(:title, :text, null: false)
+      add(:name, :text, null: false)
       add(:description, :text)
       add(:private_notes, :text)
       add(:revised, :utc_datetime)
@@ -14,7 +14,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateAlbums do
     end
 
     create(index(:pm_album, [:cover_photo_id]))
-    create(index(:pm_album, [:title]))
+    create(index(:pm_album, [:name]))
     create(index(:pm_album, [:revised]))
     create(index(:pm_album, [:parent_id]))
 

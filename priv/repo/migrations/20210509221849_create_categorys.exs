@@ -4,7 +4,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateCategorys do
   def change do
     create table(:pm_category) do
       add(:cover_photo_id, references(:pm_photo, on_delete: :nilify_all))
-      add(:title, :text, null: false)
+      add(:name, :text, null: false)
       add(:description, :text)
       add(:private_notes, :text)
       add(:revised, :utc_datetime)
@@ -14,7 +14,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateCategorys do
     end
 
     create(index(:pm_category, [:cover_photo_id]))
-    create(index(:pm_category, [:title]))
+    create(index(:pm_category, [:name]))
     create(index(:pm_category, [:revised]))
     create(index(:pm_category, [:parent_id]))
 
