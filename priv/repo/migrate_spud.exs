@@ -120,7 +120,6 @@ defmodule ImportPhotoFiles do
            photo_id: spf.photo_id
          }, p},
       order_by: [spf.photo_id, spf.id],
-      limit: 100  # FIXME
     )
     |> Repo.stream()
     |> Stream.each(fn {src, photo} ->
