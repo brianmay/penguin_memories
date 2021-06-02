@@ -163,7 +163,9 @@
         <% end %>
 
         <%= if Auth.can_edit(@user) do %>
-          <div class="btn btn-secondary" phx-click="create">Create</div>
+          <%= if @type != Photos.Photo do %>
+              <div class="btn btn-secondary" phx-click="create">Create</div>
+          <% end %>
           <div class="btn btn-secondary" phx-click="edit">Edit</div>
           <div class="btn btn-secondary" phx-click="delete">Delete</div>
         <% end %>
