@@ -140,9 +140,8 @@ defmodule PenguinMemories.Database.Query do
 
   @spec filter_by_query(query :: Ecto.Query.t(), query_string :: String.t()) :: Ecto.Query.t()
   def filter_by_query(%Ecto.Query{} = query, query_string) do
-    filtered_search = ["%", String.replace(query_string, "%", ""), "%"]
-    filtered_search = Enum.join(filtered_search)
-    dynamic = dynamic([o], ilike(o.name, ^filtered_search))
+    dynamic =
+      dynamic([o], fragment("to_tsvector(?) @@ plainto_tsquery(?)", o.name, ^query_string))
 
     dynamic =
       case Integer.parse(query_string) do
