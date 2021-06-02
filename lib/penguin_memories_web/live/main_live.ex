@@ -140,7 +140,13 @@ defmodule PenguinMemoriesWeb.MainLive do
   @impl true
   def handle_info({:child_pid, "reference", pid}, socket) do
     {type, id} = socket.assigns.reference_type_id
-    send(pid, {:parameters, type, id, socket.assigns.url, socket.host_uri, nil, nil, socket.assigns.big_value})
+
+    send(
+      pid,
+      {:parameters, type, id, socket.assigns.url, socket.host_uri, nil, nil,
+       socket.assigns.big_value}
+    )
+
     {:noreply, assign(socket, reference_pid: pid)}
   end
 
@@ -173,7 +179,12 @@ defmodule PenguinMemoriesWeb.MainLive do
     if socket.assigns.reference_pid != nil do
       pid = socket.assigns.reference_pid
       {type, id} = socket.assigns.reference_type_id
-      send(pid, {:parameters, type, id, socket.assigns.url, socket.host_uri, nil, nil, socket.assigns.big_value})
+
+      send(
+        pid,
+        {:parameters, type, id, socket.assigns.url, socket.host_uri, nil, nil,
+         socket.assigns.big_value}
+      )
     end
 
     if socket.assigns.objects_pid != nil do

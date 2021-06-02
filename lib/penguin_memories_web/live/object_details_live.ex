@@ -141,7 +141,10 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   @impl true
-  def handle_info({:parameters, type, id, url, %URI{} = host_uri, prev_icon, next_icon, big_value}, socket) do
+  def handle_info(
+        {:parameters, type, id, url, %URI{} = host_uri, prev_icon, next_icon, big_value},
+        socket
+      ) do
     assigns = [
       type: type,
       id: id,

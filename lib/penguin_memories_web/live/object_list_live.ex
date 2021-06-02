@@ -198,7 +198,12 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
           {prev_icon, next_icon} = get_prev_next_icons(selection_id, filter, type)
 
           pid = socket.assigns.selected_pid
-          send(pid, {:parameters, type, selection_id, socket.assigns.url, socket.host_uri, prev_icon, next_icon, request.big_value})
+
+          send(
+            pid,
+            {:parameters, type, selection_id, socket.assigns.url, socket.host_uri, prev_icon,
+             next_icon, request.big_value}
+          )
       end
     end
 
