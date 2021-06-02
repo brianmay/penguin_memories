@@ -30,7 +30,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       user: user,
       type: nil,
       id: nil,
-      big: false,
+      big: nil,
       mode: :display,
       prev_icon: nil,
       next_icon: nil,
@@ -39,7 +39,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       edit_obj: nil,
       action: nil,
       details: nil,
-      assoc: %{}
+      assoc: %{},
+      url: nil
     ]
 
     socket = assign(socket, assigns)
@@ -66,16 +67,18 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("big", _params, %Socket{} = socket) do
-    {:noreply, assign(socket, :big, true) |> reload()}
+    send(socket.root_pid, {:big, socket.id})
+    {:noreply, socket}
   end
 
   @impl true
   def handle_event("unbig", _params, %Socket{} = socket) do
-    {:noreply, assign(socket, :big, false) |> reload()}
+    send(socket.root_pid, {:big, nil})
+    {:noreply, socket}
   end
 
   def handle_event("create", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.user) and socket.assigns.type != Photos.Photo do
       handle_create(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -138,12 +141,14 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   @impl true
-  def handle_info({:parameters, type, id, %URI{} = host_uri, prev_icon, next_icon}, socket) do
+  def handle_info({:parameters, type, id, url, %URI{} = host_uri, prev_icon, next_icon, big_value}, socket) do
     assigns = [
       type: type,
       id: id,
       prev_icon: prev_icon,
-      next_icon: next_icon
+      next_icon: next_icon,
+      big: big_value == socket.id,
+      url: url
     ]
 
     socket = %Socket{socket | host_uri: host_uri}

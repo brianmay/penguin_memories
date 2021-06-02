@@ -15,7 +15,8 @@ defmodule PenguinMemories.Loaders do
             after_name: String.t(),
             after_key: String.t(),
             show_selected_name: String.t(),
-            show_selected_value: boolean()
+            show_selected_value: boolean(),
+            big_value: String.t()
           }
     @enforce_keys [
       :type,
@@ -25,7 +26,8 @@ defmodule PenguinMemories.Loaders do
       :after_name,
       :after_key,
       :show_selected_name,
-      :show_selected_value
+      :show_selected_value,
+      :big_value
     ]
     defstruct type: nil,
               filter: %Query.Filter{},
@@ -34,7 +36,8 @@ defmodule PenguinMemories.Loaders do
               after_name: nil,
               after_key: nil,
               show_selected_name: nil,
-              show_selected_value: false
+              show_selected_value: false,
+              big_value: nil
   end
 
   defmodule ListResponse do

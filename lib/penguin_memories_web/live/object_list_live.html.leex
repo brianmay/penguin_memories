@@ -7,7 +7,7 @@
     <%= live_render(@socket, PenguinMemoriesWeb.ObjectUpdateLive, id: :update) %>
   <% end %>
 
-  <div class="photo_list_with_controls">
+  <div class="details">
     <h2><%= Query.get_plural_name(@request.type) |> String.capitalize() %></h2>
     <div class="buttons">
       <%= if @selected_ids != :all do %>

@@ -1,3 +1,4 @@
+<div class="root <%= if @big_value != nil, do: "big" %>">
 <%
   has_reference = @reference_type_id != nil
   is_photos = @objects.type == Photos.Photo
@@ -10,13 +11,13 @@
 
   render_photos =
     case {is_photos, has_reference} do
-      {false, true} -> true
+      {_, true} -> true
       _ -> false
     end
 %>
 
 <%= if render_objects or render_photos do %>
-  <div class="search_form">
+  <div class="details">
     <form method="get" phx-submit="search" novalidate="">
       <div class="form-group">
         <input
@@ -45,3 +46,4 @@
 <%= if render_photos do %>
   <%= live_render(@socket, PenguinMemoriesWeb.ObjectListLive, id: :photos) %>
 <% end %>
+</div>

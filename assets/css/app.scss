@@ -61,6 +61,15 @@
     cursor: pointer;
 }
 
+.root.big {
+    .details {
+        display: none;
+    }
+    .big {
+        display: block;
+    }
+}
+
 .photo_item {
     border: 1px solid #dddddd;
     height: 180px;
@@ -124,33 +133,6 @@
     .selecting {
         color: #212529;
         background: #FECA40;
-    }
-
-    .photo_item {
-        margin: 10px;
-    }
-}
-
-.photo_list_with_controls {
-    position: relative;
-    border: 1px solid #dddddd;
-    margin-top: 10px;
-    padding: 5px;
-
-    .btn-prev {
-        position: absolute;
-        top: 50%;
-        left: 0;
-        transform: translate(-0%, -50%);
-        z-index: 1;
-    }
-
-    .btn-next {
-        position: absolute;
-        top: 50%;
-        left: 100%;
-        transform: translate(-100%, -50%);
-        z-index: 1;
     }
 
     .photo_item {
@@ -228,7 +210,15 @@ form {
             left: 50%;
             margin-right: -50%;
             transform: translate(-50%, -50%);
-            z-index: 0;
+            z-index: -1;
+
+            max-width: 100%;
+            height: 100%;
+            img { width: 100%; height: 100% }
+        }
+
+        .title {
+            display: none;
         }
 
         .parents {
@@ -241,6 +231,10 @@ form {
 
         .btn-prev:hover .hover, .btn-next:hover .hover {
             display: none;
+        }
+
+        label {
+            color: #fff;
         }
     }
 }

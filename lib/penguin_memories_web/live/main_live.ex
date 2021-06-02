@@ -61,6 +61,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       query: params["query"]
     }
 
+    big_value = nil
+
     objects = %Loaders.ListRequest{
       type: type,
       filter: filter,
@@ -69,7 +71,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       after_name: "obj_after",
       after_key: params["obj_after"],
       show_selected_name: "obj_show_selected",
-      show_selected_value: Map.has_key?(params, "obj_show_selected")
+      show_selected_value: Map.has_key?(params, "obj_show_selected"),
+      big_value: big_value
     }
 
     photos = %Loaders.ListRequest{
@@ -80,7 +83,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       after_name: "p_after",
       after_key: params["p_after"],
       show_selected_name: "p_show_selected",
-      show_selected_value: Map.has_key?(params, "p_show_selected")
+      show_selected_value: Map.has_key?(params, "p_show_selected"),
+      big_value: big_value
     }
 
     assigns = [
@@ -90,7 +94,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       active: Types.get_name!(type),
       url: url,
       objects: objects,
-      photos: photos
+      photos: photos,
+      big_value: big_value
     ]
 
     socket = assign(socket, assigns)
@@ -117,6 +122,15 @@ defmodule PenguinMemoriesWeb.MainLive do
   end
 
   @impl true
+  def handle_info({:big, big_value}, %Socket{} = socket) do
+    objects = %Loaders.ListRequest{socket.assigns.objects | big_value: big_value}
+    photos = %Loaders.ListRequest{socket.assigns.photos | big_value: big_value}
+    socket = assign(socket, objects: objects, photos: photos, big_value: big_value)
+    :ok = reload(socket)
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_info({:child_pid, "details", pid}, socket) do
     type = socket.assigns.objects.type
     send(pid, {:parameters, type})
@@ -126,7 +140,7 @@ defmodule PenguinMemoriesWeb.MainLive do
   @impl true
   def handle_info({:child_pid, "reference", pid}, socket) do
     {type, id} = socket.assigns.reference_type_id
-    send(pid, {:parameters, type, id, socket.host_uri, nil, nil})
+    send(pid, {:parameters, type, id, socket.assigns.url, socket.host_uri, nil, nil, socket.assigns.big_value})
     {:noreply, assign(socket, reference_pid: pid)}
   end
 
@@ -159,7 +173,7 @@ defmodule PenguinMemoriesWeb.MainLive do
     if socket.assigns.reference_pid != nil do
       pid = socket.assigns.reference_pid
       {type, id} = socket.assigns.reference_type_id
-      send(pid, {:parameters, type, id, socket.host_uri, nil, nil})
+      send(pid, {:parameters, type, id, socket.assigns.url, socket.host_uri, nil, nil, socket.assigns.big_value})
     end
 
     if socket.assigns.objects_pid != nil do

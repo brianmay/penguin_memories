@@ -174,7 +174,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   @spec notify_update_child(Socket.t()) :: :ok
   defp notify_update_child(%Socket{} = socket) do
     if socket.assigns.update_pid != nil do
-      type = socket.assigns.request.type
+      request = socket.assigns.request
+      type = request.type
       filter = get_update_filter(socket.assigns)
       pid = socket.assigns.update_pid
       send(pid, {:parameters, filter, type})
@@ -191,12 +192,13 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
           :ok
 
         selection_id ->
-          type = socket.assigns.request.type
+          request = socket.assigns.request
+          type = request.type
           filter = get_filter(socket.assigns)
           {prev_icon, next_icon} = get_prev_next_icons(selection_id, filter, type)
 
           pid = socket.assigns.selected_pid
-          send(pid, {:parameters, type, selection_id, socket.host_uri, prev_icon, next_icon})
+          send(pid, {:parameters, type, selection_id, socket.assigns.url, socket.host_uri, prev_icon, next_icon, request.big_value})
       end
     end
 
