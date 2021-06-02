@@ -1,5 +1,5 @@
 <%= if @type != Photos.Photo and Auth.can_edit(@user) do %>
-  <div class="list_detail">
+  <div class="details">
     <%= if @error do %>
       <div class="alert alert-danger">
         <%= @error %>

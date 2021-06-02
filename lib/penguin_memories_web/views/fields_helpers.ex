@@ -53,7 +53,26 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   @spec output_field(obj :: struct(), field :: Field.t()) :: any()
   def output_field(obj, field) do
     value = Map.get(obj, field.id)
-    output_field_value(obj, value, field)
+
+    case value do
+      nil ->
+        nil
+
+      [] ->
+        nil
+
+      value ->
+        [
+          raw("<tr>"),
+          raw("<th>"),
+          field.name,
+          raw("</th>"),
+          raw("<td>"),
+          output_field_value(obj, value, field),
+          raw("</td>"),
+          raw("</tr>")
+        ]
+    end
   end
 
   @spec output_field_value(obj :: struct(), value :: any(), field :: Field.t()) :: any()
@@ -128,7 +147,21 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     end)
   end
 
-  defp output_field_value(_, value, _field) do
+  defp output_field_value(_, value, _field) when is_integer(value) do
+    Integer.to_string(value)
+  end
+
+  defp output_field_value(_, value, _field) when is_float(value) do
+    :io_lib.format("~f", [value])
+    # use to_string instead of Enum.at(0) which returns charlist
+    |> to_string()
+  end
+
+  defp output_field_value(_, value, _field) when is_boolean(value) do
+    to_string(value)
+  end
+
+  defp output_field_value(_, value, _field) when is_binary(value) do
     value
   end
 

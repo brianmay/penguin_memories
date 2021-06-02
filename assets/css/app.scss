@@ -69,7 +69,7 @@
     width: 140px;
     overflow: hidden;
 
-    .title {
+    .name {
         font-weight: bold;
     }
 
@@ -166,32 +166,11 @@ form {
     width: 400px;
 }
 
-.search_form {
+.details {
     border: 1px solid #dddddd;
     margin-top: 10px;
     padding: 5px;
-}
-
-.list_detail {
-    border: 1px solid #dddddd;
-    margin-top: 10px;
-    padding: 5px;
-}
-
-.select_detail {
-    border: 1px solid #dddddd;
-    margin-top: 10px;
-    padding: 5px;
-}
-
-.photo_detail {
     position: relative;
-    border: 1px solid #dddddd;
-    margin-top: 10px;
-    padding: 5px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
 
     .btn-prev {
         position: absolute;
@@ -209,8 +188,20 @@ form {
         z-index: 11;
     }
 
-    .photo_table, form {
-        margin-left: 10px;
+    &.removed {
+        text-decoration: line-through;
+        color: #cccc;
+        table, form {
+            color: #212529;
+        }
+    }
+
+    &.regenerate {
+        background: #CCE;
+        color: #333;
+        table, form {
+            color: #212529;
+        }
     }
 
     &.big {
@@ -222,6 +213,9 @@ form {
         z-index: 10;
         left: 0;
         top: 0;
+        margin: 0;
+        border: none;
+        padding: 0;
 
         .photo {
             position: absolute;
@@ -232,6 +226,10 @@ form {
             z-index: 0;
         }
 
+        .parents {
+            display: none;
+        }
+
         .photo_table {
             display: none;
         }
@@ -240,15 +238,28 @@ form {
             display: none;
         }
     }
+}
 
-    &.removed {
-        text-decoration: line-through;
-        opacity: 0.5;
+.photo_details {
+    // position: relative;
+    // border: 1px solid #dddddd;
+    margin-top: 10px;
+    // padding: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+
+    .photo_table, form {
+        margin-left: 10px;
     }
+}
 
-    &.regenerate {
-        background: #CCE;
-        color: #333;
+.photo .title {
+    display: flex;
+    justify-content: space-between;
+
+    div {
+        display: inline;
     }
 }
 
@@ -262,7 +273,6 @@ form {
     .selected {
         border: 1px solid black;
         border-radius: 0.25em;
-        color: #212529;
         background: #88ff88;
         padding: 4px;
         display: inline-block
@@ -276,7 +286,6 @@ form {
 .item {
     border: 1px solid #dddddd;
     border-radius: 0.25em;
-    color: #212529;
     background: #ffff88;
     padding: 4px;
     margin: 4px;
