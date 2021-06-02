@@ -190,9 +190,14 @@ form {
 
     &.removed {
         text-decoration: line-through;
-        color: #cccc;
-        table, form {
+        color: #ccc;
+        table {
+            color: #ccc;
+            text-decoration: none;
+        }
+        form {
             color: #212529;
+            text-decoration: none;
         }
     }
 
