@@ -9,9 +9,9 @@ defmodule PenguinMemoriesWeb.MainLive do
   alias PenguinMemories.Auth
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
-  alias PenguinMemories.Loaders
   alias PenguinMemories.Photos
   alias PenguinMemories.Urls
+  alias PenguinMemoriesWeb.ObjectListLive
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
@@ -63,7 +63,7 @@ defmodule PenguinMemoriesWeb.MainLive do
 
     big_value = nil
 
-    objects = %Loaders.ListRequest{
+    objects = %ObjectListLive.Request{
       type: type,
       filter: filter,
       before_name: "obj_before",
@@ -75,7 +75,7 @@ defmodule PenguinMemoriesWeb.MainLive do
       big_value: big_value
     }
 
-    photos = %Loaders.ListRequest{
+    photos = %ObjectListLive.Request{
       type: Photos.Photo,
       filter: filter,
       before_name: "p_before",
@@ -123,8 +123,8 @@ defmodule PenguinMemoriesWeb.MainLive do
 
   @impl true
   def handle_info({:big, big_value}, %Socket{} = socket) do
-    objects = %Loaders.ListRequest{socket.assigns.objects | big_value: big_value}
-    photos = %Loaders.ListRequest{socket.assigns.photos | big_value: big_value}
+    objects = %ObjectListLive.Request{socket.assigns.objects | big_value: big_value}
+    photos = %ObjectListLive.Request{socket.assigns.photos | big_value: big_value}
     socket = assign(socket, objects: objects, photos: photos, big_value: big_value)
     :ok = reload(socket)
     {:noreply, socket}

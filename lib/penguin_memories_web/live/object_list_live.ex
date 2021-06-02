@@ -9,8 +9,65 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   alias PenguinMemories.Database
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
-  alias PenguinMemories.Loaders
   alias PenguinMemories.Urls
+
+  defmodule Request do
+    @moduledoc """
+    List of icons to display
+    """
+    @type t :: %__MODULE__{
+            type: Database.object_type(),
+            filter: Query.Filter.t(),
+            before_name: String.t(),
+            before_key: String.t(),
+            after_name: String.t(),
+            after_key: String.t(),
+            show_selected_name: String.t(),
+            show_selected_value: boolean(),
+            big_value: String.t()
+          }
+    @enforce_keys [
+      :type,
+      :filter,
+      :before_name,
+      :before_key,
+      :after_name,
+      :after_key,
+      :show_selected_name,
+      :show_selected_value,
+      :big_value
+    ]
+    defstruct type: nil,
+              filter: %Query.Filter{},
+              before_name: nil,
+              before_key: nil,
+              after_name: nil,
+              after_key: nil,
+              show_selected_name: nil,
+              show_selected_value: false,
+              big_value: nil
+  end
+
+  defmodule Response do
+    @moduledoc """
+    List of icons to display
+    """
+    @type t :: %__MODULE__{
+            before_key: String.t(),
+            before_url: String.t(),
+            after_key: String.t(),
+            after_url: String.t(),
+            icons: list(Query.Icon.t()),
+            count: integer()
+          }
+    @enforce_keys [:before_key, :before_url, :after_key, :after_url, :icons, :count]
+    defstruct before_key: nil,
+              before_url: nil,
+              after_key: nil,
+              after_url: nil,
+              icons: [],
+              count: 0
+  end
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
@@ -121,7 +178,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @impl true
   def handle_info(
-        {:parameters, %Loaders.ListRequest{} = request, %URI{} = url, %URI{} = host_uri},
+        {:parameters, %Request{} = request, %URI{} = url, %URI{} = host_uri},
         socket
       ) do
     assigns = [
@@ -235,7 +292,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     :ok = notify_update_child(socket)
 
     request = get_request(socket.assigns)
-    response = Loaders.load_objects(request, socket.assigns.url)
+    response = load_objects(request, socket.assigns.url)
     assign(socket, response: response)
   end
 
@@ -301,10 +358,10 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     end
   end
 
-  @spec get_request(assigns :: map()) :: Loaders.ListRequest.t()
+  @spec get_request(assigns :: map()) :: Request.t()
   def get_request(assigns) do
     filter = get_filter(assigns)
-    %Loaders.ListRequest{assigns.request | filter: filter}
+    %Request{assigns.request | filter: filter}
   end
 
   @spec toggle_range(
@@ -355,8 +412,47 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   end
 
   @spec to_int(String.t()) :: integer
-  def to_int(int) do
+  defp to_int(int) do
     {int, ""} = Integer.parse(int)
     int
+  end
+
+  @spec create_before_after_url(
+          uri :: URI.t(),
+          this_name :: String.t(),
+          other_name :: String.t(),
+          key :: String.t() | nil
+        ) :: String.t() | nil
+  defp create_before_after_url(_uri, _this_name, _other_name, nil), do: nil
+
+  defp create_before_after_url(%URI{} = url, this_name, other_name, key) do
+    url
+    |> Urls.url_merge(%{this_name => key}, [other_name])
+    |> URI.to_string()
+  end
+
+  @spec load_objects(request :: Request.t(), url :: URI.t()) :: Response.t()
+  defp load_objects(%Request{} = request, %URI{} = url) do
+    {icons, before_key, after_key, count} =
+      Query.get_page_icons(
+        request.filter,
+        request.before_key,
+        request.after_key,
+        20,
+        "thumb",
+        request.type
+      )
+
+    before_url = create_before_after_url(url, request.before_name, request.after_name, before_key)
+    after_url = create_before_after_url(url, request.after_name, request.before_name, after_key)
+
+    %Response{
+      before_key: before_key,
+      before_url: before_url,
+      after_key: after_key,
+      after_url: after_url,
+      icons: icons,
+      count: count
+    }
   end
 end
