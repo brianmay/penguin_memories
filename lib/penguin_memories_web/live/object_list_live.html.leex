@@ -8,6 +8,7 @@
   <% end %>
 
   <div class="photo_list_with_controls">
+    <h2><%= Query.get_plural_name(@request.type) |> String.capitalize() %></h2>
     <div class="buttons">
       <%= if @selected_ids != :all do %>
         <%= if @request.show_selected_value do %>

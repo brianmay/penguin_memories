@@ -4,9 +4,8 @@
 
   render_objects =
     case {is_photos, has_reference} do
-      {false, _} -> true
-      {true, false} -> true
-      _ -> false
+      {true, true} -> false
+      _ -> true
     end
 
   render_photos =

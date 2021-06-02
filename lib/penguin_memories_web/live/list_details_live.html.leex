@@ -1,4 +1,4 @@
-<%= if @type != Photos.Photo do %>
+<%= if @type != Photos.Photo and Auth.can_edit(@user) do %>
   <div class="list_detail">
     <%= if @error do %>
       <div class="alert alert-danger">

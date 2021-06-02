@@ -1,6 +1,6 @@
 <% target = assigns[:target] %>
 <div
-  class="photo_item <%= icon_classes(@icon) %>"
+  class="photo_item <%= icon_classes(@icon) %> <%= @classes |> Enum.join(" ") %>"
   phx-click="<%= @event %>"
   phx-value-type="<%= PenguinMemories.Database.Types.get_name!(@icon.type) %>"
   phx-value-id="<%= @icon.id %>"
