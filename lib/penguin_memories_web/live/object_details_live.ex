@@ -315,8 +315,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       reference: "#{name}/#{id}"
     }
 
-    query = URI.encode_query(params)
-    Routes.main_path(socket, :index, "photo") <> "?" <> query
+    Routes.main_path(socket, :index, "photo", params)
   end
 
   @spec to_int(String.t()) :: integer
