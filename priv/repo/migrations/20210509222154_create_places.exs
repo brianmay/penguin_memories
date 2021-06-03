@@ -22,7 +22,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePlaces do
     end
 
     create(index(:pm_place, [:cover_photo_id]))
-    create(index(:pm_place, [:name]))
+    create(index(:pm_place, [:name, :id]))
     create(index(:pm_place, [:revised]))
     create(index(:pm_place, [:parent_id]))
 

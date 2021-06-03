@@ -29,7 +29,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
 
   @impl API
   @spec get_cursor_fields :: list(atom())
-  def get_cursor_fields, do: [:sort_name, :id]
+  def get_cursor_fields, do: [:sort_name, :name, :id]
 
   @impl API
   @spec get_parent_fields :: list(atom())

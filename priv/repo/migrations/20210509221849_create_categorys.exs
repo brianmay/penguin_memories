@@ -14,7 +14,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateCategorys do
     end
 
     create(index(:pm_category, [:cover_photo_id]))
-    create(index(:pm_category, [:name]))
+    create(index(:pm_category, [:name, :id]))
     create(index(:pm_category, [:revised]))
     create(index(:pm_category, [:parent_id]))
 

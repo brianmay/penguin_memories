@@ -25,6 +25,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
 
     create(index(:pm_person, [:cover_photo_id]))
     create(index(:pm_person, [:name]))
+    create(index(:pm_person, [:sort_name, :name, :id]))
     create(index(:pm_person, [:revised]))
     create(index(:pm_person, [:home_id]))
     create(index(:pm_person, [:work_id]))

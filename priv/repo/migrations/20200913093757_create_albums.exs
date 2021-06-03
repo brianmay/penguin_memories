@@ -14,7 +14,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateAlbums do
     end
 
     create(index(:pm_album, [:cover_photo_id]))
-    create(index(:pm_album, [:name]))
+    create(index(:pm_album, [:name, :id]))
     create(index(:pm_album, [:revised]))
     create(index(:pm_album, [:parent_id]))
 
