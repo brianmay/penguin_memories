@@ -120,6 +120,7 @@ defmodule ImportPhotoFiles do
            photo_id: spf.photo_id
          }, p},
       order_by: [spf.photo_id, spf.id],
+      where: size_key == "orig"
     )
     |> Repo.stream()
     |> Stream.each(fn {src, photo} ->
