@@ -42,8 +42,8 @@ defmodule PenguinMemories.StorageTest do
   end
 
   test "build_file_dir works" do
-    assert Storage.build_file_dir("a/b", "mid", false) == "thumb/mid/a/b"
-    assert Storage.build_file_dir("a/b", "mid", true) == "video/mid/a/b"
+    assert Storage.build_file_dir("a/b", "mid", false) == "scaled/mid/a/b"
+    assert Storage.build_file_dir("a/b", "mid", true) == "scaled/mid/a/b"
   end
 
   test "build_directory works", context do
@@ -103,7 +103,7 @@ defmodule PenguinMemories.StorageTest do
     assert %File{
              photo_id: 1,
              filename: "00000001.jpg",
-             dir: "thumb/thumb/1/2/3",
+             dir: "scaled/thumb/1/2/3",
              height: 100,
              width: 100,
              mime_type: "image/jpeg",
@@ -112,7 +112,7 @@ defmodule PenguinMemories.StorageTest do
              sha256_hash: sha256_hash
            } == file
 
-    {:ok, new_media} = Media.get_media("#{image_dir}/thumb/thumb/1/2/3/00000001.jpg")
+    {:ok, new_media} = Media.get_media("#{image_dir}/scaled/thumb/1/2/3/00000001.jpg")
     assert Media.get_size(new_media) == %Media.Size{width: 100, height: 100}
     assert Media.get_num_bytes(new_media) == 2917
     assert Media.get_sha256_hash(new_media) == sha256_hash

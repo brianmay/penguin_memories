@@ -52,7 +52,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 80
     assert file.is_video == false
     assert file.mime_type == "image/gif"
-    assert file.dir == "thumb/thumb/2000/01/01"
+    assert file.dir == "scaled/thumb/2000/01/01"
     assert file.filename == "#{filename}.gif"
 
     [file | files] = files
@@ -61,7 +61,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 320
     assert file.is_video == false
     assert file.mime_type == "image/gif"
-    assert file.dir == "thumb/mid/2000/01/01"
+    assert file.dir == "scaled/mid/2000/01/01"
     assert file.filename == "#{filename}.gif"
 
     [file | files] = files
@@ -70,7 +70,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 1280
     assert file.is_video == false
     assert file.mime_type == "image/gif"
-    assert file.dir == "thumb/large/2000/01/01"
+    assert file.dir == "scaled/large/2000/01/01"
     assert file.filename == "#{filename}.gif"
 
     [file | files] = files
@@ -79,7 +79,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 80
     assert file.is_video == false
     assert file.mime_type == "image/jpeg"
-    assert file.dir == "thumb/thumb/2000/01/01"
+    assert file.dir == "scaled/thumb/2000/01/01"
     assert file.filename == "#{filename}.jpg"
 
     [file | files] = files
@@ -88,7 +88,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 320
     assert file.is_video == false
     assert file.mime_type == "image/jpeg"
-    assert file.dir == "thumb/mid/2000/01/01"
+    assert file.dir == "scaled/mid/2000/01/01"
     assert file.filename == "#{filename}.jpg"
 
     [file | files] = files
@@ -97,7 +97,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 1280
     assert file.is_video == false
     assert file.mime_type == "image/jpeg"
-    assert file.dir == "thumb/large/2000/01/01"
+    assert file.dir == "scaled/large/2000/01/01"
     assert file.filename == "#{filename}.jpg"
 
     [file | files] = files
@@ -112,12 +112,12 @@ defmodule PenguinMemories.Actionstest do
     [] = files
 
     {:ok, _media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/thumb/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/mid/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/large/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/thumb/2000/01/01/#{filename}.gif")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/mid/2000/01/01/#{filename}.gif")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/large/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/thumb/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/thumb/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.gif")
   end
 
   @tag :slow
@@ -149,7 +149,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 68
     assert file.is_video == false
     assert file.mime_type == "image/gif"
-    assert file.dir == "thumb/thumb/2000/01/01"
+    assert file.dir == "scaled/thumb/2000/01/01"
     assert file.filename == "#{filename}.gif"
 
     [file | files] = files
@@ -158,7 +158,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == false
     assert file.mime_type == "image/gif"
-    assert file.dir == "thumb/mid/2000/01/01"
+    assert file.dir == "scaled/mid/2000/01/01"
     assert file.filename == "#{filename}.gif"
 
     [file | files] = files
@@ -167,7 +167,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == false
     assert file.mime_type == "image/gif"
-    assert file.dir == "thumb/large/2000/01/01"
+    assert file.dir == "scaled/large/2000/01/01"
     assert file.filename == "#{filename}.gif"
 
     [file | files] = files
@@ -176,7 +176,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 68
     assert file.is_video == false
     assert file.mime_type == "image/jpeg"
-    assert file.dir == "thumb/thumb/2000/01/01"
+    assert file.dir == "scaled/thumb/2000/01/01"
     assert file.filename == "#{filename}.jpg"
 
     [file | files] = files
@@ -185,7 +185,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == false
     assert file.mime_type == "image/jpeg"
-    assert file.dir == "thumb/mid/2000/01/01"
+    assert file.dir == "scaled/mid/2000/01/01"
     assert file.filename == "#{filename}.jpg"
 
     [file | files] = files
@@ -194,7 +194,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == false
     assert file.mime_type == "image/jpeg"
-    assert file.dir == "thumb/large/2000/01/01"
+    assert file.dir == "scaled/large/2000/01/01"
     assert file.filename == "#{filename}.jpg"
 
     [file | files] = files
@@ -203,7 +203,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 68
     assert file.is_video == true
     assert file.mime_type == "video/mp4"
-    assert file.dir == "video/thumb/2000/01/01"
+    assert file.dir == "scaled/thumb/2000/01/01"
     assert file.filename == "#{filename}.mp4"
 
     [file | files] = files
@@ -212,7 +212,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == true
     assert file.mime_type == "video/mp4"
-    assert file.dir == "video/mid/2000/01/01"
+    assert file.dir == "scaled/mid/2000/01/01"
     assert file.filename == "#{filename}.mp4"
 
     [file | files] = files
@@ -221,7 +221,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == true
     assert file.mime_type == "video/mp4"
-    assert file.dir == "video/large/2000/01/01"
+    assert file.dir == "scaled/large/2000/01/01"
     assert file.filename == "#{filename}.mp4"
 
     [file | files] = files
@@ -230,7 +230,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 68
     assert file.is_video == true
     assert file.mime_type == "video/ogg"
-    assert file.dir == "video/thumb/2000/01/01"
+    assert file.dir == "scaled/thumb/2000/01/01"
     assert file.filename == "#{filename}.ogv"
 
     [file | files] = files
@@ -239,7 +239,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == true
     assert file.mime_type == "video/ogg"
-    assert file.dir == "video/mid/2000/01/01"
+    assert file.dir == "scaled/mid/2000/01/01"
     assert file.filename == "#{filename}.ogv"
 
     [file | files] = files
@@ -248,7 +248,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == true
     assert file.mime_type == "video/ogg"
-    assert file.dir == "video/large/2000/01/01"
+    assert file.dir == "scaled/large/2000/01/01"
     assert file.filename == "#{filename}.ogv"
 
     [file | files] = files
@@ -257,7 +257,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 68
     assert file.is_video == true
     assert file.mime_type == "video/webm"
-    assert file.dir == "video/thumb/2000/01/01"
+    assert file.dir == "scaled/thumb/2000/01/01"
     assert file.filename == "#{filename}.webm"
 
     [file | files] = files
@@ -266,7 +266,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == true
     assert file.mime_type == "video/webm"
-    assert file.dir == "video/mid/2000/01/01"
+    assert file.dir == "scaled/mid/2000/01/01"
     assert file.filename == "#{filename}.webm"
 
     [file | files] = files
@@ -275,7 +275,7 @@ defmodule PenguinMemories.Actionstest do
     assert file.height == 270
     assert file.is_video == true
     assert file.mime_type == "video/webm"
-    assert file.dir == "video/large/2000/01/01"
+    assert file.dir == "scaled/large/2000/01/01"
     assert file.filename == "#{filename}.webm"
 
     [file | files] = files
@@ -290,18 +290,18 @@ defmodule PenguinMemories.Actionstest do
     [] = files
 
     {:ok, _media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{filename}.webm")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/thumb/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/mid/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/large/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/thumb/2000/01/01/#{filename}.gif")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/mid/2000/01/01/#{filename}.gif")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/large/2000/01/01/#{filename}.gif")
-    {:ok, _media} = Media.get_media("#{image_dir}/video/mid/2000/01/01/#{filename}.mp4")
-    {:ok, _media} = Media.get_media("#{image_dir}/video/large/2000/01/01/#{filename}.mp4")
-    {:ok, _media} = Media.get_media("#{image_dir}/video/mid/2000/01/01/#{filename}.ogv")
-    {:ok, _media} = Media.get_media("#{image_dir}/video/large/2000/01/01/#{filename}.ogv")
-    {:ok, _media} = Media.get_media("#{image_dir}/video/mid/2000/01/01/#{filename}.webm")
-    {:ok, _media} = Media.get_media("#{image_dir}/video/large/2000/01/01/#{filename}.webm")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/thumb/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/thumb/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.mp4")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.mp4")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.ogv")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.ogv")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.webm")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.webm")
   end
 
   @tag :slow
@@ -341,13 +341,13 @@ defmodule PenguinMemories.Actionstest do
     assert length(new_photo.files) == 7
 
     {:ok, _media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/thumb/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/mid/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/large/2000/01/01/#{filename}.jpg")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/thumb/2000/01/01/#{filename}.gif")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/mid/2000/01/01/#{filename}.gif")
-    {:ok, _media} = Media.get_media("#{image_dir}/thumb/large/2000/01/01/#{filename}.gif")
-    {:error, _} = Media.get_media("#{image_dir}/thumb/special/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/thumb/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/thumb/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.gif")
+    {:error, _} = Media.get_media("#{image_dir}/scaled/special/#{filename}.jpg")
   end
 
   test "process_pending/2 works" do

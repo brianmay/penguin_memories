@@ -42,11 +42,10 @@ defmodule PenguinMemories.Storage do
   end
 
   @spec build_file_dir(String.t(), String.t(), boolean()) :: String.t()
-  def build_file_dir(photo_dir, size_key, is_video) do
+  def build_file_dir(photo_dir, size_key, _is_video) do
     cond do
       size_key == "orig" -> ["orig", photo_dir]
-      not is_video and Map.has_key?(get_sizes(), size_key) -> ["thumb", size_key, photo_dir]
-      is_video and Map.has_key?(get_sizes(), size_key) -> ["video", size_key, photo_dir]
+      Map.has_key?(get_sizes(), size_key) -> ["scaled", size_key, photo_dir]
     end
     |> Path.join()
   end
