@@ -7,7 +7,7 @@ defmodule PenguinMemories.Photos.PhotoRelation do
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.Relation
 
-  @timestamps_opts [type: :utc_datetime]
+  @timestamps_opts [type: :utc_datetime_usec]
 
   @type t :: %__MODULE__{
           photo_id: Photo.t() | Ecto.Association.NotLoaded.t() | nil,

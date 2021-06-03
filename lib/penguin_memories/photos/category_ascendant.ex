@@ -2,7 +2,7 @@ defmodule PenguinMemories.Photos.CategoryAscendant do
   @moduledoc "Index for categorys"
   use Ecto.Schema
   import Ecto.Changeset
-  @timestamps_opts [type: :utc_datetime]
+  @timestamps_opts [type: :utc_datetime_usec]
 
   @type t :: %__MODULE__{
           id: integer() | nil,

@@ -13,7 +13,7 @@ defmodule PenguinMemories.Photos.Photo do
   alias PenguinMemories.Photos.Place
   alias PenguinMemories.Photos.Relation
 
-  @timestamps_opts [type: :utc_datetime]
+  @timestamps_opts [type: :utc_datetime_usec]
 
   @type t :: %__MODULE__{
           id: integer | nil,

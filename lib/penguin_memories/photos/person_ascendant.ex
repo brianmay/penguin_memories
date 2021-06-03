@@ -2,7 +2,7 @@ defmodule PenguinMemories.Photos.PersonAscendant do
   @moduledoc "Index for persons"
   use Ecto.Schema
   import Ecto.Changeset
-  @timestamps_opts [type: :utc_datetime]
+  @timestamps_opts [type: :utc_datetime_usec]
 
   @type t :: %__MODULE__{
           id: integer() | nil,

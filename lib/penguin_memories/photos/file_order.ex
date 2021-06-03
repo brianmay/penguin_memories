@@ -2,7 +2,7 @@ defmodule PenguinMemories.Photos.FileOrder do
   @moduledoc "A file for a photo"
   use Ecto.Schema
 
-  @timestamps_opts [type: :utc_datetime]
+  @timestamps_opts [type: :utc_datetime_usec]
 
   @type t :: %__MODULE__{
           id: integer() | nil,

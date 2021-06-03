@@ -5,7 +5,7 @@ defmodule PenguinMemories.Photos.File do
 
   alias PenguinMemories.Photos.Photo
 
-  @timestamps_opts [type: :utc_datetime]
+  @timestamps_opts [type: :utc_datetime_usec]
 
   @type t :: %__MODULE__{
           id: integer() | nil,

@@ -6,7 +6,7 @@ defmodule PenguinMemories.Photos.Category do
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoCategory
 
-  @timestamps_opts [type: :utc_datetime]
+  @timestamps_opts [type: :utc_datetime_usec]
 
   @type t :: %__MODULE__{
           id: integer() | nil,
