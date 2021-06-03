@@ -282,13 +282,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
 
   @spec notify(Phoenix.LiveView.Socket.t(), list(Icon.t())) :: Changeset.t()
   def notify(socket, selected) do
-    {module, id} = socket.assigns.updates
-
-    send_update(module,
-      id: id,
-      status: :selected,
-      field_id: socket.assigns.field.id,
-      value: selected
-    )
+    pid = socket.assigns.updates
+    send(pid, {:selected, socket.assigns.field.id, selected})
   end
 end
