@@ -13,6 +13,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Photos
+  alias PenguinMemories.Urls
   alias PenguinMemoriesWeb.FieldHelpers
   alias PenguinMemoriesWeb.IconHelpers
   alias PenguinMemoriesWeb.Router.Helpers, as: Routes
@@ -67,13 +68,23 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("big", _params, %Socket{} = socket) do
-    send(socket.root_pid, {:big, socket.id})
+    url =
+      socket.assigns.url
+      |> Urls.url_merge(%{"big" => socket.id}, [])
+      |> URI.to_string()
+
+    socket = push_patch(socket, to: url)
     {:noreply, socket}
   end
 
   @impl true
   def handle_event("unbig", _params, %Socket{} = socket) do
-    send(socket.root_pid, {:big, nil})
+    url =
+      socket.assigns.url
+      |> Urls.url_merge(%{}, ["big"])
+      |> URI.to_string()
+
+    socket = push_patch(socket, to: url)
     {:noreply, socket}
   end
 

@@ -81,13 +81,22 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   @impl API
   @spec preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
   def preload_details(query) do
-    preload(query, [:cover_photo, :home, :work, :mother, :father, :spouse])
+    preload(query, [:cover_photo, :home, :work, :mother, :father, :spouse, :mother_of, :father_of])
   end
 
   @impl API
   @spec preload_details_from_results(results :: list(struct())) :: list(struct())
   def preload_details_from_results(results) do
-    Repo.preload(results, [:cover_photo, :home, :work, :mother, :father, :spouse])
+    Repo.preload(results, [
+      :cover_photo,
+      :home,
+      :work,
+      :mother,
+      :father,
+      :spouse,
+      :mother_of,
+      :father_of
+    ])
   end
 
   @impl API
@@ -144,6 +153,18 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
         id: :father,
         name: "Father",
         type: {:single, Person}
+      },
+      %Field{
+        id: :mother_of,
+        name: "Mother of",
+        type: {:multiple, Person},
+        read_only: true
+      },
+      %Field{
+        id: :father_of,
+        name: "Father of",
+        type: {:multiple, Person},
+        read_only: true
       },
       %Field{
         id: :spouse,

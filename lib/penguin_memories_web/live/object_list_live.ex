@@ -11,10 +11,14 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Urls
 
+  @type selected_type :: MapSet.t() | :all
+
   defmodule Request do
     @moduledoc """
     List of icons to display
     """
+    @type selected_type :: PenguinMemoriesWeb.ObjectListLive.selected_type()
+
     @type t :: %__MODULE__{
             type: Database.object_type(),
             filter: Query.Filter.t(),
@@ -24,6 +28,9 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
             after_key: String.t(),
             show_selected_name: String.t(),
             show_selected_value: boolean(),
+            selected_name: String.t(),
+            selected_value: selected_type,
+            drop_on_select: list(String.t()),
             big_value: String.t()
           }
     @enforce_keys [
@@ -35,6 +42,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       :after_key,
       :show_selected_name,
       :show_selected_value,
+      :selected_name,
+      :selected_value,
       :big_value
     ]
     defstruct type: nil,
@@ -45,6 +54,9 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
               after_key: nil,
               show_selected_name: nil,
               show_selected_value: false,
+              selected_name: nil,
+              selected_value: MapSet.new(),
+              drop_on_select: [],
               big_value: nil
   end
 
@@ -125,15 +137,10 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
           {MapSet.new([clicked_id]), socket}
       end
 
-    assigns = [
-      selected_ids: selected_ids,
-      last_clicked_id: clicked_id
-    ]
-
     socket =
       socket
-      |> assign(assigns)
-      |> reload()
+      |> assign(last_clicked_id: clicked_id)
+      |> set_selected(selected_ids)
 
     {:noreply, socket}
   end
@@ -168,12 +175,14 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @impl true
   def handle_event("select-none", _params, socket) do
-    {:noreply, socket |> assign(selected_ids: MapSet.new()) |> reload()}
+    socket = set_selected(socket, MapSet.new())
+    {:noreply, socket}
   end
 
   @impl true
   def handle_event("select-all", _params, socket) do
-    {:noreply, socket |> assign(selected_ids: :all) |> reload()}
+    socket = set_selected(socket, :all)
+    {:noreply, socket}
   end
 
   @impl true
@@ -183,6 +192,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       ) do
     assigns = [
       request: request,
+      selected_ids: request.selected_value,
       url: url
     ]
 
@@ -193,19 +203,32 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @impl true
   def handle_info({:select_object, id}, socket) do
-    socket = assign(socket, selected_ids: MapSet.new([id])) |> reload()
+    socket = set_selected(socket, MapSet.new([id]))
     {:noreply, socket}
   end
 
   @impl true
-  def handle_info({:child_pid, "selected", pid}, socket) do
+  def handle_info({:child_pid, id, pid}, %Socket{} = socket) do
+    cond do
+      id == child_id(socket, "selected") -> handle_child("selected", pid, socket)
+      id == child_id(socket, "update") -> handle_child("update", pid, socket)
+    end
+  end
+
+  @spec child_id(socket :: Socket.t(), id :: String.t()) :: String.t()
+  def child_id(%Socket{} = socket, id) do
+    socket.id <> "_" <> id
+  end
+
+  @spec handle_child(id :: String.t(), pid :: pid(), socket :: Socket.t()) ::
+          {:noreply, Socket.t()}
+  def handle_child("selected", pid, %Socket{} = socket) do
     socket = assign(socket, selected_pid: pid)
     :ok = notify_selected_child(socket)
     {:noreply, socket}
   end
 
-  @impl true
-  def handle_info({:child_pid, "update", pid}, socket) do
+  def handle_child("update", pid, %Socket{} = socket) do
     socket = assign(socket, update_pid: pid)
     :ok = notify_update_child(socket)
     {:noreply, socket}
@@ -267,11 +290,11 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     :ok
   end
 
-  @spec count_selections(selected_ids :: MapSet.t() | :all) :: integer() | :infinity
+  @spec count_selections(selected_ids :: selected_type) :: integer() | :infinity
   def count_selections(:all), do: :infinity
   def count_selections(selected_ids), do: MapSet.size(selected_ids)
 
-  @spec get_single_selection(selected_ids :: MapSet.t()) :: integer() | nil
+  @spec get_single_selection(selected_ids :: selected_type) :: integer() | nil
   def get_single_selection(selected_ids) do
     case count_selections(selected_ids) do
       :infinity ->
@@ -296,7 +319,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     assign(socket, response: response)
   end
 
-  @spec icon_classes(Query.Icon.t(), MapSet.t(), integer) :: list(String.t())
+  @spec icon_classes(Query.Icon.t(), selected_type, integer) :: list(String.t())
   defp icon_classes(%Query.Icon{} = icon, selected_ids, last_clicked_id) do
     result = []
 
@@ -316,29 +339,40 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     result
   end
 
-  @spec toggle(mapset :: MapSet.t(), id :: integer()) :: MapSet.t()
-  defp toggle(mapset, id) do
+  @spec toggle(selected_ids :: selected_type, id :: integer()) :: selected_type
+  defp toggle(selected_ids, id) do
     cond do
-      MapSet.member?(mapset, id) ->
-        MapSet.delete(mapset, id)
+      selected_ids == :all ->
+        MapSet.new([id])
+
+      MapSet.member?(selected_ids, id) ->
+        MapSet.delete(selected_ids, id)
 
       true ->
-        MapSet.put(mapset, id)
+        MapSet.put(selected_ids, id)
     end
   end
 
-  defp set(mapset, id, state) do
-    current = MapSet.member?(mapset, id)
+  @spec set(selected_ids :: selected_type, id :: integer(), state :: boolean()) :: selected_type
+  defp set(:all, id, state) do
+    cond do
+      not state -> MapSet.new([id])
+      state -> MapSet.new([id])
+    end
+  end
+
+  defp set(selected_ids, id, state) do
+    current = MapSet.member?(selected_ids, id)
 
     cond do
       not state and current ->
-        MapSet.delete(mapset, id)
+        MapSet.delete(selected_ids, id)
 
       state and not current ->
-        MapSet.put(mapset, id)
+        MapSet.put(selected_ids, id)
 
       true ->
-        mapset
+        selected_ids
     end
   end
 
@@ -365,48 +399,50 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   end
 
   @spec toggle_range(
-          mapset :: MapSet.t(),
+          selected_ids :: selected_type,
           icons :: Query.Icon.t(),
           last_clicked_id :: integer(),
           clicked_id :: integer
-        ) :: MapSet.t()
+        ) :: selected_type
+  defp toggle_range(:all, _, _, _), do: :all
+
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
-  defp toggle_range(mapset, icons, last_clicked_id, clicked_id) do
-    new_state = MapSet.member?(mapset, last_clicked_id)
+  defp toggle_range(selected_ids, icons, last_clicked_id, clicked_id) do
+    new_state = MapSet.member?(selected_ids, last_clicked_id)
 
     {state, new_mapset} =
-      Enum.reduce(icons, {0, mapset}, fn
-        icon, {0, mapset} ->
+      Enum.reduce(icons, {0, selected_ids}, fn
+        icon, {0, selected_ids} ->
           cond do
             icon.id == last_clicked_id ->
-              {1, set(mapset, icon.id, new_state)}
+              {1, set(selected_ids, icon.id, new_state)}
 
             icon.id == clicked_id ->
-              {1, set(mapset, icon.id, new_state)}
+              {1, set(selected_ids, icon.id, new_state)}
 
             true ->
-              {0, mapset}
+              {0, selected_ids}
           end
 
-        icon, {1, mapset} ->
+        icon, {1, selected_ids} ->
           cond do
             icon.id == last_clicked_id ->
-              {2, set(mapset, icon.id, new_state)}
+              {2, set(selected_ids, icon.id, new_state)}
 
             icon.id == clicked_id ->
-              {2, set(mapset, icon.id, new_state)}
+              {2, set(selected_ids, icon.id, new_state)}
 
             true ->
-              {1, set(mapset, icon.id, new_state)}
+              {1, set(selected_ids, icon.id, new_state)}
           end
 
-        _, {2, mapset} ->
-          {2, mapset}
+        _, {2, selected_ids} ->
+          {2, selected_ids}
       end)
 
     case state do
-      0 -> mapset
-      1 -> mapset
+      0 -> selected_ids
+      1 -> selected_ids
       2 -> new_mapset
     end
   end
@@ -454,5 +490,32 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       icons: icons,
       count: count
     }
+  end
+
+  @spec set_selected(socket :: Socket.t(), selected :: selected_type) :: Socket.t()
+  defp set_selected(%Socket{} = socket, selected) do
+    string =
+      cond do
+        selected == :all -> "all"
+        MapSet.size(selected) == 0 -> nil
+        true -> selected |> MapSet.to_list() |> Enum.join(",")
+      end
+
+    request = socket.assigns.request
+
+    {add, drop} =
+      case string do
+        nil -> {%{}, [request.selected_name]}
+        string -> {%{request.selected_name => string}, []}
+      end
+
+    drop = request.drop_on_select ++ drop
+
+    url =
+      socket.assigns.url
+      |> Urls.url_merge(add, drop)
+      |> URI.to_string()
+
+    push_patch(socket, to: url)
   end
 end

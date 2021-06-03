@@ -2,16 +2,18 @@
   <%
     has_reference = @reference_type_id != nil
     is_photos = @objects.type == Photos.Photo
+    num_selected = MapSet.size(@objects.selected_value)
 
     render_objects =
-      case {is_photos, has_reference} do
+      case {has_reference, is_photos} do
         {true, true} -> false
         _ -> true
       end
 
     render_photos =
-      case {is_photos, has_reference} do
-        {_, true} -> true
+      case {num_selected, has_reference, is_photos} do
+        {0, true, false} -> true
+        {1, _, false} -> true
         _ -> false
       end
   %>

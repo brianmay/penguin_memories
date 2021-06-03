@@ -81,13 +81,13 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   @impl API
   @spec preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
   def preload_details(query) do
-    preload(query, [:cover_photo, :parent])
+    preload(query, [:cover_photo, :parent, :children])
   end
 
   @impl API
   @spec preload_details_from_results(results :: list(struct())) :: list(struct())
   def preload_details_from_results(results) do
-    Repo.preload(results, [:cover_photo, :parent])
+    Repo.preload(results, [:cover_photo, :parent, :children])
   end
 
   @impl API
@@ -134,6 +134,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
         id: :parent,
         name: "Parent",
         type: {:single, Place}
+      },
+      %Field{
+        id: :children,
+        name: "Children",
+        type: {:multiple, Place},
+        read_only: true
       },
       %Field{
         id: :address,
@@ -213,6 +219,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
         name: "Parent",
         type: {:single, Place},
         change: :set
+      },
+      %Field{
+        id: :children,
+        name: "Children",
+        type: {:multiple, Album},
+        read_only: true
       },
       %UpdateField{
         id: :revised,

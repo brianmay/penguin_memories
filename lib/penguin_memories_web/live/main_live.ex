@@ -12,6 +12,7 @@ defmodule PenguinMemoriesWeb.MainLive do
   alias PenguinMemories.Photos
   alias PenguinMemories.Urls
   alias PenguinMemoriesWeb.ObjectListLive
+  alias PenguinMemoriesWeb.Router.Helpers, as: Routes
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
@@ -56,39 +57,63 @@ defmodule PenguinMemoriesWeb.MainLive do
           {type, id}
       end
 
-    filter = %Query.Filter{
+    big_value = params["big"]
+
+    obj_filter = %Query.Filter{
       reference_type_id: reference_type_id,
       query: params["query"]
     }
 
-    big_value = nil
-
     objects = %ObjectListLive.Request{
       type: type,
-      filter: filter,
+      filter: obj_filter,
       before_name: "obj_before",
       before_key: params["obj_before"],
       after_name: "obj_after",
       after_key: params["obj_after"],
       show_selected_name: "obj_show_selected",
       show_selected_value: Map.has_key?(params, "obj_show_selected"),
+      selected_name: "obj_selected",
+      selected_value: parse_selected(params["obj_selected"]),
+      drop_on_select: ["p_selected"],
       big_value: big_value
     }
 
+    num_selected = MapSet.size(objects.selected_value)
+
+    photo_filter =
+      cond do
+        num_selected == 0 and is_nil(reference_type_id) ->
+          %Query.Filter{ids: MapSet.new()}
+
+        num_selected == 1 ->
+          [selected] = MapSet.to_list(objects.selected_value)
+
+          %Query.Filter{
+            reference_type_id: {objects.type, selected}
+          }
+
+        true ->
+          %Query.Filter{
+            reference_type_id: reference_type_id
+          }
+      end
+
     photos = %ObjectListLive.Request{
       type: Photos.Photo,
-      filter: filter,
+      filter: photo_filter,
       before_name: "p_before",
       before_key: params["p_before"],
       after_name: "p_after",
       after_key: params["p_after"],
       show_selected_name: "p_show_selected",
       show_selected_value: Map.has_key?(params, "p_show_selected"),
+      selected_name: "p_selected",
+      selected_value: parse_selected(params["p_selected"]),
       big_value: big_value
     }
 
     assigns = [
-      # type: type,
       query: params["query"],
       reference_type_id: reference_type_id,
       active: Types.get_name!(type),
@@ -112,54 +137,39 @@ defmodule PenguinMemoriesWeb.MainLive do
         %{"query" => q} -> %{"query" => q}
       end
 
-    url =
-      socket.assigns.url
-      |> Urls.url_merge(search, ["obj_before", "obj_after", "p_before", "p_after", "query"])
-      |> URI.to_string()
+    type = Types.get_name!(socket.assigns.objects.type)
+    url = Routes.main_path(socket, :index, type, search)
 
     socket = push_patch(socket, to: url)
     {:noreply, socket}
   end
 
   @impl true
-  def handle_info({:big, big_value}, %Socket{} = socket) do
-    objects = %ObjectListLive.Request{socket.assigns.objects | big_value: big_value}
-    photos = %ObjectListLive.Request{socket.assigns.photos | big_value: big_value}
-    socket = assign(socket, objects: objects, photos: photos, big_value: big_value)
-    :ok = reload(socket)
+  def handle_info({:child_pid, "details", pid}, socket) do
+    socket = assign(socket, details_pid: pid)
+    :ok = notify_details(socket)
     {:noreply, socket}
   end
 
   @impl true
-  def handle_info({:child_pid, "details", pid}, socket) do
-    type = socket.assigns.objects.type
-    send(pid, {:parameters, type})
-    {:noreply, assign(socket, details_pid: pid)}
-  end
-
-  @impl true
   def handle_info({:child_pid, "reference", pid}, socket) do
-    {type, id} = socket.assigns.reference_type_id
-
-    send(
-      pid,
-      {:parameters, type, id, socket.assigns.url, socket.host_uri, nil, nil,
-       socket.assigns.big_value}
-    )
-
-    {:noreply, assign(socket, reference_pid: pid)}
+    socket = assign(socket, reference_pid: pid)
+    :ok = notify_reference(socket)
+    {:noreply, socket}
   end
 
   @impl true
   def handle_info({:child_pid, "objects", pid}, socket) do
-    send(pid, {:parameters, socket.assigns.objects, socket.assigns.url, socket.host_uri})
-    {:noreply, assign(socket, objects_pid: pid)}
+    socket = assign(socket, objects_pid: pid)
+    :ok = notify_objects(socket)
+    {:noreply, socket}
   end
 
   @impl true
   def handle_info({:child_pid, "photos", pid}, socket) do
-    send(pid, {:parameters, socket.assigns.photos, socket.assigns.url, socket.host_uri})
-    {:noreply, assign(socket, photos_pid: pid)}
+    socket = assign(socket, photos_pid: pid)
+    :ok = notify_photos(socket)
+    {:noreply, socket}
   end
 
   @impl true
@@ -170,13 +180,27 @@ defmodule PenguinMemoriesWeb.MainLive do
 
   @spec reload(Socket.t()) :: :ok
   defp reload(socket) do
+    :ok = notify_details(socket)
+    :ok = notify_reference(socket)
+    :ok = notify_objects(socket)
+    :ok = notify_photos(socket)
+    :ok
+  end
+
+  @spec notify_details(Socket.t()) :: :ok
+  defp notify_details(socket) do
     if socket.assigns.details_pid != nil do
       pid = socket.assigns.details_pid
       type = socket.assigns.objects.type
       send(pid, {:parameters, type})
     end
 
-    if socket.assigns.reference_pid != nil do
+    :ok
+  end
+
+  @spec notify_reference(Socket.t()) :: :ok
+  defp notify_reference(socket) do
+    if socket.assigns.reference_pid != nil and socket.assigns.reference_type_id != nil do
       pid = socket.assigns.reference_pid
       {type, id} = socket.assigns.reference_type_id
 
@@ -187,16 +211,46 @@ defmodule PenguinMemoriesWeb.MainLive do
       )
     end
 
+    :ok
+  end
+
+  @spec notify_objects(Socket.t()) :: :ok
+  defp notify_objects(socket) do
     if socket.assigns.objects_pid != nil do
       pid = socket.assigns.objects_pid
       send(pid, {:parameters, socket.assigns.objects, socket.assigns.url, socket.host_uri})
     end
 
+    :ok
+  end
+
+  @spec notify_photos(Socket.t()) :: :ok
+  defp notify_photos(socket) do
     if socket.assigns.photos_pid != nil do
+      photos = socket.assigns.photos
       pid = socket.assigns.photos_pid
-      send(pid, {:parameters, socket.assigns.photos, socket.assigns.url, socket.host_uri})
+      send(pid, {:parameters, photos, socket.assigns.url, socket.host_uri})
     end
 
     :ok
+  end
+
+  @spec parse_selected(String.t() | nil) :: ObjectListLive.selected_type()
+  defp parse_selected(nil), do: MapSet.new()
+  defp parse_selected("all"), do: :all
+
+  defp parse_selected(list) do
+    list
+    |> String.split(",")
+    |> Enum.map(fn v -> to_int(v) end)
+    |> MapSet.new()
+  end
+
+  @spec to_int(String.t()) :: integer
+  defp to_int(int) do
+    case Integer.parse(int) do
+      {value, ""} -> value
+      _ -> 0
+    end
   end
 end

@@ -1,12 +1,4 @@
 <%= if @request do %>
-  <%= if count_selections(@selected_ids) == 1 do %>
-    <%= live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: :selected) %>
-  <% end %>
-
-  <%= if count_selections(@selected_ids) == :infinity or count_selections(@selected_ids)> 1 do %>
-    <%= live_render(@socket, PenguinMemoriesWeb.ObjectUpdateLive, id: :update) %>
-  <% end %>
-
   <div class="details">
     <h2><%= Query.get_plural_name(@request.type) |> String.capitalize() %></h2>
     <div class="buttons">
@@ -47,6 +39,14 @@
 
     Total count: '<%= @response.count %>'
   </div>
+
+  <%= if count_selections(@selected_ids) == 1 do %>
+    <%= live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: child_id(@socket, "selected")) %>
+  <% end %>
+
+  <%= if count_selections(@selected_ids) == :infinity or count_selections(@selected_ids)> 1 do %>
+    <%= live_render(@socket, PenguinMemoriesWeb.ObjectUpdateLive, id: child_id(@socket, "update")) %>
+  <% end %>
 <% else %>
   LOADING
 <% end %>

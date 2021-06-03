@@ -31,7 +31,8 @@ defmodule PenguinMemories.Photos.Person do
           private_notes: String.t() | nil,
           email: String.t() | nil,
           revised: DateTime.t() | nil,
-          # children: list(t()) | Ecto.Association.NotLoaded.t(),
+          mother_of: list(t()) | Ecto.Association.NotLoaded.t(),
+          father_of: list(t()) | Ecto.Association.NotLoaded.t(),
           ascendants: list(PersonAscendant.t()) | Ecto.Association.NotLoaded.t(),
           descendants: list(PersonAscendant.t()) | Ecto.Association.NotLoaded.t(),
           photos: list(Photo.t()) | Ecto.Association.NotLoaded.t(),
@@ -55,7 +56,8 @@ defmodule PenguinMemories.Photos.Person do
     field :private_notes, :string
     field :email, :string
     field :revised, :utc_datetime
-    # has_many :children, PenguinMemories.Photos.Person, foreign_key: :parent_id
+    has_many :mother_of, PenguinMemories.Photos.Person, foreign_key: :mother_id
+    has_many :father_of, PenguinMemories.Photos.Person, foreign_key: :father_id
     has_many :ascendants, PenguinMemories.Photos.PersonAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.PersonAscendant, foreign_key: :ascendant_id
     many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoPerson
