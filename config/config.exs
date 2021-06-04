@@ -22,7 +22,7 @@ config :penguin_memories,
     "mid" => %{max_width: 480, max_height: 360},
     "large" => %{max_width: 1920, max_height: 1440}
   },
-  formats: ["image/jpeg", "image/gif", "video/mp4", "video/ogg", "video/webm"],
+  formats: ["image/jpeg", "video/mp4", "video/webm"],
   index_api: PenguinMemories.Database.Impl.Index.Generic
 
 config :penguin_memories, PenguinMemories.Repo,
