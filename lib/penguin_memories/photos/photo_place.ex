@@ -4,7 +4,6 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
   """
 
   use Ecto.Schema
-  import Ecto.Changeset
 
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.Photo
@@ -23,13 +22,5 @@ defmodule PenguinMemories.Photos.PhotoAlbum do
     belongs_to :photo, Photo
     belongs_to :album, Album
     timestamps()
-  end
-
-  def changeset(photo_album, attrs) do
-    photo_album
-    |> cast(attrs, [:photo_id, :album_id])
-    |> validate_required([:photo_id, :album_id])
-    |> foreign_key_constraint(:photo_id)
-    |> foreign_key_constraint(:album_id)
   end
 end

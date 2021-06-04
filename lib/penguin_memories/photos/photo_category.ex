@@ -4,7 +4,6 @@ defmodule PenguinMemories.Photos.PhotoCategory do
   """
 
   use Ecto.Schema
-  import Ecto.Changeset
 
   alias PenguinMemories.Photos.Category
   alias PenguinMemories.Photos.Photo
@@ -23,13 +22,5 @@ defmodule PenguinMemories.Photos.PhotoCategory do
     belongs_to :photo, Photo
     belongs_to :category, Category
     timestamps()
-  end
-
-  def changeset(photo_category, attrs) do
-    photo_category
-    |> cast(attrs, [:photo_id, :category_id])
-    |> validate_required([:photo_id, :category_id])
-    |> foreign_key_constraint(:photo_id)
-    |> foreign_key_constraint(:category_id)
   end
 end

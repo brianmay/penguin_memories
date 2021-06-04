@@ -4,7 +4,6 @@ defmodule PenguinMemories.Photos.PhotoPerson do
   """
 
   use Ecto.Schema
-  import Ecto.Changeset
 
   alias PenguinMemories.Photos.Person
   alias PenguinMemories.Photos.Photo
@@ -25,13 +24,5 @@ defmodule PenguinMemories.Photos.PhotoPerson do
     belongs_to :person, Person
     field :position, :integer
     timestamps()
-  end
-
-  def changeset(photo_person, attrs) do
-    photo_person
-    |> cast(attrs, [:photo_id, :person_id])
-    |> validate_required([:photo_id, :person_id])
-    |> foreign_key_constraint(:photo_id)
-    |> foreign_key_constraint(:person_id)
   end
 end
