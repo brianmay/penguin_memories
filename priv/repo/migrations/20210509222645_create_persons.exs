@@ -43,7 +43,7 @@ defmodule PenguinMemories.Repo.Migrations.CreatePersons do
 
     create(index(:pm_photo_person, [:photo_id, :person_id], unique: true))
     create(index(:pm_photo_person, [:photo_id, :position], unique: true))
-    create(index(:pm_photo_person, [:person_id]))
+    create(index(:pm_photo_person, [:person_id, :photo_id]))
 
     create table(:pm_person_ascendant) do
       add(:position, :integer, null: false)

@@ -26,7 +26,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateCategorys do
     end
 
     create(index(:pm_photo_category, [:photo_id, :category_id], unique: true))
-    create(index(:pm_photo_category, [:category_id]))
+    create(index(:pm_photo_category, [:category_id, :photo_id]))
 
     create table(:pm_category_ascendant) do
       add(:position, :integer, null: false)

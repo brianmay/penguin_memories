@@ -26,7 +26,7 @@ defmodule PenguinMemories.Repo.Migrations.CreateAlbums do
     end
 
     create(index(:pm_photo_album, [:photo_id, :album_id], unique: true))
-    create(index(:pm_photo_album, [:album_id]))
+    create(index(:pm_photo_album, [:album_id, :photo_id]))
 
     create table(:pm_album_ascendant) do
       add(:position, :integer, null: false)
