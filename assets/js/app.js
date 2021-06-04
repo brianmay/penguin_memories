@@ -41,10 +41,11 @@ Hooks.video = {
         let children = this.el.children;
         for (let i = 0; i < children.length; i++) {
             let child = children[i];
+            let current_src = this.el.getAttribute("src");
             let src = child.getAttribute("src");
             let type = child.getAttribute("type");
-            if (this.el.canPlayType(type)) {
-                this.el.setAttribute("src", src)
+            if (this.el.canPlayType(type) && src != current_src) {
+                this.el.setAttribute("src", src);
                 break
             }
         }

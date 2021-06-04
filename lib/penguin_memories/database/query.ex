@@ -295,7 +295,7 @@ defmodule PenguinMemories.Database.Query do
         height: result.height,
         width: result.width,
         mime_type: result.mime_type,
-        type: __MODULE__
+        type: Photo
       }
     end)
   end

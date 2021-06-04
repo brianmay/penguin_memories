@@ -40,6 +40,7 @@
               controls="controls"
               width="<%= first.width %>"
               height="<%= first.height %>"
+              id="<%= @socket.id %>_video"
             >
               <%= for video <- @details.videos do %>
                 <source src="<%= video.url %>" type="<%= video.mime_type %>" />
