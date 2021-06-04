@@ -203,58 +203,97 @@ defmodule PenguinMemories.Media do
   def get_crf("video/mp4"), do: "30"
   def get_crf("video/ogg"), do: "60"
 
-  @spec get_resize_video_commands(media :: t(), new_path :: String.t(), new_size :: Size.t(), new_format :: String.t(), temp_dir :: String.t()) :: list(list(String.t()))
-  defp get_resize_video_commands(%__MODULE__{path: path}, new_path, %Size{} = new_size, "video/webm", temp_dir) do
+  @spec get_resize_video_commands(
+          media :: t(),
+          new_path :: String.t(),
+          new_size :: Size.t(),
+          new_format :: String.t(),
+          temp_dir :: String.t()
+        ) :: list(list(String.t()))
+  defp get_resize_video_commands(
+         %__MODULE__{path: path},
+         new_path,
+         %Size{} = new_size,
+         "video/webm",
+         temp_dir
+       ) do
     temp_file = Path.join(temp_dir, "ffmpeg2pass")
 
     pass1 = [
       "ffmpeg",
       "-y",
-      "-i", path,
-      "-q:v", "4",
-      "-c:v", "libvpx-vp9",
-      "-b:v", "0",
-      "-crf", "30",
+      "-i",
+      path,
+      "-q:v",
+      "4",
+      "-c:v",
+      "libvpx-vp9",
+      "-b:v",
+      "0",
+      "-crf",
+      "30",
       # "-max_muxing_queue_size",
       # "1024",
       "-filter:v",
       "scale=#{new_size.width}:#{new_size.height}",
-      "-pass", "1",
-      "-passlogfile", temp_file,
-      "-f", "null",
+      "-pass",
+      "1",
+      "-passlogfile",
+      temp_file,
+      "-f",
+      "null",
       "/dev/null"
     ]
 
     pass2 = [
       "ffmpeg",
       "-y",
-      "-i", path,
-      "-q:v", "4",
-      "-c:v", "libvpx-vp9",
-      "-b:v", "0",
-      "-crf", "30",
+      "-i",
+      path,
+      "-q:v",
+      "4",
+      "-c:v",
+      "libvpx-vp9",
+      "-b:v",
+      "0",
+      "-crf",
+      "30",
       # "-max_muxing_queue_size",
       # "1024",
       "-filter:v",
       "scale=#{new_size.width}:#{new_size.height}",
-      "-pass", "2",
-      "-passlogfile", temp_file,
-      "-c:a", "libopus",
-      "-f", "webm",
+      "-pass",
+      "2",
+      "-passlogfile",
+      temp_file,
+      "-c:a",
+      "libopus",
+      "-f",
+      "webm",
       new_path
     ]
 
     [pass1, pass2]
   end
 
-  defp get_resize_video_commands(%__MODULE__{path: path}, new_path, %Size{} = new_size, new_format, _) do
+  defp get_resize_video_commands(
+         %__MODULE__{path: path},
+         new_path,
+         %Size{} = new_size,
+         new_format,
+         _
+       ) do
     cmd_common = [
       "ffmpeg",
       "-y",
-      "-i", path,
-      "-q:v", "4",
-      "-b:v", "0",
-      "-crf", "30",
+      "-i",
+      path,
+      "-q:v",
+      "4",
+      "-b:v",
+      "0",
+      "-crf",
+      "30",
       # "-max_muxing_queue_size",
       # "1024",
       "-filter:v",
@@ -278,9 +317,11 @@ defmodule PenguinMemories.Media do
 
   @spec run_commands(commands :: list(list(String.t()))) :: :ok | {:error, String.t()}
   defp run_commands([]), do: :ok
+
   defp run_commands([head | tail]) do
     [cmd | args] = head
     IO.puts(inspect(head))
+
     case System.cmd(cmd, args, stderr_to_stdout: true) do
       {_, 0} ->
         run_commands(tail)
@@ -293,7 +334,8 @@ defmodule PenguinMemories.Media do
   end
 
   @spec resize_video(t(), String.t(), SizeRequirement.t()) :: :ok | {:error, String.t()}
-  def resize_video(%__MODULE__{type: type} = media, new_path, requirement) when guard_is_video(type) do
+  def resize_video(%__MODULE__{type: type} = media, new_path, requirement)
+      when guard_is_video(type) do
     temp_dir = Temp.mkdir!()
     new_format = requirement.format
     new_size = get_new_size(media, requirement)
@@ -303,6 +345,7 @@ defmodule PenguinMemories.Media do
       :ok ->
         File.rm_rf(temp_dir)
         :ok
+
       {:error, _} = error ->
         File.rm_rf(temp_dir)
         File.rm(new_path)

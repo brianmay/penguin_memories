@@ -150,10 +150,11 @@ defmodule PenguinMemoriesWeb.MainLive do
     {ref_type, _} = socket.assigns.reference_type_id
     ref_type_name = Types.get_name!(ref_type)
 
-    url = socket.assigns.url
-    |> Urls.set_path(Routes.main_path(socket, :index, type_name))
-    |> Urls.url_merge(%{"reference" => "#{ref_type_name}/#{id}"}, ["obj_selected", "p_selected"])
-    |> URI.to_string()
+    url =
+      socket.assigns.url
+      |> Urls.set_path(Routes.main_path(socket, :index, type_name))
+      |> Urls.url_merge(%{"reference" => "#{ref_type_name}/#{id}"}, ["obj_selected", "p_selected"])
+      |> URI.to_string()
 
     socket = push_patch(socket, to: url)
     {:noreply, socket}
