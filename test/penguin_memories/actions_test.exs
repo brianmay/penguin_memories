@@ -350,6 +350,56 @@ defmodule PenguinMemories.Actionstest do
     {:error, _} = Media.get_media("#{image_dir}/scaled/special/#{filename}.jpg")
   end
 
+  @tag :slow
+  test "process_photo/1 updates jpg", context do
+    image_dir = context[:image_dir]
+
+    album =
+      %Album{
+        name: "test"
+      }
+      |> Repo.insert!()
+
+    {:ok, photo} = Upload.upload_file("priv/tests/100x100.jpg", album, date: ~D[2000-01-01])
+
+    filename =
+      photo.id
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+
+    photo = Actions.process_photo(photo)
+    %Photo{} = photo
+    assert length(photo.files) == 7
+
+    # Change all generated files to have invalid width and height.
+    from(f in File)
+    |> where([f], f.size_key != "orig")
+    |> Repo.update_all(set: [height: 0, width: 0])
+
+    # Rebuild should fix the width and height.
+    photo =
+      Photo
+      |> Repo.get(photo.id)
+      |> Repo.preload(:files)
+      |> Ecto.Changeset.change(action: "R")
+      |> Repo.update!()
+
+    new_photo = Actions.process_photo(photo)
+    %Photo{} = new_photo
+
+    # Check height and width of all files fixed.
+    assert false == Enum.any?(new_photo.files, fn file -> file.height == 0 or file.width == 0 end)
+
+    {:ok, _media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/thumb/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.jpg")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/thumb/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.gif")
+    {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.gif")
+    {:error, _} = Media.get_media("#{image_dir}/scaled/special/#{filename}.jpg")
+  end
+
   test "process_pending/2 works" do
     album =
       %Album{

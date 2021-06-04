@@ -38,22 +38,6 @@ defmodule PenguinMemories.Actions do
     end
   end
 
-  @spec get_id(File.t(), list(File.t())) :: integer() | nil
-  defp get_id(%File{} = file, files) do
-    files
-    |> Enum.filter(fn f -> f.size_key == file.size_key end)
-    |> Enum.filter(fn f -> f.mime_type == file.mime_type end)
-    |> Enum.map(fn f -> f.id end)
-    |> List.first()
-  end
-
-  @spec set_file_id(File.t() | nil, list(File.t())) :: File.t() | nil
-  defp set_file_id(nil, _), do: nil
-
-  defp set_file_id(%File{} = file, files) do
-    %File{file | id: get_id(file, files)}
-  end
-
   @spec process_photo(Photo.t(), keyword()) :: Photo.t()
   def process_photo(photo, opts \\ [])
 
@@ -67,7 +51,6 @@ defmodule PenguinMemories.Actions do
       Enum.map(sizes, fn {size_key, requirement} ->
         Enum.map(requirement, fn %Media.SizeRequirement{} = sr ->
           create_file(photo, original_media, sr, size_key)
-          |> set_file_id(photo.files)
         end)
       end)
       |> List.flatten()
@@ -114,8 +97,8 @@ defmodule PenguinMemories.Actions do
     photo
   end
 
-  def process_photo(_, _) do
-    :ok
+  def process_photo(%Photo{} = photo, _) do
+    photo
   end
 
   @spec internal_process_pending(list(Photo.t()), integer, keyword()) :: list(Photo.t())
