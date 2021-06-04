@@ -204,11 +204,7 @@ defmodule PenguinMemories.Database.Query do
   def get_icons(%Ecto.Query{} = query, size_key) do
     file_query =
       from f in File,
-        where: f.size_key == ^size_key and f.is_video == false,
-        join: j in FileOrder,
-        on: j.size_key == ^size_key and j.mime_type == f.mime_type,
-        distinct: f.photo_id,
-        order_by: [asc: j.order]
+        where: f.size_key == ^size_key and f.mime_type == "image/jpeg"
 
     case get_query_type(query) do
       Photo ->
