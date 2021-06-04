@@ -1,12 +1,12 @@
-<div class="root <%= if @big_value != nil, do: "big" %>">
+<div class="root <%= if @big_id != nil, do: "big" %>">
   <%
     has_reference = @reference_type_id != nil
     is_photos = @objects.type == Photos.Photo
     num_selected = MapSet.size(@objects.selected_value)
 
     render_objects =
-      case {has_reference, is_photos} do
-        {true, true} -> false
+      case @reference_type_id do
+        {Photos.Photo, _} -> false
         _ -> true
       end
 

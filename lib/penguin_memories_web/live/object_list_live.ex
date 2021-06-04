@@ -10,6 +10,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Urls
+  alias PenguinMemoriesWeb.LiveRequest
 
   @type selected_type :: MapSet.t() | :all
 
@@ -30,8 +31,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
             show_selected_value: boolean(),
             selected_name: String.t(),
             selected_value: selected_type,
-            drop_on_select: list(String.t()),
-            big_value: String.t()
+            drop_on_select: list(String.t())
           }
     @enforce_keys [
       :type,
@@ -43,8 +43,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       :show_selected_name,
       :show_selected_value,
       :selected_name,
-      :selected_value,
-      :big_value
+      :selected_value
     ]
     defstruct type: nil,
               filter: %Query.Filter{},
@@ -56,8 +55,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
               show_selected_value: false,
               selected_name: nil,
               selected_value: MapSet.new(),
-              drop_on_select: [],
-              big_value: nil
+              drop_on_select: []
   end
 
   defmodule Response do
@@ -87,11 +85,17 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     assigns = [
       request: nil,
       url: nil,
-      selected_ids: MapSet.new(),
       last_clicked_id: nil,
       response: nil,
       selected_pid: nil,
-      update_pid: nil
+      update_pid: nil,
+      common: %LiveRequest{
+        url: nil,
+        host_url: nil,
+        user: nil,
+        big_id: nil,
+        force_reload: nil
+      }
     ]
 
     socket = assign(socket, assigns)
@@ -113,13 +117,13 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {selected_ids, socket} =
       cond do
         ctrl_key ->
-          s = toggle(socket.assigns.selected_ids, clicked_id)
+          s = toggle(socket.assigns.request.selected_value, clicked_id)
           {s, socket}
 
         shift_key ->
           s =
             toggle_range(
-              socket.assigns.selected_ids,
+              socket.assigns.request.selected_value,
               socket.assigns.response.icons,
               socket.assigns.last_clicked_id,
               clicked_id
@@ -131,7 +135,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
           type_name = Types.get_name!(socket.assigns.request.type)
           url = Routes.main_path(socket, :index, type_name, clicked_id)
           socket = push_patch(socket, to: url)
-          {socket.assigns.selected_ids, socket}
+          {socket.assigns.request.selected_value, socket}
 
         true ->
           {MapSet.new([clicked_id]), socket}
@@ -185,19 +189,23 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {:noreply, socket}
   end
 
-  @impl true
-  def handle_info(
-        {:parameters, %Request{} = request, %URI{} = url, %URI{} = host_uri},
-        socket
-      ) do
-    assigns = [
-      request: request,
-      selected_ids: request.selected_value,
-      url: url
-    ]
+  def handle_info({:parameters, %LiveRequest{} = common, %Request{} = request}, socket) do
+    request_changed = socket.assigns.request != request
 
-    socket = %Socket{socket | host_uri: host_uri}
-    socket = assign(socket, assigns) |> reload()
+    socket =
+      LiveRequest.apply_common(socket, common)
+      |> assign(request: request)
+
+    socket =
+      if request_changed or common.force_reload do
+        reload(socket)
+      else
+        # We have to notify the child, because the big value may have changed
+        :ok = notify_selected_child(socket)
+        :ok = notify_update_child(socket)
+        socket
+      end
+
     {:noreply, socket}
   end
 
@@ -234,23 +242,6 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     {:noreply, socket}
   end
 
-  @spec get_prev_next_icons(
-          selection_id :: integer,
-          filter :: Query.Filter.t(),
-          type :: Database.object_type()
-        ) :: {Query.Icon.t() | nil, Query.Icon.t() | nil}
-  def get_prev_next_icons(selection_id, filter, type) do
-    case Query.get_cursor_by_id(selection_id, type) do
-      nil ->
-        {nil, nil}
-
-      cursor ->
-        prev_icon = Query.get_prev_next_id(filter, cursor, nil, "thumb", type)
-        next_icon = Query.get_prev_next_id(filter, nil, cursor, "thumb", type)
-        {prev_icon, next_icon}
-    end
-  end
-
   @spec notify_update_child(Socket.t()) :: :ok
   defp notify_update_child(%Socket{} = socket) do
     if socket.assigns.update_pid != nil do
@@ -258,7 +249,13 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       type = request.type
       filter = get_update_filter(socket.assigns)
       pid = socket.assigns.update_pid
-      send(pid, {:parameters, filter, type})
+
+      new_request = %PenguinMemoriesWeb.ObjectUpdateLive.Request{
+        type: type,
+        filter: filter
+      }
+
+      send(pid, {:parameters, socket.assigns.common, new_request})
     end
 
     :ok
@@ -267,7 +264,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   @spec notify_selected_child(Socket.t()) :: :ok
   defp notify_selected_child(%Socket{} = socket) do
     if socket.assigns.selected_pid != nil do
-      case get_single_selection(socket.assigns.selected_ids) do
+      case get_single_selection(socket.assigns.request.selected_value) do
         nil ->
           :ok
 
@@ -275,14 +272,17 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
           request = socket.assigns.request
           type = request.type
           filter = get_filter(socket.assigns)
-          {prev_icon, next_icon} = get_prev_next_icons(selection_id, filter, type)
 
           pid = socket.assigns.selected_pid
 
+          new_request = %PenguinMemoriesWeb.ObjectDetailsLive.Request{
+            type: type,
+            id: selection_id
+          }
+
           send(
             pid,
-            {:parameters, type, selection_id, socket.assigns.url, socket.host_uri, prev_icon,
-             next_icon, request.big_value}
+            {:parameters, filter, socket.assigns.common, new_request}
           )
       end
     end
@@ -314,8 +314,9 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     :ok = notify_selected_child(socket)
     :ok = notify_update_child(socket)
 
+    common = socket.assigns.common
     request = get_request(socket.assigns)
-    response = load_objects(request, socket.assigns.url)
+    response = load_objects(request, common.url)
     assign(socket, response: response)
   end
 
@@ -378,7 +379,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @spec get_update_filter(assigns :: map()) :: map()
   defp get_update_filter(assigns) do
-    case assigns.selected_ids do
+    case assigns.request.selected_value do
       :all -> assigns.request.filter
       selected_ids -> %Query.Filter{ids: selected_ids}
     end
@@ -512,7 +513,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     drop = request.drop_on_select ++ drop
 
     url =
-      socket.assigns.url
+      socket.assigns.common.url
       |> Urls.url_merge(add, drop)
       |> URI.to_string()
 

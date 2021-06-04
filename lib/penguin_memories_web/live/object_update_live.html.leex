@@ -1,4 +1,4 @@
-<%= if @filter do %>
+<%= if @request do %>
   <div class="details">
     <%= if @error do %>
       <div class="alert alert-danger">
@@ -9,7 +9,7 @@
     Selected <%= @count %> items.
 
     <%= if @changeset do %>
-      <% fields = Fields.get_update_fields(@type, @user) %>
+      <% fields = Fields.get_update_fields(@request.type, @common.user) %>
       <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save"] %>
         <%= for %Fields.UpdateField{} = field <- fields do %>
           <% enabled = MapSet.member?(@enabled, field.id) %>
@@ -30,7 +30,7 @@
     <% end %>
 
     <div class="buttons">
-      <%= if @changeset == nil and Auth.can_edit(@user) do %>
+      <%= if @changeset == nil and Auth.can_edit(@common.user) do %>
         <div class="btn btn-secondary" phx-click="update">Bulk Update</div>
       <% end %>
     </div>

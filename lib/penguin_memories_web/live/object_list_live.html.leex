@@ -2,7 +2,7 @@
   <div class="details">
     <h2><%= Query.get_plural_name(@request.type) |> String.capitalize() %></h2>
     <div class="buttons">
-      <%= if @selected_ids != :all do %>
+      <%= if @request.selected_value != :all do %>
         <%= if @request.show_selected_value do %>
           <div class="btn btn-secondary" phx-click="show-all">Show All</div>
         <% else %>
@@ -30,7 +30,7 @@
         <%=
           Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
             icon: icon,
-            classes: icon_classes(icon, @selected_ids, @last_clicked_id),
+            classes: icon_classes(icon, @request.selected_value, @last_clicked_id),
             event: "select"
           )
         %>
@@ -40,11 +40,12 @@
     Total count: '<%= @response.count %>'
   </div>
 
-  <%= if count_selections(@selected_ids) == 1 do %>
+  <% count = count_selections(@request.selected_value) %>
+  <%= if count == 1 do %>
     <%= live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: child_id(@socket, "selected")) %>
   <% end %>
 
-  <%= if count_selections(@selected_ids) == :infinity or count_selections(@selected_ids)> 1 do %>
+  <%= if count == :infinity or count > 1 do %>
     <%= live_render(@socket, PenguinMemoriesWeb.ObjectUpdateLive, id: child_id(@socket, "update")) %>
   <% end %>
 <% else %>

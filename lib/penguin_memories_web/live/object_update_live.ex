@@ -7,31 +7,51 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
   alias Ecto.Changeset
   alias Elixir.Phoenix.LiveView.Socket
 
-  alias PenguinMemories.Accounts.User
   alias PenguinMemories.Auth
+  alias PenguinMemories.Database
   alias PenguinMemories.Database.Fields
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Updates
   alias PenguinMemoriesWeb.FieldHelpers
+  alias PenguinMemoriesWeb.LiveRequest
+
+  defmodule Request do
+    @moduledoc """
+    List of icons to display
+    """
+    @type selected_type :: PenguinMemoriesWeb.ObjectListLive.selected_type()
+
+    @type t :: %__MODULE__{
+            type: Database.object_type(),
+            filter: Query.Filter.t()
+          }
+    @enforce_keys [
+      :type,
+      :filter
+    ]
+    defstruct type: nil,
+              filter: nil
+  end
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, session, socket) do
-    user =
-      case Auth.load_user(session) do
-        {:ok, %User{} = user} -> user
-        :not_logged_in -> nil
-      end
-
+  def mount(_params, _session, socket) do
     assigns = [
-      user: user,
       error: nil,
       filter: nil,
       type: nil,
       count: nil,
       changeset: nil,
       enabled: nil,
-      assoc: nil
+      assoc: nil,
+      request: nil,
+      common: %LiveRequest{
+        url: nil,
+        host_url: nil,
+        user: nil,
+        big_id: nil,
+        force_reload: nil
+      }
     ]
 
     socket = assign(socket, assigns)
@@ -43,15 +63,20 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     {:ok, socket}
   end
 
-  @impl true
-  def handle_info({:parameters, %Query.Filter{} = filter, type}, socket) do
-    assigns = [
-      filter: filter,
-      type: type,
-      count: nil
-    ]
+  def handle_info({:parameters, %LiveRequest{} = common, %Request{} = request}, socket) do
+    request_changed = socket.assigns.request != request
 
-    socket = assign(socket, assigns) |> reload()
+    socket =
+      LiveRequest.apply_common(socket, common)
+      |> assign(request: request)
+
+    socket =
+      if request_changed or common.force_reload do
+        reload(socket)
+      else
+        socket
+      end
+
     {:noreply, socket}
   end
 
@@ -64,7 +89,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @impl true
   def handle_event("update", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.common.user) do
       handle_update(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -73,7 +98,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @impl true
   def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.common.user) do
       handle_validate(socket, params)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -82,7 +107,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @impl true
   def handle_event("save", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.common.user) do
       handle_save(socket, params)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -103,7 +128,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @spec handle_update(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_update(%Socket{} = socket) do
-    type = socket.assigns.type
+    type = socket.assigns.request.type
     enabled = MapSet.new()
     obj = struct(type)
     changeset = Updates.get_update_changeset(obj, [])
@@ -134,8 +159,8 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @spec handle_save(Socket.t(), map()) :: {:noreply, Socket.t()}
   defp handle_save(%Socket{} = socket, params) do
-    type = socket.assigns.type
-    filter = socket.assigns.filter
+    type = socket.assigns.request.type
+    filter = socket.assigns.request.filter
     query = Query.query(type) |> Query.filter_by_filter(filter)
 
     {_, updates, changeset} = get_update_changeset(socket, params, socket.assigns.assoc)
@@ -224,8 +249,8 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
   @spec get_update_changeset(socket :: Socket.t(), params :: map(), assoc :: map()) ::
           {MapSet.t(), list(Updates.UpdateChange.t()), Changeset.t()}
   defp get_update_changeset(%Socket{} = socket, %{} = params, %{} = assoc) do
-    type = socket.assigns.type
-    fields = Fields.get_update_fields(type, socket.assigns.user)
+    type = socket.assigns.request.type
+    fields = Fields.get_update_fields(type, socket.assigns.common.user)
 
     obj = struct(type)
     {enabled, updates} = get_update_changes(fields, params, assoc)
@@ -235,8 +260,8 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @spec reload(Socket.t()) :: Socket.t()
   defp reload(%Socket{} = socket) do
-    filter = socket.assigns.filter
-    type = socket.assigns.type
+    filter = socket.assigns.request.filter
+    type = socket.assigns.request.type
     count = Query.count_results(filter, type)
     assign(socket, count: count)
   end

@@ -57,7 +57,7 @@ defmodule PenguinMemoriesWeb.MainLive do
           {type, id}
       end
 
-    big_value = params["big"]
+    big_id = params["big"]
 
     obj_filter = %Query.Filter{
       reference_type_id: reference_type_id,
@@ -75,8 +75,7 @@ defmodule PenguinMemoriesWeb.MainLive do
       show_selected_value: Map.has_key?(params, "obj_show_selected"),
       selected_name: "obj_selected",
       selected_value: parse_selected(params["obj_selected"]),
-      drop_on_select: ["p_selected"],
-      big_value: big_value
+      drop_on_select: ["p_selected"]
     }
 
     num_selected = MapSet.size(objects.selected_value)
@@ -109,8 +108,7 @@ defmodule PenguinMemoriesWeb.MainLive do
       show_selected_name: "p_show_selected",
       show_selected_value: Map.has_key?(params, "p_show_selected"),
       selected_name: "p_selected",
-      selected_value: parse_selected(params["p_selected"]),
-      big_value: big_value
+      selected_value: parse_selected(params["p_selected"])
     }
 
     assigns = [
@@ -120,7 +118,7 @@ defmodule PenguinMemoriesWeb.MainLive do
       url: url,
       objects: objects,
       photos: photos,
-      big_value: big_value
+      big_id: big_id
     ]
 
     socket = assign(socket, assigns)
@@ -130,7 +128,7 @@ defmodule PenguinMemoriesWeb.MainLive do
   end
 
   @impl true
-  def handle_event("search", params, socket) do
+  def handle_event("search", params, %Socket{} = socket) do
     search =
       case params do
         %{"query" => ""} -> %{}
@@ -145,91 +143,142 @@ defmodule PenguinMemoriesWeb.MainLive do
   end
 
   @impl true
-  def handle_info({:child_pid, "details", pid}, socket) do
+  def handle_info({:select_object, id}, socket) do
+    type = socket.assigns.objects.type
+    type_name = Types.get_name!(type)
+
+    {ref_type, _} = socket.assigns.reference_type_id
+    ref_type_name = Types.get_name!(ref_type)
+
+    url = socket.assigns.url
+    |> Urls.set_path(Routes.main_path(socket, :index, type_name))
+    |> Urls.url_merge(%{"reference" => "#{ref_type_name}/#{id}"}, ["obj_selected", "p_selected"])
+    |> URI.to_string()
+
+    socket = push_patch(socket, to: url)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:child_pid, "details", pid}, %Socket{} = socket) do
     socket = assign(socket, details_pid: pid)
-    :ok = notify_details(socket)
+    :ok = notify_details(socket, false)
     {:noreply, socket}
   end
 
   @impl true
-  def handle_info({:child_pid, "reference", pid}, socket) do
+  def handle_info({:child_pid, "reference", pid}, %Socket{} = socket) do
     socket = assign(socket, reference_pid: pid)
-    :ok = notify_reference(socket)
+    :ok = notify_reference(socket, false)
     {:noreply, socket}
   end
 
   @impl true
-  def handle_info({:child_pid, "objects", pid}, socket) do
+  def handle_info({:child_pid, "objects", pid}, %Socket{} = socket) do
     socket = assign(socket, objects_pid: pid)
-    :ok = notify_objects(socket)
+    :ok = notify_objects(socket, false)
     {:noreply, socket}
   end
 
   @impl true
-  def handle_info({:child_pid, "photos", pid}, socket) do
+  def handle_info({:child_pid, "photos", pid}, %Socket{} = socket) do
     socket = assign(socket, photos_pid: pid)
-    :ok = notify_photos(socket)
+    :ok = notify_photos(socket, false)
     {:noreply, socket}
   end
 
   @impl true
-  def handle_info(%{topic: "refresh"}, socket) do
-    :ok = reload(socket)
+  def handle_info(%{topic: "refresh"}, %Socket{} = socket) do
+    :ok = force_reload(socket)
     {:noreply, socket}
+  end
+
+  @spec get_common(Socket.t(), force_reload :: boolean()) :: PenguinMemoriesWeb.LiveRequest.t()
+  def get_common(%Socket{} = socket, force_reload) do
+    %PenguinMemoriesWeb.LiveRequest{
+      url: socket.assigns.url,
+      host_url: socket.host_uri,
+      user: socket.assigns.user,
+      big_id: socket.assigns.big_id,
+      force_reload: force_reload
+    }
   end
 
   @spec reload(Socket.t()) :: :ok
-  defp reload(socket) do
-    :ok = notify_details(socket)
-    :ok = notify_reference(socket)
-    :ok = notify_objects(socket)
-    :ok = notify_photos(socket)
+  defp reload(%Socket{} = socket) do
+    :ok = notify_details(socket, false)
+    :ok = notify_reference(socket, false)
+    :ok = notify_objects(socket, false)
+    :ok = notify_photos(socket, false)
     :ok
   end
 
-  @spec notify_details(Socket.t()) :: :ok
-  defp notify_details(socket) do
+  @spec force_reload(Socket.t()) :: :ok
+  defp force_reload(%Socket{} = socket) do
+    :ok = notify_details(socket, true)
+    :ok = notify_reference(socket, true)
+    :ok = notify_objects(socket, true)
+    :ok = notify_photos(socket, true)
+    :ok
+  end
+
+  @spec notify_details(Socket.t(), force_reload :: boolean) :: :ok
+  defp notify_details(%Socket{} = socket, force_reload) do
     if socket.assigns.details_pid != nil do
+      common = get_common(socket, force_reload)
       pid = socket.assigns.details_pid
-      type = socket.assigns.objects.type
-      send(pid, {:parameters, type})
+
+      request = %PenguinMemoriesWeb.ListDetailsLive.Request{
+        type: socket.assigns.objects.type
+      }
+
+      send(pid, {:parameters, common, request})
     end
 
     :ok
   end
 
-  @spec notify_reference(Socket.t()) :: :ok
-  defp notify_reference(socket) do
+  @spec notify_reference(Socket.t(), force_reload :: boolean) :: :ok
+  defp notify_reference(%Socket{} = socket, force_reload) do
     if socket.assigns.reference_pid != nil and socket.assigns.reference_type_id != nil do
+      common = get_common(socket, force_reload)
       pid = socket.assigns.reference_pid
       {type, id} = socket.assigns.reference_type_id
 
+      filter = %Query.Filter{}
+
+      request = %PenguinMemoriesWeb.ObjectDetailsLive.Request{
+        type: type,
+        id: id
+      }
+
       send(
         pid,
-        {:parameters, type, id, socket.assigns.url, socket.host_uri, nil, nil,
-         socket.assigns.big_value}
+        {:parameters, filter, common, request}
       )
     end
 
     :ok
   end
 
-  @spec notify_objects(Socket.t()) :: :ok
-  defp notify_objects(socket) do
+  @spec notify_objects(Socket.t(), force_reload :: boolean) :: :ok
+  defp notify_objects(%Socket{} = socket, force_reload) do
     if socket.assigns.objects_pid != nil do
+      common = get_common(socket, force_reload)
       pid = socket.assigns.objects_pid
-      send(pid, {:parameters, socket.assigns.objects, socket.assigns.url, socket.host_uri})
+      send(pid, {:parameters, common, socket.assigns.objects})
     end
 
     :ok
   end
 
-  @spec notify_photos(Socket.t()) :: :ok
-  defp notify_photos(socket) do
+  @spec notify_photos(Socket.t(), force_reload :: boolean) :: :ok
+  defp notify_photos(%Socket{} = socket, force_reload) do
     if socket.assigns.photos_pid != nil do
+      common = get_common(socket, force_reload)
       photos = socket.assigns.photos
       pid = socket.assigns.photos_pid
-      send(pid, {:parameters, photos, socket.assigns.url, socket.host_uri})
+      send(pid, {:parameters, common, photos})
     end
 
     :ok

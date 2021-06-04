@@ -1,4 +1,4 @@
-<%= if @type != Photos.Photo and Auth.can_edit(@user) do %>
+<%= if @type != Photos.Photo and Auth.can_edit(@common.user) do %>
   <div class="details">
     <%= if @error do %>
       <div class="alert alert-danger">
@@ -30,7 +30,7 @@
     <% end %>
 
     <div class="buttons">
-      <%= if is_nil(@changeset) and Auth.can_edit(@user) and @type != Photos.Photo do %>
+      <%= if is_nil(@changeset) and Auth.can_edit(@common.user) and @type != Photos.Photo do %>
         <div class="btn btn-secondary" phx-click="create">Create</div>
       <% end %>
     </div>

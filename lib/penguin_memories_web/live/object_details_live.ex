@@ -7,8 +7,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   alias Ecto.Changeset
   alias Elixir.Phoenix.LiveView.Socket
 
-  alias PenguinMemories.Accounts.User
   alias PenguinMemories.Auth
+  alias PenguinMemories.Database
   alias PenguinMemories.Database.Fields
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
@@ -16,21 +16,40 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   alias PenguinMemories.Urls
   alias PenguinMemoriesWeb.FieldHelpers
   alias PenguinMemoriesWeb.IconHelpers
+  alias PenguinMemoriesWeb.LiveRequest
   alias PenguinMemoriesWeb.Router.Helpers, as: Routes
+
+  defmodule Request do
+    @moduledoc """
+    List of icons to display
+    """
+    @type selected_type :: PenguinMemoriesWeb.ObjectListLive.selected_type()
+
+    @type t :: %__MODULE__{
+            type: Database.object_type(),
+            id: integer()
+          }
+    @enforce_keys [
+      :type,
+      :id
+    ]
+    defstruct type: nil,
+              id: nil
+  end
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, session, socket) do
-    user =
-      case Auth.load_user(session) do
-        {:ok, %User{} = user} -> user
-        :not_logged_in -> nil
-      end
-
+  def mount(_params, _session, socket) do
     assigns = [
-      user: user,
-      type: nil,
-      id: nil,
+      filter: nil,
+      request: nil,
+      common: %LiveRequest{
+        url: nil,
+        host_url: nil,
+        user: nil,
+        big_id: nil,
+        force_reload: nil
+      },
       big: nil,
       mode: :display,
       prev_icon: nil,
@@ -69,7 +88,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @impl true
   def handle_event("big", _params, %Socket{} = socket) do
     url =
-      socket.assigns.url
+      socket.assigns.common.url
       |> Urls.url_merge(%{"big" => socket.id}, [])
       |> URI.to_string()
 
@@ -80,7 +99,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @impl true
   def handle_event("unbig", _params, %Socket{} = socket) do
     url =
-      socket.assigns.url
+      socket.assigns.common.url
       |> Urls.url_merge(%{}, ["big"])
       |> URI.to_string()
 
@@ -89,7 +108,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   def handle_event("create", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) and socket.assigns.type != Photos.Photo do
+    if Auth.can_edit(socket.assigns.common.user) and socket.assigns.type != Photos.Photo do
       handle_create(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -98,7 +117,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("edit", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.common.user) do
       handle_edit(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -107,7 +126,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("delete", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.common.user) do
       handle_delete(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -116,7 +135,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.common.user) do
       handle_validate(socket, params)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -125,7 +144,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("save", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.common.user) do
       handle_save(socket, params)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -151,22 +170,42 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, socket}
   end
 
-  @impl true
   def handle_info(
-        {:parameters, type, id, url, %URI{} = host_uri, prev_icon, next_icon, big_value},
-        socket
+        {:parameters, %Query.Filter{} = filter, %LiveRequest{} = common, %Request{} = request},
+        %Socket{} = socket
       ) do
+    new_big = common.big_id == socket.id
+
+    old = socket.assigns
+    big_changed = old.big != new_big
+    filter_changed = old.filter != filter
+    user_changed = old.common.user != common.user
+    request_changed = old.request != request
+
     assigns = [
-      type: type,
-      id: id,
-      prev_icon: prev_icon,
-      next_icon: next_icon,
-      big: big_value == socket.id,
-      url: url
+      filter: filter,
+      request: request,
+      big: new_big
     ]
 
-    socket = %Socket{socket | host_uri: host_uri}
-    socket = assign(socket, assigns) |> reload()
+    socket =
+      LiveRequest.apply_common(socket, common)
+      |> assign(assigns)
+
+    socket =
+      if big_changed or user_changed or request_changed or common.force_reload do
+        reload_details(socket)
+      else
+        socket
+      end
+
+    socket =
+      if big_changed or filter_changed or request_changed or common.force_reload do
+        reload_prev_next_icons(socket)
+      else
+        socket
+      end
+
     {:noreply, socket}
   end
 
@@ -301,16 +340,36 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     changeset
   end
 
-  @spec reload(Socket.t()) :: Socket.t()
-  def reload(%Socket{} = socket) do
+  @spec get_prev_next_icons(
+          cursor :: String.t(),
+          filter :: Query.Filter.t(),
+          type :: Database.object_type()
+        ) :: {Query.Icon.t() | nil, Query.Icon.t() | nil}
+  def get_prev_next_icons(cursor, filter, type) do
+    prev_icon = Query.get_prev_next_id(filter, cursor, nil, "thumb", type)
+    next_icon = Query.get_prev_next_id(filter, nil, cursor, "thumb", type)
+    {prev_icon, next_icon}
+  end
+
+  @spec reload_prev_next_icons(Socket.t()) :: Socket.t()
+  def reload_prev_next_icons(%Socket{} = socket) do
+    cursor = socket.assigns.details.cursor
+    filter = socket.assigns.filter
+    type = socket.assigns.request.type
+    {prev_icon, next_icon} = get_prev_next_icons(cursor, filter, type)
+    assign(socket, prev_icon: prev_icon, next_icon: next_icon)
+  end
+
+  @spec reload_details(Socket.t()) :: Socket.t()
+  def reload_details(%Socket{} = socket) do
     {icon_size, video_size} =
       case socket.assigns.big do
         false -> {"mid", "mid"}
         true -> {"large", "large"}
       end
 
-    type = socket.assigns.type
-    id = socket.assigns.id
+    type = socket.assigns.request.type
+    id = socket.assigns.request.id
 
     details = Query.get_details(id, icon_size, video_size, type)
     assign(socket, :details, details)
@@ -323,7 +382,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     name = Types.get_name!(type)
 
     params = %{
-      reference: "#{name}/#{id}"
+      "reference" => "#{name}/#{id}"
     }
 
     Routes.main_path(socket, :index, "photo", params)

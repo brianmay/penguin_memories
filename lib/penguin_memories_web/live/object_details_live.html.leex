@@ -1,12 +1,12 @@
 <%= if @details do %>
-  <% type_name = PenguinMemories.Database.Types.get_name!(@type) %>
-  <% fields = Fields.get_fields(@type, @user) %>
+  <% type_name = PenguinMemories.Database.Types.get_name!(@request.type) %>
+  <% fields = Fields.get_fields(@request.type, @common.user) %>
 
   <div
     class="details <%= if @big do %>big<% end %> <%= IconHelpers.icon_classes(@details.icon) %>"
   >
     <h2>
-      <%= Query.get_single_name(@type) |> String.capitalize() %>:
+      <%= Query.get_single_name(@request.type) |> String.capitalize() %>:
       <%= @details.icon.name %>
       (<%= @details.obj.id %>)
     </h2>
@@ -162,8 +162,8 @@
           <% end %>
         <% end %>
 
-        <%= if Auth.can_edit(@user) do %>
-          <%= if @type != Photos.Photo do %>
+        <%= if Auth.can_edit(@common.user) do %>
+          <%= if @request.type != Photos.Photo do %>
             <div class="btn btn-secondary" phx-click="create">Create</div>
           <% end %>
           <div class="btn btn-secondary" phx-click="edit">Edit</div>

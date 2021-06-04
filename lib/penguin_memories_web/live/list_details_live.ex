@@ -7,31 +7,47 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
   alias Ecto.Changeset
   alias Elixir.Phoenix.LiveView.Socket
 
-  alias PenguinMemories.Accounts.User
   alias PenguinMemories.Auth
+  alias PenguinMemories.Database
   alias PenguinMemories.Database.Fields
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Photos
   alias PenguinMemoriesWeb.FieldHelpers
+  alias PenguinMemoriesWeb.LiveRequest
   alias PenguinMemoriesWeb.Router.Helpers, as: Routes
+
+  defmodule Request do
+    @moduledoc """
+    List of icons to display
+    """
+    @type selected_type :: PenguinMemoriesWeb.ObjectListLive.selected_type()
+
+    @type t :: %__MODULE__{
+            type: Database.object_type()
+          }
+    @enforce_keys [
+      :type
+    ]
+    defstruct type: nil
+  end
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, session, socket) do
-    user =
-      case Auth.load_user(session) do
-        {:ok, %User{} = user} -> user
-        :not_logged_in -> nil
-      end
-
+  def mount(_params, _session, socket) do
     assigns = [
-      user: user,
       type: nil,
       error: nil,
       changeset: nil,
       edit_obj: nil,
-      assoc: %{}
+      assoc: %{},
+      common: %LiveRequest{
+        url: nil,
+        host_url: nil,
+        user: nil,
+        big_id: nil,
+        force_reload: nil
+      }
     ]
 
     socket = assign(socket, assigns)
@@ -44,7 +60,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
   end
 
   def handle_event("create", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) and socket.assigns.type != Photos.Photo do
+    if Auth.can_edit(socket.assigns.common.user) and socket.assigns.type != Photos.Photo do
       handle_create(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -53,7 +69,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
 
   @impl true
   def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.common.user) do
       handle_validate(socket, params)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -62,7 +78,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
 
   @impl true
   def handle_event("save", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.user) do
+    if Auth.can_edit(socket.assigns.common.user) do
       handle_save(socket, params)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -88,10 +104,17 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
   end
 
   @impl true
-  def handle_info({:parameters, type}, socket) do
+  def handle_info({:parameters, %LiveRequest{} = common, %Request{} = request}, socket) do
+    old = socket.assigns
+    request_changed = old.type != request.type
+
     socket =
-      if socket.assigns.type != type do
-        assign(socket, type: type) |> reload()
+      LiveRequest.apply_common(socket, common)
+      |> assign(type: request.type)
+
+    socket =
+      if request_changed or common.force_reload do
+        reload(socket)
       else
         socket
       end

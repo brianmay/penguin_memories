@@ -16,6 +16,11 @@ defmodule PenguinMemories.Urls do
     %URI{url | query: query}
   end
 
+  @spec set_path(URI.t(), path :: String.t()) :: URI.t()
+  def set_path(%URI{} = url, path) do
+    %{url | path: path}
+  end
+
   @spec url_to_path(URI.t()) :: URI.t()
   def url_to_path(%URI{} = url) do
     %{url | authority: nil, host: nil, scheme: nil}
