@@ -96,7 +96,7 @@ defmodule PenguinMemoriesWeb.SessionControllerTest do
       conn = put_req_header(conn, "authorization", "bearer: " <> token)
 
       conn = post(conn, Routes.session_path(conn, :logout))
-      assert redirected_to(conn) == Routes.session_path(conn, :login)
+      assert redirected_to(conn) == Routes.page_path(conn, :index)
     end
   end
 

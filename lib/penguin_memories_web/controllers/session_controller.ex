@@ -10,14 +10,21 @@ defmodule PenguinMemoriesWeb.SessionController do
   end
 
   def logout(conn, _) do
+    user = PenguinMemories.Auth.current_user(conn)
+
+    conn =
+      conn
+      |> Guardian.Plug.sign_out()
+      |> redirect(to: Routes.page_path(conn, :index))
+
+    PenguinMemoriesWeb.Endpoint.broadcast("users_socket:#{user.id}", "disconnect", %{})
     conn
-    |> Guardian.Plug.sign_out()
-    |> redirect(to: Routes.session_path(conn, :login))
   end
 
   defp login_reply({:ok, user}, conn) do
     conn
     |> put_flash(:info, "Welcome back!")
+    |> put_session(:live_socket_id, "users_socket:#{user.id}")
     |> Accounts.Guardian.Plug.sign_in(user)
     |> redirect(to: Routes.page_path(conn, :index))
   end
