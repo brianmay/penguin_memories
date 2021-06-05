@@ -9,7 +9,7 @@ defmodule PenguinMemories.Accounts.CheckAdmin do
   def call(conn, _params) do
     user = Guardian.Plug.current_resource(conn)
 
-    if user.is_admin do
+    if user != nil and user.is_admin do
       conn
     else
       conn
