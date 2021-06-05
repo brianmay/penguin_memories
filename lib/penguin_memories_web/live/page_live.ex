@@ -4,7 +4,7 @@ defmodule PenguinMemoriesWeb.PageLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    socket = assign(socket, active: "index")
+    socket = assign(socket, active: "index", page_title: "Index")
     {:ok, assign(socket, query: "", results: %{})}
   end
 

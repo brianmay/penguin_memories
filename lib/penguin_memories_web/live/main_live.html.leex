@@ -1,4 +1,5 @@
 <div class="root <%= if @big_id != nil, do: "big" %>">
+  <h1><%= @page_title %></h1>
   <%
     has_reference = @reference_type_id != nil
     is_photos = @objects.type == Photos.Photo

@@ -14,7 +14,8 @@ defmodule PenguinMemoriesWeb.SessionLive do
         socket,
         changeset: changeset,
         action: Routes.session_path(socket, :login),
-        active: "session"
+        active: "session",
+        page_title: "Login"
       )
 
     {:ok, socket}

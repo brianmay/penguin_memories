@@ -7,6 +7,7 @@ defmodule PenguinMemoriesWeb.MainLive do
   alias Elixir.Phoenix.LiveView.Socket
   alias PenguinMemories.Accounts.User
   alias PenguinMemories.Auth
+  alias PenguinMemories.Database
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Photos
@@ -44,21 +45,7 @@ defmodule PenguinMemoriesWeb.MainLive do
 
     url = Urls.parse_url(uri)
 
-    reference_type_id =
-      case {params["id"], params["reference"]} do
-        {nil, nil} ->
-          nil
-
-        {id, nil} ->
-          {id, ""} = Integer.parse(id)
-          {type, id}
-
-        {_, value} ->
-          [type, id] = String.split(value, "/", max_parts: 2)
-          {:ok, type} = Types.get_type_for_name(type)
-          {id, ""} = Integer.parse(id)
-          {type, id}
-      end
+    reference_type_id = parse_reference_type_id(params["id"], params["reference"], type)
 
     big_id = params["big"]
 
@@ -114,7 +101,19 @@ defmodule PenguinMemoriesWeb.MainLive do
       selected_value: parse_selected(params["p_selected"])
     }
 
+    page_title =
+      case reference_type_id do
+        nil ->
+          name = Query.get_plural_name(type) |> String.capitalize()
+          "#{name} · Penguin Memories"
+
+        {ref_type, ref_id} ->
+          ref_name = Query.get_single_name(ref_type) |> String.capitalize()
+          "#{ref_name} #{ref_id} · Penguin Memories"
+      end
+
     assigns = [
+      page_title: page_title,
       query: params["query"],
       reference_type_id: reference_type_id,
       active: Types.get_name!(type),
@@ -188,6 +187,17 @@ defmodule PenguinMemoriesWeb.MainLive do
   def handle_info({:child_pid, "photos", pid}, %Socket{} = socket) do
     socket = assign(socket, photos_pid: pid)
     :ok = notify_photos(socket, false)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({:title, "reference", title}, socket) do
+    page_title = "#{title} · Penguin Memories"
+    socket = assign(socket, page_title: page_title)
+    {:noreply, socket}
+  end
+
+  def handle_info({:title, _id, _title}, socket) do
     {:noreply, socket}
   end
 
@@ -286,6 +296,33 @@ defmodule PenguinMemoriesWeb.MainLive do
     end
 
     :ok
+  end
+
+  @spec parse_reference_type_id(
+          id :: String.t() | nil,
+          reference :: String.t() | nil,
+          type :: Database.object_type()
+        ) :: {Database.object_type(), integer()} | nil
+  defp parse_reference_type_id(id, reference, default_type) do
+    case {id, reference} do
+      {nil, nil} ->
+        nil
+
+      {id, nil} ->
+        case Integer.parse(id) do
+          {id, ""} -> {default_type, id}
+          _ -> nil
+        end
+
+      {_, value} ->
+        with [type_name, id] <- String.split(value, "/", max_parts: 2),
+             {:ok, type} <- Types.get_type_for_name(type_name),
+             {id, ""} <- Integer.parse(id) do
+          {type, id}
+        else
+          _ -> nil
+        end
+    end
   end
 
   @spec parse_selected(String.t() | nil) :: ObjectListLive.selected_type()

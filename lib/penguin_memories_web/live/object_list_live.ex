@@ -223,6 +223,11 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     end
   end
 
+  @impl true
+  def handle_info({:title, _id, _title}, socket) do
+    {:noreply, socket}
+  end
+
   @spec child_id(socket :: Socket.t(), id :: String.t()) :: String.t()
   def child_id(%Socket{} = socket, id) do
     socket.id <> "_" <> id

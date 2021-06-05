@@ -6,9 +6,7 @@
     class="details <%= if @big do %>big<% end %> <%= IconHelpers.icon_classes(@details.icon) %>"
   >
     <h2>
-      <%= Query.get_single_name(@request.type) |> String.capitalize() %>:
-      <%= @details.icon.name %>
-      (<%= @details.obj.id %>)
+      <%= @title %>
     </h2>
     <div>
       <%= if @error do %>

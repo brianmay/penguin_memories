@@ -60,7 +60,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       action: nil,
       details: nil,
       assoc: %{},
-      url: nil
+      url: nil,
+      title: nil
     ]
 
     socket = assign(socket, assigns)
@@ -370,17 +371,31 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @spec reload_details(Socket.t()) :: Socket.t()
   def reload_details(%Socket{} = socket) do
+    request = socket.assigns.request
+
     {icon_size, video_size} =
       case socket.assigns.big do
         false -> {"mid", "mid"}
         true -> {"large", "large"}
       end
 
-    type = socket.assigns.request.type
-    id = socket.assigns.request.id
-
+    type = request.type
+    id = request.id
     details = Query.get_details(id, icon_size, video_size, type)
-    socket = assign(socket, :details, details)
+
+    type_name = Query.get_single_name(type) |> String.capitalize()
+
+    title =
+      if details == nil do
+        "#{type_name}: #{id}"
+      else
+        assign(socket, :title, "")
+        name = details.icon.name
+        "#{type_name}: #{name} (#{id})"
+      end
+
+    socket = assign(socket, details: details, title: title)
+    send(socket.parent_pid, {:title, socket.id, title})
 
     if details == nil do
       assign(socket, :error, "Cannot load type #{inspect(type)} id #{id}")

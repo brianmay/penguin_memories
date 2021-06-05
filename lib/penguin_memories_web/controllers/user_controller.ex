@@ -5,7 +5,7 @@ defmodule PenguinMemoriesWeb.UserController do
   alias PenguinMemories.Accounts.User
 
   def params(conn, params \\ []) do
-    params ++ [active: "users", flash: get_flash(conn)]
+    params ++ [active: "users", page_title: "User Editor", flash: get_flash(conn)]
   end
 
   def index(conn, _params) do
