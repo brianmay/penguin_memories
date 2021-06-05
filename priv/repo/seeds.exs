@@ -29,13 +29,13 @@ PenguinMemories.Repo.insert!(%PenguinMemories.Photos.Album{
 %PenguinMemories.Photos.FileOrder{size_key: "thumb", mime_type: "image/gif", order: 1}
 |> PenguinMemories.Repo.insert!()
 
-%PenguinMemories.Photos.FileOrder{size_key: "thumb", mime_type: "video/ogg", order: 2}
+%PenguinMemories.Photos.FileOrder{size_key: "thumb", mime_type: "video/webm", order: 2}
 |> PenguinMemories.Repo.insert!()
 
-%PenguinMemories.Photos.FileOrder{size_key: "thumb", mime_type: "video/webm", order: 3}
+%PenguinMemories.Photos.FileOrder{size_key: "thumb", mime_type: "video/mp4", order: 3}
 |> PenguinMemories.Repo.insert!()
 
-%PenguinMemories.Photos.FileOrder{size_key: "thumb", mime_type: "video/mp4", order: 4}
+%PenguinMemories.Photos.FileOrder{size_key: "thumb", mime_type: "video/ogg", order: 4}
 |> PenguinMemories.Repo.insert!()
 
 %PenguinMemories.Photos.FileOrder{size_key: "mid", mime_type: "image/jpeg", order: 0}
@@ -44,13 +44,13 @@ PenguinMemories.Repo.insert!(%PenguinMemories.Photos.Album{
 %PenguinMemories.Photos.FileOrder{size_key: "mid", mime_type: "image/gif", order: 1}
 |> PenguinMemories.Repo.insert!()
 
-%PenguinMemories.Photos.FileOrder{size_key: "mid", mime_type: "video/ogg", order: 2}
+%PenguinMemories.Photos.FileOrder{size_key: "mid", mime_type: "video/webm", order: 2}
 |> PenguinMemories.Repo.insert!()
 
-%PenguinMemories.Photos.FileOrder{size_key: "mid", mime_type: "video/webm", order: 3}
+%PenguinMemories.Photos.FileOrder{size_key: "mid", mime_type: "video/mp4", order: 3}
 |> PenguinMemories.Repo.insert!()
 
-%PenguinMemories.Photos.FileOrder{size_key: "mid", mime_type: "video/mp4", order: 4}
+%PenguinMemories.Photos.FileOrder{size_key: "mid", mime_type: "video/ogg", order: 4}
 |> PenguinMemories.Repo.insert!()
 
 %PenguinMemories.Photos.FileOrder{size_key: "large", mime_type: "image/jpeg", order: 0}
@@ -59,11 +59,11 @@ PenguinMemories.Repo.insert!(%PenguinMemories.Photos.Album{
 %PenguinMemories.Photos.FileOrder{size_key: "large", mime_type: "image/gif", order: 1}
 |> PenguinMemories.Repo.insert!()
 
-%PenguinMemories.Photos.FileOrder{size_key: "large", mime_type: "video/ogg", order: 2}
+%PenguinMemories.Photos.FileOrder{size_key: "large", mime_type: "video/webm", order: 2}
 |> PenguinMemories.Repo.insert!()
 
-%PenguinMemories.Photos.FileOrder{size_key: "large", mime_type: "video/webm", order: 3}
+%PenguinMemories.Photos.FileOrder{size_key: "large", mime_type: "video/mp4", order: 3}
 |> PenguinMemories.Repo.insert!()
 
-%PenguinMemories.Photos.FileOrder{size_key: "large", mime_type: "video/mp4", order: 4}
+%PenguinMemories.Photos.FileOrder{size_key: "large", mime_type: "video/ogg", order: 4}
 |> PenguinMemories.Repo.insert!()
