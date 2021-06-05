@@ -48,6 +48,8 @@ defmodule PenguinMemoriesWeb do
         layout: {PenguinMemoriesWeb.LayoutView, "live.html"}
 
       unquote(view_helpers())
+
+      import MyAppWeb.LiveHelpers
     end
   end
 

@@ -13,13 +13,13 @@ defmodule PenguinMemories.Auth do
     !!current_user(conn)
   end
 
-  def user_is_admin?(conn) do
-    current_user(conn).is_admin
-  end
+  @spec user_is_admin?(User.t() | nil) :: boolean()
+  def user_is_admin?(nil), do: false
+  def user_is_admin?(%User{} = user), do: user.is_admin
 
   @spec can_edit(User.t() | nil) :: boolean
   def can_edit(nil), do: false
-  def can_edit(_), do: true
+  def can_edit(%User{}), do: true
 
   @spec can_see_private(User.t() | nil) :: boolean
   def can_see_private(nil), do: false

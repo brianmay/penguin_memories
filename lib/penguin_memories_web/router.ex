@@ -8,7 +8,6 @@ defmodule PenguinMemoriesWeb.Router do
     plug :put_root_layout, {PenguinMemoriesWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :put_layout, {PenguinMemoriesWeb.LayoutView, :live}
   end
 
   pipeline :auth do

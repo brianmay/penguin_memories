@@ -5,8 +5,6 @@ defmodule PenguinMemoriesWeb.MainLive do
   use PenguinMemoriesWeb, :live_view
 
   alias Elixir.Phoenix.LiveView.Socket
-  alias PenguinMemories.Accounts.User
-  alias PenguinMemories.Auth
   alias PenguinMemories.Database
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
@@ -18,19 +16,7 @@ defmodule PenguinMemoriesWeb.MainLive do
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(_params, session, socket) do
-    assigns =
-      case Auth.load_user(session) do
-        {:ok, %User{} = user} ->
-          [user: user]
-
-        {:error, _} ->
-          [user: nil]
-
-        :not_logged_in ->
-          [user: nil]
-      end
-
-    socket = assign(socket, assigns)
+    socket = assign_defaults(socket, session)
 
     socket =
       assign(socket, reference_pid: nil, objects_pid: nil, photos_pid: nil, details_pid: nil)
