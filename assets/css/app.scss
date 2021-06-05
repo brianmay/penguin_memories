@@ -233,8 +233,16 @@ form {
             display: none;
         }
 
-        label {
-            color: #fff;
+        .photo_table, form {
+            color: #212529;
+            background: #fff;
+            padding: 10px;
+            border-radius: 0.25em;
+        }
+
+        h2:hover + div .photo_table {
+                position: absolute;
+                display: block;
         }
     }
 }
