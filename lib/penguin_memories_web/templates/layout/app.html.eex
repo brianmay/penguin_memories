@@ -1,0 +1,56 @@
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+  <%= link("Penguin Memories", to: Routes.page_path(@conn, :index), class: "navbar-brand") %>
+  <button
+    class="navbar-toggler"
+    type="button"
+    data-toggle="collapse"
+    data-target="#navbarsExampleDefault"
+    aria-controls="navbarsExampleDefault"
+    aria-expanded="false"
+    aria-label="Toggle navigation"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item <%= active_class(@active, "album") %>">
+        <%= link("Album", to: Routes.main_path(@conn, :index, "album"), class: "nav-link " <> active_class(@active, "album")) %>
+      </li>
+      <li class="nav-item <%= active_class(@active, "category") %>">
+        <%= link("Category", to: Routes.main_path(@conn, :index, "category"), class: "nav-link " <> active_class(@active, "category")) %>
+      </li>
+      <li class="nav-item <%= active_class(@active, "person") %>">
+        <%= link("Person", to: Routes.main_path(@conn, :index, "person"), class: "nav-link " <> active_class(@active, "person")) %>
+      </li>
+      <li class="nav-item <%= active_class(@active, "place") %>">
+        <%= link("Place", to: Routes.main_path(@conn, :index, "place"), class: "nav-link " <> active_class(@active, "place")) %>
+      </li>
+      <li class="nav-item <%= active_class(@active, "photo") %>">
+        <%= link("Photo", to: Routes.main_path(@conn, :index, "photo"), class: "nav-link " <> active_class(@active, "photo")) %>
+      </li>
+      <% user = PenguinMemories.Auth.current_user(@conn) %>
+      <%= if user do %>
+        <%= if PenguinMemories.Auth.user_is_admin?(user) do %>
+          <li class="nav-item <%= active_class(@active, "users") %>">
+            <%= link("Users", to: Routes.user_path(@conn, :index), class: "nav-link " <> active_class(@active, "users")) %>
+          </li>
+        <% end %>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
+            <%= user.name %>
+          </a>
+          <div class="dropdown-menu">
+            <%= link "Logout", to: Routes.session_path(@conn, :logout, next: @conn.request_path), method: :post, class: "dropdown-item" %>
+          </div>
+        </li>
+      <% else %>
+        <li class="nav-item <%= active_class(@active, "login") %>">
+          <%= link("Login", to: Routes.session_path(@conn, :login, next: @conn.request_path), class: "nav-link") %>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+</nav>
+
+<%= @inner_content %>
