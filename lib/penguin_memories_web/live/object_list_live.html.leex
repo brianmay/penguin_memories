@@ -49,5 +49,7 @@
     <%= live_render(@socket, PenguinMemoriesWeb.ObjectUpdateLive, id: child_id(@socket, "update")) %>
   <% end %>
 <% else %>
-  LOADING
+  <div class="details">
+    <h2>LOADING</h2>
+  </div>
 <% end %>

@@ -22,6 +22,9 @@ defmodule PenguinMemoriesWeb.MainLive do
         {:ok, %User{} = user} ->
           [user: user]
 
+        {:error, _} ->
+          [user: nil]
+
         :not_logged_in ->
           [user: nil]
       end

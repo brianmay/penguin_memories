@@ -24,6 +24,22 @@ defmodule PenguinMemories.Accounts do
   @doc """
   Gets a single user.
 
+  Returns nil if no result was found.
+
+  ## Examples
+
+      iex> get_user(123)
+      %User{}
+
+      iex> get_user(456)
+      nil
+
+  """
+  def get_user(id), do: Repo.get(User, id)
+
+  @doc """
+  Gets a single user.
+
   Raises `Ecto.NoResultsError` if the User does not exist.
 
   ## Examples

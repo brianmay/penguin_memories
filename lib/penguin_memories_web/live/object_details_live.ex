@@ -353,10 +353,18 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @spec reload_prev_next_icons(Socket.t()) :: Socket.t()
   def reload_prev_next_icons(%Socket{} = socket) do
-    cursor = socket.assigns.details.cursor
-    filter = socket.assigns.filter
-    type = socket.assigns.request.type
-    {prev_icon, next_icon} = get_prev_next_icons(cursor, filter, type)
+    {prev_icon, next_icon} =
+      case socket.assigns.details do
+        nil ->
+          {nil, nil}
+
+        details ->
+          cursor = details.cursor
+          filter = socket.assigns.filter
+          type = socket.assigns.request.type
+          get_prev_next_icons(cursor, filter, type)
+      end
+
     assign(socket, prev_icon: prev_icon, next_icon: next_icon)
   end
 
@@ -372,7 +380,13 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     id = socket.assigns.request.id
 
     details = Query.get_details(id, icon_size, video_size, type)
-    assign(socket, :details, details)
+    socket = assign(socket, :details, details)
+
+    if details == nil do
+      assign(socket, :error, "Cannot load type #{inspect(type)} id #{id}")
+    else
+      assign(socket, :error, nil)
+    end
   end
 
   @spec get_photo_url(Socket.t(), reference :: struct()) :: String.t() | nil

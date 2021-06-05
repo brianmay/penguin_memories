@@ -33,7 +33,7 @@ defmodule PenguinMemories.Auth do
         Guardian.resource_from_claims(claims)
 
       _ ->
-        nil
+        {:error, :invalid_token}
     end
   end
 

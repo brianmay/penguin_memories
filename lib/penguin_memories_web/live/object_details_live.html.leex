@@ -174,5 +174,12 @@
     </div>
   </div>
 <% else %>
-  LOADING
+  <div class="details <%= if @big do %>big<% end %> ">
+    <h2>LOADING</h2>
+    <%= if @error do %>
+      <div class="alert alert-danger">
+        <%= @error %>
+      </div>
+    <% end %>
+  </div>
 <% end %>
