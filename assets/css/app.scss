@@ -101,6 +101,20 @@
     }
 }
 
+.related {
+    .name {
+        font-weight: bold;
+    }
+
+    .description {
+        margin-top: 10px;
+    }
+}
+
+.list .hoverable {
+    display: inline-block;
+}
+
 /* PHOTO LIST */
 .parents {
     display: flex;
@@ -111,6 +125,10 @@
     .arrow {
         // padding-top: 90px;
         vertical-align: middle;
+    }
+
+    .list .hoverable {
+        display: block;
     }
 }
 

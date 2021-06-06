@@ -138,9 +138,13 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
     Enum.map(related_icons, fn {related, icons} ->
       [
-        raw("<div>"),
+        raw("<div class='related'>"),
+        raw("<div class='name'>"),
         related.name,
+        raw("</div>"),
+        raw("<div class='description'>"),
         display_markdown(related.description),
+        raw("</div>"),
         display_icons(icons),
         raw("</div>")
       ]
