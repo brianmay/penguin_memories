@@ -7,7 +7,7 @@
     <% end %>
 
     <%= if @changeset do %>
-      <% fields = Fields.get_fields(@type, @user) %>
+      <% fields = Fields.get_fields(@type, @common.user) %>
       <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save"] %>
         <%= for %Fields.Field{} = field <- fields do %>
           <%= if field.read_only == false do %>

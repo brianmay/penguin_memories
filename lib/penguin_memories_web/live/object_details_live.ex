@@ -109,7 +109,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   def handle_event("create", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) and socket.assigns.type != Photos.Photo do
+    if Auth.can_edit(socket.assigns.common.user) and socket.assigns.request.type != Photos.Photo do
       handle_create(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}

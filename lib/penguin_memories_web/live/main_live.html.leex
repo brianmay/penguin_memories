@@ -2,7 +2,7 @@
   <%
     has_reference = @reference_type_id != nil
     is_photos = @objects.type == Photos.Photo
-    num_selected = MapSet.size(@objects.selected_value)
+    num_selected = count_selections(@objects.selected_value)
 
     render_objects =
       case @reference_type_id do

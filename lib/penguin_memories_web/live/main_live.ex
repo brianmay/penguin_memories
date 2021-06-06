@@ -13,6 +13,8 @@ defmodule PenguinMemoriesWeb.MainLive do
   alias PenguinMemoriesWeb.ObjectListLive
   alias PenguinMemoriesWeb.Router.Helpers, as: Routes
 
+  @type selected_type :: MapSet.t() | :all
+
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
   def mount(_params, session, socket) do
@@ -54,7 +56,7 @@ defmodule PenguinMemoriesWeb.MainLive do
       drop_on_select: ["p_selected"]
     }
 
-    num_selected = MapSet.size(objects.selected_value)
+    num_selected = count_selections(objects.selected_value)
 
     photo_filter =
       cond do
@@ -329,4 +331,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       _ -> 0
     end
   end
+
+  @spec count_selections(selected_ids :: selected_type) :: integer() | :infinity
+  def count_selections(:all), do: :infinity
+  def count_selections(selected_ids), do: MapSet.size(selected_ids)
 end
