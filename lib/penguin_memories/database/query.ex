@@ -57,13 +57,14 @@ defmodule PenguinMemories.Database.Query do
     @type t :: %__MODULE__{
             obj: struct(),
             icon: Icon.t() | nil,
+            orig: Icon.t() | nil,
             videos: list(Video.t()),
             cursor: String.t(),
             type: Database.object_type(),
             parents: list(Icon.t()) | nil
           }
-    @enforce_keys [:obj, :icon, :videos, :cursor, :type]
-    defstruct [:obj, :icon, :videos, :cursor, :type, :parents]
+    @enforce_keys [:obj, :icon, :orig, :videos, :cursor, :type]
+    defstruct [:obj, :icon, :orig, :videos, :cursor, :type, :parents]
   end
 
   defmodule Filter do
@@ -240,6 +241,39 @@ defmodule PenguinMemories.Database.Query do
     end
   end
 
+  @spec get_orig(query :: Ecto.Query.t()) :: Ecto.Query.t()
+  def get_orig(%Ecto.Query{} = query) do
+    case get_query_type(query) do
+      Photo ->
+        from [object: o] in query,
+          left_join: f in File,
+          on: f.photo_id == o.id and f.size_key == "orig",
+          select_merge: %{
+            orig: %{
+              dir: f.dir,
+              filename: f.filename,
+              height: f.height,
+              width: f.width
+            }
+          }
+
+      _ ->
+        from [object: o] in query,
+          left_join: p in Photo,
+          on: p.id == o.cover_photo_id,
+          left_join: f in File,
+          on: f.photo_id == p.id and f.size_key == "orig",
+          select_merge: %{
+            orig: %{
+              dir: f.dir,
+              filename: f.filename,
+              height: f.height,
+              width: f.width
+            }
+          }
+    end
+  end
+
   @spec get_icon_from_result(result :: map(), type :: object_type()) :: Icon.t()
   def get_icon_from_result(%{} = result, type) do
     backend = Types.get_backend!(type)
@@ -261,6 +295,31 @@ defmodule PenguinMemories.Database.Query do
       subtitle: subtitle,
       height: result.icon.height,
       width: result.icon.width,
+      type: type
+    }
+  end
+
+  @spec get_orig_from_result(result :: map(), type :: object_type()) :: Icon.t()
+  def get_orig_from_result(%{} = result, type) do
+    backend = Types.get_backend!(type)
+
+    url =
+      if result.orig.dir do
+        "#{get_image_url()}/#{result.orig.dir}/#{result.orig.filename}"
+      end
+
+    name = backend.get_title_from_result(result)
+    subtitle = backend.get_subtitle_from_result(result)
+    action = if type == Photo, do: result.o.action
+
+    %Icon{
+      id: result.id,
+      action: action,
+      url: url,
+      name: name,
+      subtitle: subtitle,
+      height: result.orig.height,
+      width: result.orig.width,
       type: type
     }
   end
@@ -419,6 +478,7 @@ defmodule PenguinMemories.Database.Query do
       query(type)
       |> filter_by_id(id)
       |> get_icons(icon_size)
+      |> get_orig()
       |> backend.preload_details()
       |> select_merge([object: o], %{o: o})
 

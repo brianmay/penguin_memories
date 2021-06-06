@@ -154,6 +154,12 @@
           <div class="btn btn-secondary" phx-click="big">Big</div>
         <% end %>
 
+        <%= if @details.orig do %>
+          <%= live_redirect to: @details.orig.url, class: "btn btn-secondary" do %>
+            Orig
+          <% end %>
+        <% end %>
+
         <% url = get_photo_url(@socket, @details.obj) %>
         <%= if url do %>
           <%= live_redirect to: url, class: "btn btn-secondary" do %>

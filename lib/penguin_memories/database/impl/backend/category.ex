@@ -109,11 +109,13 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
         ) :: Query.Details.t()
   def get_details_from_result(%{} = result, _icon_size, _video_size) do
     icon = Query.get_icon_from_result(result, Category)
+    orig = Query.get_orig_from_result(result, Category)
     cursor = Paginator.cursor_for_record(result, get_cursor_fields())
 
     %Query.Details{
       obj: result.o,
       icon: icon,
+      orig: orig,
       videos: [],
       cursor: cursor,
       type: Category

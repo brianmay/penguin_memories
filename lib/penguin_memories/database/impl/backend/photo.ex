@@ -144,6 +144,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         ) :: Query.Details.t()
   def get_details_from_result(%{} = result, _icon_size, video_size) do
     icon = Query.get_icon_from_result(result, Photo)
+    orig = Query.get_orig_from_result(result, Photo)
     videos = Query.get_videos_for_photo(result.o.id, video_size)
 
     related =
@@ -163,6 +164,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
     %Query.Details{
       obj: o,
       icon: icon,
+      orig: orig,
       videos: videos,
       cursor: cursor,
       type: Photo
