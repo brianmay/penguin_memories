@@ -158,7 +158,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
   end
 
   @spec add_icon(%{integer() => Icon.t()}, Icon.t()) :: %{integer() => Icon.t()}
-  def add_icon(icons, %Icon{} = icon) do
+  defp add_icon(icons, %Icon{} = icon) do
     Map.put(icons, icon.id, icon)
   end
 
@@ -169,14 +169,14 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
 
   @spec add_selection(list(struct()), integer(), boolean(), type :: Query.object_type()) ::
           list(struct())
-  def add_selection(_selections, id, true, type) do
+  defp add_selection(_selections, id, true, type) do
     case Query.get_object_by_id(id, type) do
       nil -> []
       obj -> [obj]
     end
   end
 
-  def add_selection(selections, id, false, type) do
+  defp add_selection(selections, id, false, type) do
     selections = Enum.reject(selections, fn s -> s.id == id end)
 
     case Query.get_object_by_id(id, type) do
@@ -187,12 +187,12 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
 
   @spec remove_selection(list(struct()), integer(), boolean()) ::
           list(struct())
-  def remove_selection(selections, id, _) do
+  defp remove_selection(selections, id, _) do
     Enum.reject(selections, fn s -> s.id == id end)
   end
 
   @spec notify(Phoenix.LiveView.Socket.t(), list(Icon.t())) :: Changeset.t()
-  def notify(socket, selected) do
+  defp notify(socket, selected) do
     value =
       case {socket.assigns.single_choice, selected} do
         {true, []} -> nil
