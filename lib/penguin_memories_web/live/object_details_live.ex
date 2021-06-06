@@ -331,14 +331,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @spec get_edit_changeset(Socket.t(), map()) :: Changeset.t()
   defp get_edit_changeset(%Socket{} = socket, params) do
     changeset = Query.get_edit_changeset(socket.assigns.edit_object, params, socket.assigns.assoc)
-    changeset = %{changeset | action: socket.assigns.action}
-
-    changeset =
-      Enum.reduce(socket.assigns.assoc, changeset, fn {key, value}, changeset ->
-        Changeset.put_assoc(changeset, key, value)
-      end)
-
-    changeset
+    %Changeset{changeset | action: socket.assigns.action}
   end
 
   @spec get_prev_next_icons(
