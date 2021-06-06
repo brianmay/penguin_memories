@@ -53,7 +53,7 @@ defmodule PenguinMemoriesWeb.MainLive do
       show_selected_value: Map.has_key?(params, "obj_show_selected"),
       selected_name: "obj_selected",
       selected_value: parse_selected(params["obj_selected"]),
-      drop_on_select: ["p_selected"]
+      drop_on_select: ["p_selected", "p_before", "p_after"]
     }
 
     num_selected = count_selections(objects.selected_value)
