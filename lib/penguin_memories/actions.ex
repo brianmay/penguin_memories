@@ -100,16 +100,17 @@ defmodule PenguinMemories.Actions do
     old_filenames =
       photo.files
       |> Enum.map(fn file -> {file.dir, file.filename} end)
+      |> Enum.map(fn {dir, filename} -> Storage.build_path(dir, filename) end)
       |> MapSet.new()
 
     new_filenames =
       files
       |> Enum.map(fn file -> {fetch_field!(file, :dir), fetch_field!(file, :filename)} end)
+      |> Enum.map(fn {dir, filename} -> Storage.build_path(dir, filename) end)
       |> MapSet.new()
 
     MapSet.difference(old_filenames, new_filenames)
-    |> Enum.each(fn {dir, filename} ->
-      path = Storage.build_path(dir, filename)
+    |> Enum.each(fn path ->
       {:ok, media} = Media.get_media(path)
 
       if opts[:verbose] do
