@@ -252,40 +252,23 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @spec handle_delete(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_delete(%Socket{} = socket) do
-    {socket, assigns} =
+    error =
       case Query.delete(socket.assigns.details.obj) do
         {:error, error} ->
-          assigns = [
-            error: error
-          ]
-
-          {socket, assigns}
+          error
 
         :ok ->
           PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
-          type_name = Types.get_name!(socket.assigns.type)
-          url = Routes.main_path(socket, :index, type_name)
-          socket = push_redirect(socket, to: url)
-
-          assigns = [
-            error: nil
-          ]
-
-          {socket, assigns}
+          nil
       end
 
-    {:noreply, assign(socket, assigns)}
+    {:noreply, assign(socket, error: error)}
   end
 
   @spec handle_validate(Socket.t(), map()) :: {:noreply, Socket.t()}
   def handle_validate(%Socket{} = socket, params) do
     changeset = get_edit_changeset(socket, params)
-
-    assigns = [
-      changeset: changeset
-    ]
-
-    {:noreply, assign(socket, assigns)}
+    {:noreply, assign(socket, changeset: changeset)}
   end
 
   @spec changeset_errors(Changeset.t()) :: list(String.t())
@@ -341,7 +324,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
           socket =
             case socket.assigns.action do
               :insert ->
-                type_name = Types.get_name!(socket.assigns.type)
+                type_name = Types.get_name!(socket.assigns.request.type)
                 url = Routes.main_path(socket, :index, type_name, object.id)
                 push_redirect(socket, to: url)
 
