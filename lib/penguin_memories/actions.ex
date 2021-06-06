@@ -4,6 +4,9 @@ defmodule PenguinMemories.Actions do
   """
   import Ecto.Query
 
+  alias Ecto.Changeset
+  import Ecto.Changeset
+
   alias PenguinMemories.Media
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
@@ -38,6 +41,40 @@ defmodule PenguinMemories.Actions do
     end
   end
 
+  @spec get_existing_entry(File.t(), list(File.t())) :: File.t() | nil
+  defp get_existing_entry(%File{} = file, files) do
+    files
+    |> Enum.filter(fn f -> f.size_key == file.size_key end)
+    |> Enum.filter(fn f -> f.mime_type == file.mime_type end)
+    |> List.first()
+  end
+
+  @spec update_entry(File.t() | nil, list(File.t())) :: Changeset.t()
+  defp update_entry(nil, _), do: nil
+
+  defp update_entry(%File{} = file, files) do
+    changes = %{
+      dir: file.dir,
+      height: file.height,
+      is_video: file.is_video,
+      mime_type: file.mime_type,
+      filename: file.filename,
+      num_bytes: file.num_bytes,
+      sha256_hash: file.sha256_hash,
+      size_key: file.size_key,
+      width: file.width,
+      photo_id: file.photo_id
+    }
+
+    case get_existing_entry(file, files) do
+      nil ->
+        change(%File{}, changes)
+
+      existing ->
+        change(existing, changes)
+    end
+  end
+
   @spec process_photo(Photo.t(), keyword()) :: Photo.t()
   def process_photo(photo, opts \\ [])
 
@@ -51,11 +88,13 @@ defmodule PenguinMemories.Actions do
       Enum.map(sizes, fn {size_key, requirement} ->
         Enum.map(requirement, fn %Media.SizeRequirement{} = sr ->
           create_file(photo, original_media, sr, size_key)
+          |> update_entry(photo.files)
         end)
       end)
       |> List.flatten()
       |> Enum.reject(fn file -> is_nil(file) end)
 
+    original_file = update_entry(original_file, photo.files)
     files = [original_file | files]
 
     old_filenames =
@@ -65,7 +104,7 @@ defmodule PenguinMemories.Actions do
 
     new_filenames =
       files
-      |> Enum.map(fn file -> {file.dir, file.filename} end)
+      |> Enum.map(fn file -> {fetch_field!(file, :dir), fetch_field!(file, :filename)} end)
       |> MapSet.new()
 
     MapSet.difference(old_filenames, new_filenames)
