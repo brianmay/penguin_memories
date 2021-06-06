@@ -44,18 +44,18 @@ defmodule PenguinMemories.Database.Impl.Backend.Private do
     cast(data, attrs, get_enabled_fields(enabled, allowed))
   end
 
-  # @spec selective_cast_assoc(
-  #         changeset :: Changeset.t(),
-  #         enabled :: MapSet.t(),
-  #         allowed :: list(atom())
-  #       ) :: Changeset.t()
-  # def selective_cast_assoc(%Changeset{} = changeset, enabled, allowed) do
-  #   fields = get_enabled_fields(enabled, allowed)
+  @spec selective_cast_assoc(
+          changeset :: Changeset.t(),
+          enabled :: MapSet.t(),
+          allowed :: list(atom())
+        ) :: Changeset.t()
+  def selective_cast_assoc(%Changeset{} = changeset, enabled, allowed) do
+    fields = get_enabled_fields(enabled, allowed)
 
-  #   Enum.reduce(fields, changeset, fn field, changeset ->
-  #     cast_assoc(changeset, field)
-  #   end)
-  # end
+    Enum.reduce(fields, changeset, fn field, changeset ->
+      cast_assoc(changeset, field)
+    end)
+  end
 
   @spec selective_validate_required(
           changeset :: Changeset.t(),

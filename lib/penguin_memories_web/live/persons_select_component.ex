@@ -13,6 +13,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Query.Filter
   alias PenguinMemories.Database.Query.Icon
+  alias PenguinMemories.Photos
 
   @impl true
   def mount(socket) do
@@ -25,6 +26,32 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     ]
 
     {:ok, assign(socket, assigns)}
+  end
+
+  @spec get_person_id(Changeset.t() | Photos.PhotoPerson.t()) :: integer()
+  defp get_person_id(%Changeset{} = changeset) do
+    Ecto.Changeset.get_field(changeset, :person_id)
+  end
+
+  defp get_person_id(%Photos.PhotoPerson{} = value) do
+    value.person_id
+  end
+
+  @spec get_position(Changeset.t() | Photos.PhotoPerson.t()) :: integer()
+  defp get_position(%Changeset{} = changeset) do
+    Ecto.Changeset.get_field(changeset, :position)
+  end
+
+  defp get_position(%Photos.PhotoPerson{} = value) do
+    value.position
+  end
+
+  @spec get_new_position(map()) :: integer()
+  def get_new_position(selected) do
+    case Enum.max_by(selected, fn {_, v} -> get_position(v) end, fn -> nil end) do
+      nil -> 1
+      {_, max} -> get_position(max) + 1
+    end
   end
 
   @impl true
@@ -44,11 +71,14 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     updates = params.updates
     search = Map.get(params, :search, %{})
 
-    selected = Changeset.get_field(form.source, field.id)
+    selected =
+      Changeset.get_field(form.source, field.id)
+      |> Enum.map(fn v -> {get_person_id(v), v} end)
+      |> Enum.into(%{})
 
     icons =
       selected
-      |> Enum.map(fn obj -> obj.person_id end)
+      |> Enum.map(fn {person_id, _} -> person_id end)
       |> MapSet.new()
       |> Query.query_icons_by_id_map(100, type, "thumb")
       |> Enum.map(fn icon -> {icon.id, icon} end)
@@ -56,11 +86,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
 
     icons = Map.merge(socket.assigns.icons, icons)
 
-    position =
-      case Enum.max_by(selected, fn v -> v.position end, fn -> nil end) do
-        nil -> 1
-        max -> max.position + 1
-      end
+    position = get_new_position(selected)
 
     assigns = [
       form: form,
@@ -92,7 +118,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
 
       selected =
         socket.assigns.selected
-        |> Enum.map(fn selected -> selected.person_id end)
+        |> Enum.map(fn {person_id, _} -> person_id end)
         |> MapSet.new()
 
       icons =
@@ -122,7 +148,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
           assign(socket, position: position)
 
         edit ->
-          edit = %PenguinMemories.Photos.PhotoPerson{
+          edit = %{
             person_id: edit.person_id,
             position: position
           }
@@ -143,7 +169,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       [icon | _] = socket.assigns.choices |> Enum.filter(fn icon -> icon.id == id end)
       icons = add_icon(socket.assigns.icons, icon)
 
-      edit = %PenguinMemories.Photos.PhotoPerson{
+      edit = %{
         person_id: id,
         position: position
       }
@@ -164,7 +190,12 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       {:noreply, socket}
     else
       {id, ""} = Integer.parse(id)
-      [edit | _] = socket.assigns.selected |> Enum.filter(fn pp -> pp.person_id == id end)
+      value = Map.fetch!(socket.assigns.selected, id)
+
+      edit = %{
+        person_id: id,
+        position: get_position(value)
+      }
 
       assigns = [
         choices: [],
@@ -198,20 +229,16 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     else
       edit = socket.assigns.edit
 
-      selected =
-        socket.assigns.selected
-        |> Enum.reject(fn pp -> pp.person_id == edit.person_id end)
+      changeset =
+        %Photos.PhotoPerson{}
+        |> Ecto.Changeset.cast(edit, [:person_id, :position])
+        |> Ecto.Changeset.unique_constraint([:photo_id, :person_id])
+        |> Ecto.Changeset.unique_constraint([:photo_id, :position])
 
-      selected = [edit | selected]
-      selected = Enum.sort_by(selected, fn pp -> pp.position end)
-
+      selected = Map.put(socket.assigns.selected, edit.person_id, changeset)
       notify(socket, selected)
 
-      position =
-        case Enum.max_by(selected, fn v -> v.position end, fn -> nil end) do
-          nil -> 1
-          max -> max.position + 1
-        end
+      position = get_new_position(selected)
 
       assigns = [
         selected: selected,
@@ -231,17 +258,10 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     else
       edit = socket.assigns.edit
 
-      selected =
-        socket.assigns.selected
-        |> Enum.reject(fn pp -> pp.person_id == edit.person_id end)
-
+      selected = Map.delete(socket.assigns.selected, edit.person_id)
       notify(socket, selected)
 
-      position =
-        case Enum.max_by(selected, fn v -> v.position end, fn -> nil end) do
-          nil -> 1
-          max -> max.position + 1
-        end
+      position = get_new_position(selected)
 
       assigns = [
         selected: selected,
@@ -263,26 +283,10 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     Map.delete(icons, id)
   end
 
-  @spec add_selection(list(struct()), integer(), integer()) :: list(struct())
-  def add_selection(selections, id, position) do
-    selections = Enum.reject(selections, fn s -> s.person_id == id end)
-
-    new_selection = %PenguinMemories.Photos.PhotoPerson{
-      person_id: id,
-      position: position
-    }
-
-    [new_selection | selections]
-  end
-
-  @spec remove_selection(list(struct()), integer()) :: list(struct())
-  def remove_selection(selections, id) do
-    Enum.reject(selections, fn s -> s.person_id == id end)
-  end
-
-  @spec notify(Phoenix.LiveView.Socket.t(), list(Icon.t())) :: Changeset.t()
+  @spec notify(Phoenix.LiveView.Socket.t(), %{integer() => any()}) :: Changeset.t()
   def notify(socket, selected) do
     pid = socket.assigns.updates
+    selected = Enum.map(selected, fn {_, v} -> v end)
     send(pid, {:selected, socket.assigns.field.id, selected})
   end
 end

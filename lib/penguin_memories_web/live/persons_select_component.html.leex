@@ -7,15 +7,17 @@
   <div class="form-group" phx_feedback_for="<%= feedback_for %>">
     <%= label(@form, dummy_field_id, @field.name, class: "control-label") %>
     <div class="autoselect form-control <%= field_class %>">
-      <%= for pp <- @selected do %>
-        <% icon = Map.get(@icons, pp.person_id) %>
+      <%= for {_, pp} <- @selected do %>
+        <% person_id = get_person_id(pp) %>
+        <% position = get_position(pp) %>
+        <% icon = Map.get(@icons, person_id) %>
         <%= if icon do %>
           <span
             class="selected"
             phx-click="edit"
-            phx-value-id="<%= pp.person_id %>"
+            phx-value-id="<%= person_id %>"
             phx-target="<%= @myself %>"
-          ><%= icon.name %> (<%= pp.position %>)</span
+          ><%= icon.name %> (<%= position %>)</span
           >
         <% end %>
       <% end %>

@@ -288,6 +288,37 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, assign(socket, assigns)}
   end
 
+  @spec changeset_errors(Changeset.t()) :: list(String.t())
+  defp changeset_errors(%Changeset{} = changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn
+      {msg, opts} -> String.replace(msg, "%{count}", to_string(opts[:count]))
+      msg -> msg
+    end)
+    |> Enum.map(fn {key, errors} ->
+      Enum.map(errors, fn error -> "#{Atom.to_string(key)}: #{error}" end)
+    end)
+    |> List.flatten()
+  end
+
+  @spec changeset_errors(list(Changeset.t())) :: list(String.t())
+  defp changesets_errors(changesets) do
+    changesets
+    |> Enum.map(fn changeset -> changeset_errors(changeset) end)
+    |> List.flatten()
+  end
+
+  @spec add_nested_errors(Changeset.t()) :: Changeset.t()
+  defp add_nested_errors(%Changeset{} = changeset) do
+    Enum.map(changeset.changes, fn
+      {key, changesets} -> {key, changesets_errors(changesets)}
+    end)
+    |> Enum.reduce(changeset, fn {key, errors}, changeset ->
+      Enum.reduce(errors, changeset, fn error, changeset ->
+        Changeset.add_error(changeset, key, error)
+      end)
+    end)
+  end
+
   @spec handle_save(Socket.t(), map()) :: {:noreply, Socket.t()}
   defp handle_save(%Socket{} = socket, params) do
     changeset = get_edit_changeset(socket, params)
@@ -295,6 +326,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {socket, assigns} =
       case Query.apply_edit_changeset(changeset) do
         {:error, changeset, error} ->
+          changeset = add_nested_errors(changeset)
+
           assigns = [
             changeset: changeset,
             error: error
