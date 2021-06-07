@@ -4,7 +4,6 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   """
 
   use PenguinMemoriesWeb, :view
-  alias Phoenix.LiveView.Socket
 
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Fields.UpdateField
@@ -170,12 +169,11 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   end
 
   @spec input_field(
-          Socket.t(),
           Phoenix.HTML.Form.t(),
           Field.t() | UpdateField.t(),
           keyword()
         ) :: any()
-  def input_field(%Socket{} = socket, form, field, opts \\ []) do
+  def input_field(form, field, opts \\ []) do
     opts = [{:label, field.name} | opts]
 
     case field.type do
@@ -185,7 +183,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
       {:single, type} ->
         disabled = opts[:disabled]
 
-        live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent,
+        live_component(PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
           form: form,
           field: field,
@@ -198,7 +196,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
       {:multiple, type} ->
         disabled = opts[:disabled]
 
-        live_component(socket, PenguinMemoriesWeb.ObjectSelectComponent,
+        live_component(PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
           form: form,
           field: field,
@@ -211,7 +209,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
       :persons ->
         disabled = opts[:disabled]
 
-        live_component(socket, PenguinMemoriesWeb.PersonsSelectComponent,
+        live_component(PenguinMemoriesWeb.PersonsSelectComponent,
           form: form,
           field: field,
           id: field.id,

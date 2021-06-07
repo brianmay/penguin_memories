@@ -80,7 +80,7 @@
           <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save"] %>
             <%= for %Fields.Field{} = field <- fields do %>
               <%= if field.read_only == false do %>
-                <%= FieldHelpers.input_field @socket, f, field %>
+                <%= FieldHelpers.input_field f, field %>
               <% end %>
             <% end %>
             <div>
