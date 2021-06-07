@@ -14,7 +14,7 @@
         <%= for %Fields.UpdateField{} = field <- fields do %>
           <% enabled = MapSet.member?(@enabled, field.id) %>
           <%= checkbox_field f, field_to_enable_field_id(field), value: enabled %>
-          <%= FieldHelpers.input_field @socket, f, field, disabled: not enabled %>
+          <%= FieldHelpers.input_field f, field, disabled: not enabled %>
         <% end %>
         <div>
           <span><input type="submit" class="btn btn-primary" value="Save"</span>
