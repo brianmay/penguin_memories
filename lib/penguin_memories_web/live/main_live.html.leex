@@ -1,51 +1,57 @@
-<div class="root <%= if @big_id != nil, do: "big" %>">
-  <%
-    has_reference = @reference != nil
-    is_photos = @objects.type == Photos.Photo
-    num_selected = count_selections(@objects.selected_value)
+<%= if @error do %>
+  <div class="alert alert-danger">
+    <%= @error %>
+  </div>
+<% else %>
+  <div class="root <%= if @big_id != nil, do: "big" %>">
+    <%
+      has_reference = @reference != nil
+      is_photos = @objects.type == Photos.Photo
+      num_selected = count_selections(@objects.selected_value)
 
-    render_objects =
-      case @reference do
-        {Photos.Photo, _} -> false
-        _ -> true
-      end
+      render_objects =
+        case @reference do
+          {Photos.Photo, _} -> false
+          _ -> true
+        end
 
-    render_photos =
-      case {num_selected, has_reference, is_photos} do
-        {0, true, false} -> true
-        {1, _, false} -> true
-        _ -> false
-      end
-  %>
+      render_photos =
+        case {num_selected, has_reference, is_photos} do
+          {0, true, false} -> true
+          {1, _, false} -> true
+          _ -> false
+        end
+    %>
 
-  <%= if render_objects or render_photos do %>
-    <div class="details">
-      <form method="get" phx-submit="search" novalidate="">
-        <div class="form-group">
-          <input
-            class="form-control"
-            name="query"
-            placeholder="Search"
-            type="text"
-            value="<%= @query %>"
-          />
-        </div>
-        <input type="submit" class="btn btn-primary" value="Search" />
-      </form>
-    </div>
-  <% end %>
+    <%= if render_objects or render_photos do %>
+      <div class="details">
+        <form method="get" phx-submit="search" novalidate="">
+          <div class="form-group">
+            <input
+              class="form-control"
+              name="query"
+              placeholder="Search"
+              type="text"
+              value="<%= @query %>"
+            />
+          </div>
+          <input type="submit" class="btn btn-primary" value="Search" />
+        </form>
+      </div>
+    <% end %>
 
-  <%= if @reference do %>
-    <%= live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: :reference) %>
-  <% else %>
-    <%= live_render(@socket, PenguinMemoriesWeb.ListDetailsLive, id: :details) %>
-  <% end %>
+    <%= if @reference do %>
+      <%= live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: :reference) %>
+    <% else %>
+      <%= live_render(@socket, PenguinMemoriesWeb.ListDetailsLive, id: :details) %>
+    <% end %>
 
-  <%= if render_objects do %>
-    <%= live_render(@socket, PenguinMemoriesWeb.ObjectListLive, id: :objects) %>
-  <% end %>
+    <%= if render_objects do %>
+      <%= live_render(@socket, PenguinMemoriesWeb.ObjectListLive, id: :objects) %>
+    <% end %>
 
-  <%= if render_photos do %>
-    <%= live_render(@socket, PenguinMemoriesWeb.ObjectListLive, id: :photos) %>
-  <% end %>
-</div>
+    <%= if render_photos do %>
+      <%= live_render(@socket, PenguinMemoriesWeb.ObjectListLive, id: :photos) %>
+    <% end %>
+  </div>
+<% end %>

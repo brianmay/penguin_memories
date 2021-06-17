@@ -29,11 +29,31 @@ defmodule PenguinMemoriesWeb.MainLive do
 
   @impl true
   def handle_params(params, uri, socket) do
-    {:ok, type} = Types.get_type_for_name(params["type"])
-
     url = Urls.parse_url(uri)
 
-    reference = parse_reference(params["id"], params["reference"], type)
+    socket =
+      with {:ok, type} <- Types.get_type_for_name(params["type"]),
+           {:ok, reference} <- parse_reference(params["id"], params["reference"], type) do
+        parsed = %{type: type, url: url, reference: reference}
+        do_handle_params(params, parsed, socket)
+      else
+        :error ->
+          assign(socket,
+            error: "Invalid parameters",
+            active: nil,
+            url: url,
+            page_title: "Error  · Penguin Memories"
+          )
+      end
+
+    {:noreply, socket}
+  end
+
+  @spec do_handle_params(params :: map(), parsed :: map(), socket :: Socket.t()) :: Socket.t()
+  def do_handle_params(params, parsed, socket) do
+    type = parsed.type
+    url = parsed.url
+    reference = parsed.reference
 
     big_id = params["big"]
 
@@ -101,6 +121,7 @@ defmodule PenguinMemoriesWeb.MainLive do
       end
 
     assigns = [
+      error: nil,
       page_title: page_title,
       query: params["query"],
       reference: reference,
@@ -114,7 +135,7 @@ defmodule PenguinMemoriesWeb.MainLive do
     socket = assign(socket, assigns)
     reload(socket)
 
-    {:noreply, socket}
+    socket
   end
 
   @impl true
@@ -290,25 +311,25 @@ defmodule PenguinMemoriesWeb.MainLive do
           id :: String.t() | nil,
           reference :: String.t() | nil,
           type :: Database.object_type()
-        ) :: Database.reference_type() | nil
+        ) :: {:ok, Database.reference_type() | nil} | :error
   defp parse_reference(id, reference, default_type) do
     case {id, reference} do
       {nil, nil} ->
-        nil
+        {:ok, nil}
 
       {id, nil} ->
         case Integer.parse(id) do
-          {id, ""} -> {default_type, id}
-          _ -> nil
+          {id, ""} -> {:ok, {default_type, id}}
+          _ -> {:ok, nil}
         end
 
       {_, value} ->
         with [type_name, id] <- String.split(value, "/", max_parts: 2),
              {:ok, type} <- Types.get_type_for_name(type_name),
              {id, ""} <- Integer.parse(id) do
-          {type, id}
+          {:ok, {type, id}}
         else
-          _ -> nil
+          _ -> :error
         end
     end
   end
