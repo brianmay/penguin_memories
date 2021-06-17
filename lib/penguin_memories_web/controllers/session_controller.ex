@@ -44,8 +44,10 @@ defmodule PenguinMemoriesWeb.SessionController do
   end
 
   defp login_reply({:error, reason}, conn) do
+    next = conn.query_params["next"]
+
     conn
     |> put_flash(:danger, to_string(reason))
-    |> redirect(to: Routes.session_path(conn, :login))
+    |> redirect(to: Routes.session_path(conn, :login, next: next))
   end
 end
