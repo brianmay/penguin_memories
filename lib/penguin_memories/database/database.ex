@@ -8,4 +8,5 @@ defmodule PenguinMemories.Database do
           | PenguinMemories.Photos.Person
           | PenguinMemories.Photos.Place
           | PenguinMemories.Photos.Photo
+  @type reference_type :: {object_type(), integer()}
 end

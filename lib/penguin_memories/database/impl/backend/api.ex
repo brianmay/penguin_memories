@@ -3,6 +3,7 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
   Backend API used for object types
   """
   alias Ecto.Changeset
+  alias PenguinMemories.Database
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Query.Details
@@ -16,7 +17,7 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
   @callback query() :: Ecto.Query.t()
   @callback filter_by_photo_id(query :: Ecto.Query.t(), photo_id :: integer) :: Ecto.Query.t()
   @callback filter_by_parent_id(query :: Ecto.Query.t(), parent_id :: integer) :: Ecto.Query.t()
-  @callback filter_by_reference(query :: Ecto.Query.t(), reference :: {module(), integer()}) ::
+  @callback filter_by_reference(query :: Ecto.Query.t(), reference :: Database.reference_type()) ::
               Ecto.Query.t()
   @callback preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
   @callback preload_details_from_results(list(struct())) :: list(struct())

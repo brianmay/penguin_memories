@@ -16,6 +16,7 @@ defmodule PenguinMemories.Database.Query do
   alias PenguinMemories.Repo
 
   @type object_type :: Database.object_type()
+  @type reference_type :: Database.reference_type()
 
   defmodule Icon do
     @moduledoc """
@@ -72,12 +73,13 @@ defmodule PenguinMemories.Database.Query do
     Details from an object
     """
     @type object_type :: Database.object_type()
+    @type reference_type :: Database.reference_type()
     @type t :: %__MODULE__{
             ids: MapSet.t() | nil,
             query: String.t() | nil,
-            reference_type_id: {object_type(), integer()} | nil
+            reference: reference_type | nil
           }
-    defstruct [:ids, :query, :reference_type_id]
+    defstruct [:ids, :query, :reference]
   end
 
   @spec get_image_url() :: String.t()
@@ -180,7 +182,7 @@ defmodule PenguinMemories.Database.Query do
     # |> filter_if_set(filter.photo_id, &backend.filter_by_photo_id/2)
     # |> filter_if_set(filter.parent_id, &backend.filter_by_parent_id/2)
     |> filter_if_set(filter.query, &filter_by_query/2)
-    |> filter_if_set(filter.reference_type_id, &backend.filter_by_reference/2)
+    |> filter_if_set(filter.reference, &backend.filter_by_reference/2)
   end
 
   @spec filter_by_ascendants(query :: Ecto.Query.t(), id :: integer) :: Ecto.Query.t()

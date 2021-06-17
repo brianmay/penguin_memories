@@ -33,12 +33,12 @@ defmodule PenguinMemoriesWeb.MainLive do
 
     url = Urls.parse_url(uri)
 
-    reference_type_id = parse_reference_type_id(params["id"], params["reference"], type)
+    reference = parse_reference(params["id"], params["reference"], type)
 
     big_id = params["big"]
 
     obj_filter = %Query.Filter{
-      reference_type_id: reference_type_id,
+      reference: reference,
       query: params["query"]
     }
 
@@ -60,19 +60,19 @@ defmodule PenguinMemoriesWeb.MainLive do
 
     photo_filter =
       cond do
-        num_selected == 0 and is_nil(reference_type_id) ->
+        num_selected == 0 and is_nil(reference) ->
           %Query.Filter{ids: MapSet.new()}
 
         num_selected == 1 ->
           [selected] = MapSet.to_list(objects.selected_value)
 
           %Query.Filter{
-            reference_type_id: {objects.type, selected}
+            reference: {objects.type, selected}
           }
 
         true ->
           %Query.Filter{
-            reference_type_id: reference_type_id
+            reference: reference
           }
       end
 
@@ -90,7 +90,7 @@ defmodule PenguinMemoriesWeb.MainLive do
     }
 
     page_title =
-      case reference_type_id do
+      case reference do
         nil ->
           name = Query.get_plural_name(type) |> String.capitalize()
           "#{name} · Penguin Memories"
@@ -103,7 +103,7 @@ defmodule PenguinMemoriesWeb.MainLive do
     assigns = [
       page_title: page_title,
       query: params["query"],
-      reference_type_id: reference_type_id,
+      reference: reference,
       active: Types.get_name!(type),
       url: url,
       objects: objects,
@@ -137,7 +137,7 @@ defmodule PenguinMemoriesWeb.MainLive do
     type = socket.assigns.objects.type
     type_name = Types.get_name!(type)
 
-    {ref_type, _} = socket.assigns.reference_type_id
+    {ref_type, _} = socket.assigns.reference
     ref_type_name = Types.get_name!(ref_type)
 
     url =
@@ -242,10 +242,10 @@ defmodule PenguinMemoriesWeb.MainLive do
 
   @spec notify_reference(Socket.t(), force_reload :: boolean) :: :ok
   defp notify_reference(%Socket{} = socket, force_reload) do
-    if socket.assigns.reference_pid != nil and socket.assigns.reference_type_id != nil do
+    if socket.assigns.reference_pid != nil and socket.assigns.reference != nil do
       common = get_common(socket, force_reload)
       pid = socket.assigns.reference_pid
-      {type, id} = socket.assigns.reference_type_id
+      {type, id} = socket.assigns.reference
 
       filter = %Query.Filter{}
 
@@ -286,12 +286,12 @@ defmodule PenguinMemoriesWeb.MainLive do
     :ok
   end
 
-  @spec parse_reference_type_id(
+  @spec parse_reference(
           id :: String.t() | nil,
           reference :: String.t() | nil,
           type :: Database.object_type()
-        ) :: {Database.object_type(), integer()} | nil
-  defp parse_reference_type_id(id, reference, default_type) do
+        ) :: Database.reference_type() | nil
+  defp parse_reference(id, reference, default_type) do
     case {id, reference} do
       {nil, nil} ->
         nil

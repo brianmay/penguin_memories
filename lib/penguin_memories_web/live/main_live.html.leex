@@ -1,11 +1,11 @@
 <div class="root <%= if @big_id != nil, do: "big" %>">
   <%
-    has_reference = @reference_type_id != nil
+    has_reference = @reference != nil
     is_photos = @objects.type == Photos.Photo
     num_selected = count_selections(@objects.selected_value)
 
     render_objects =
-      case @reference_type_id do
+      case @reference do
         {Photos.Photo, _} -> false
         _ -> true
       end
@@ -35,7 +35,7 @@
     </div>
   <% end %>
 
-  <%= if @reference_type_id do %>
+  <%= if @reference do %>
     <%= live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: :reference) %>
   <% else %>
     <%= live_render(@socket, PenguinMemoriesWeb.ListDetailsLive, id: :details) %>
