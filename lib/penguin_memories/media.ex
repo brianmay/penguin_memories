@@ -36,6 +36,10 @@ defmodule PenguinMemories.Media do
   end
 
   defguardp guard_is_image(type) when type == "image"
+
+  defguardp guard_is_raw(type, subtype)
+            when guard_is_image(type) and subtype in ["cr2", "x-canon-cr2"]
+
   defguardp guard_is_video(type) when type == "video"
 
   @spec is_image(t()) :: boolean()
@@ -95,7 +99,7 @@ defmodule PenguinMemories.Media do
 
   @spec get_size(t()) :: Size.t()
   def get_size(%__MODULE__{path: path, type: type, subtype: subtype})
-      when guard_is_image(type) and subtype == "cr2" do
+      when guard_is_raw(type, subtype) do
     {output, 0} = System.cmd("dcraw", ["-c", path])
 
     {:ok, fd, file_path} = Temp.open()
