@@ -415,7 +415,8 @@ defmodule PenguinMemories.Media do
     dest_directory = Path.dirname(dest_path)
 
     with :ok <- File.mkdir_p(dest_directory),
-         {:ok, _} <- File.copy(media.path, dest_path) do
+         {:ok, _} <- File.copy(media.path, dest_path),
+         :ok <- File.chmod(media.path, 0o644) do
       get_media(dest_path, get_format(media))
     else
       {:error, reason} ->
