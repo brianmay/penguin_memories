@@ -106,16 +106,18 @@ defmodule PenguinMemories.Media do
     IO.binwrite(fd, output)
     File.close(fd)
 
-    image = Mogrify.open(file_path) |> Mogrify.verbose()
-
-    File.rm(file_path)
-
-    %Size{width: image.width, height: image.height}
+    {:ok, new_media} = get_media(file_path, "image/x-portable-bitmap")
+    get_size(new_media)
   end
 
   def get_size(%__MODULE__{path: path, type: type}) when guard_is_image(type) do
-    image = Mogrify.open(path) |> Mogrify.verbose()
-    %Size{width: image.width, height: image.height}
+    cmdline = ["identify", "-format", "%wx%h", path]
+    [cmd | args] = cmdline
+    {text, 0} = System.cmd(cmd, args, stderr_to_stdout: false)
+    [width, height] = String.split(text, "x", max_parts: 2)
+    {width, ""} = Integer.parse(width)
+    {height, ""} = Integer.parse(height)
+    %Size{width: width, height: height}
   end
 
   def get_size(%__MODULE__{path: path, type: type}) when guard_is_video(type) do
