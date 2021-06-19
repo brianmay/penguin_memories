@@ -97,9 +97,9 @@ defmodule PenguinMemories.Media do
     |> hd()
   end
 
-  @spec get_size(t()) :: Size.t()
-  def get_size(%__MODULE__{path: path, type: type, subtype: subtype})
-      when guard_is_raw(type, subtype) do
+  @spec dcraw_image(t()) :: t()
+  defp dcraw_image(%__MODULE__{path: path, type: type, subtype: subtype})
+       when guard_is_raw(type, subtype) do
     {output, 0} = System.cmd("dcraw", ["-c", path])
 
     {:ok, fd, file_path} = Temp.open()
@@ -107,6 +107,13 @@ defmodule PenguinMemories.Media do
     File.close(fd)
 
     {:ok, new_media} = get_media(file_path, "image/x-portable-bitmap")
+    new_media
+  end
+
+  @spec get_size(t()) :: Size.t()
+  def get_size(%__MODULE__{type: type, subtype: subtype} = media)
+      when guard_is_raw(type, subtype) do
+    new_media = dcraw_image(media)
     get_size(new_media)
   end
 
@@ -171,6 +178,16 @@ defmodule PenguinMemories.Media do
   end
 
   @spec resize(t(), String.t(), SizeRequirement.t()) :: {:ok, t()} | {:error, String.t()}
+  def resize(
+        %__MODULE__{type: type, subtype: subtype} = media,
+        new_path,
+        %SizeRequirement{} = requirement
+      )
+      when guard_is_raw(type, subtype) do
+    new_media = dcraw_image(media)
+    resize(new_media, new_path, requirement)
+  end
+
   def resize(%__MODULE__{path: path} = media, new_path, %SizeRequirement{} = requirement) do
     new_size = get_new_size(media, requirement)
 
