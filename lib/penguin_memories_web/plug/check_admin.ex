@@ -1,4 +1,4 @@
-defmodule PenguinMemories.Accounts.CheckAdmin do
+defmodule PenguinMemoriesWeb.Plug.CheckAdmin do
   @moduledoc "Check if user is administrator"
   import Plug.Conn
   use PenguinMemoriesWeb, :controller
@@ -14,7 +14,7 @@ defmodule PenguinMemories.Accounts.CheckAdmin do
     else
       conn
       |> put_flash(:error, "Permission denied: Not authorized")
-      |> redirect(to: Routes.session_path(conn, :login))
+      |> redirect(to: Routes.session_path(conn, :login, next: conn.request_path))
       |> halt()
     end
   end

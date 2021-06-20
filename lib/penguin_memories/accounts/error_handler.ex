@@ -11,6 +11,6 @@ defmodule PenguinMemories.Accounts.ErrorHandler do
 
     conn
     |> put_flash(:error, "Permission denied: #{body}")
-    |> redirect(to: Routes.session_path(conn, :login, next: current_path(conn)))
+    |> redirect(to: Routes.session_path(conn, :login, next: conn.request_path))
   end
 end

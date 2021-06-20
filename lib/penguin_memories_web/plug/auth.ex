@@ -1,4 +1,4 @@
-defmodule PenguinMemories.Accounts.Pipeline do
+defmodule PenguinMemoriesWeb.Plug.Auth do
   @moduledoc "Guardian authentication pipeline"
   use Guardian.Plug.Pipeline,
     otp_app: :penguin_memories,

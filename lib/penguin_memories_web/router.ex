@@ -11,7 +11,7 @@ defmodule PenguinMemoriesWeb.Router do
   end
 
   pipeline :auth do
-    plug PenguinMemories.Accounts.Pipeline
+    plug PenguinMemoriesWeb.Plug.Auth
   end
 
   pipeline :static do
@@ -29,7 +29,7 @@ defmodule PenguinMemoriesWeb.Router do
 
   pipeline :ensure_admin do
     plug Guardian.Plug.EnsureAuthenticated
-    plug PenguinMemories.Accounts.CheckAdmin
+    plug PenguinMemoriesWeb.Plug.CheckAdmin
   end
 
   pipeline :api do
