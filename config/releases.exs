@@ -3,7 +3,7 @@ import Config
 port = String.to_integer(System.get_env("PORT") || "4000")
 
 config :penguin_memories,
-  config_file: System.get_env("PM_HELLO_CONFIG")
+  image_dir: System.get_env("IMAGE_DIR")
 
 config :penguin_memories, PenguinMemories.Repo,
   url: System.get_env("DATABASE_URL"),

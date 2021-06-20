@@ -11,10 +11,8 @@ config :penguin_memories,
   build_date: System.get_env("BUILD_DATE"),
   vcs_ref: System.get_env("VCS_REF"),
   ecto_repos: [PenguinMemories.Repo],
-  image_dir: "/home/brian/photos/images",
-  image_url: "https://photos.linuxpenguins.xyz/images",
-  # image_dir: "/tmp/images",
-  # image_url: "/images",
+  image_dir: System.get_env("IMAGE_DIR"),
+  image_url: "/images",
   cameras: %{
     "Canon EOS R5" => "10:59:36",
     "Canon EOS 350D DIGITAL" => "11:00:00"

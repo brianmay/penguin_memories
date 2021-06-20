@@ -154,7 +154,7 @@
           <div class="btn btn-secondary" phx-click="big">Big</div>
         <% end %>
 
-        <%= if @details.orig do %>
+        <%= if @details.orig != nil and Auth.can_see_orig(@common.user) do %>
           <%= live_redirect to: @details.orig.url, class: "btn btn-secondary" do %>
             Orig
           <% end %>

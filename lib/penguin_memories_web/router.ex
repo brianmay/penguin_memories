@@ -14,6 +14,14 @@ defmodule PenguinMemoriesWeb.Router do
     plug PenguinMemories.Accounts.Pipeline
   end
 
+  pipeline :static do
+    plug PenguinMemoriesWeb.Plug.CheckStaticAccess
+
+    plug PenguinMemoriesWeb.Plug.Static,
+      at: "/images",
+      gzip: false
+  end
+
   # We use ensure_auth to fail if there is no one logged in
   pipeline :ensure_auth do
     plug Guardian.Plug.EnsureAuthenticated
@@ -30,6 +38,11 @@ defmodule PenguinMemoriesWeb.Router do
 
   scope "/", PenguinMemoriesWeb do
     pipe_through [:browser, :auth, :ensure_auth]
+  end
+
+  scope "/images", PenguinMemoriesWeb do
+    pipe_through [:browser, :auth, :static]
+    get "/*path", FileNotFoundController, :index
   end
 
   import Phoenix.LiveDashboard.Router
