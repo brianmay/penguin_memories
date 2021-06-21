@@ -8,6 +8,7 @@ defmodule PenguinMemoriesWeb.Plug.Static do
   end
 
   def call(%Plug.Conn{} = conn, default) do
+    default = [{:from, Application.get_env(:penguin_memories, :image_dir)} | default]
     Plug.Static.call(conn, default)
   end
 end
