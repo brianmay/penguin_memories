@@ -343,7 +343,6 @@ defmodule PenguinMemories.Media do
 
   defp run_commands([head | tail]) do
     [cmd | args] = head
-    IO.puts(inspect(head))
 
     case System.cmd(cmd, args, stderr_to_stdout: true) do
       {_, 0} ->
