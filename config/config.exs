@@ -32,7 +32,7 @@ config :penguin_memories, PenguinMemories.Repo,
 # Configures the endpoint
 config :penguin_memories, PenguinMemoriesWeb.Endpoint,
   http: [:inet6, port: String.to_integer(System.get_env("PORT") || "4000")],
-  url: [host: "localhost"],
+  url: [host: System.get_env("HTTP_HOST")],
   secret_key_base: System.get_env("SECRET_KEY_BASE"),
   render_errors: [view: PenguinMemoriesWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: PenguinMemories.PubSub,
