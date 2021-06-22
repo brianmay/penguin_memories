@@ -63,6 +63,7 @@ defmodule PenguinMemoriesWeb.Router do
     live "/login", SessionLive, :login
     post "/login", SessionController, :login
     post "/logout", SessionController, :logout
+    get "/file/:id/size/:size/", RedirectController, :photo
     live "/:type/", MainLive, :index
     live "/:type/:id/", MainLive, :index
   end
