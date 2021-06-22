@@ -8,6 +8,7 @@ defmodule PenguinMemoriesWeb.Plug.Static do
   end
 
   def call(%Plug.Conn{} = conn, default) do
+    default = Map.put(default, :from, Application.get_env(:penguin_memories, :image_dir))
     Plug.Static.call(conn, default)
   end
 end
