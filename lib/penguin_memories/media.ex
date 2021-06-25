@@ -352,7 +352,7 @@ defmodule PenguinMemories.Media do
       {text, rc} ->
         IO.puts(inspect(head))
         IO.puts(text)
-        {:error, "ffmpeg returned #{rc}"}
+        {:error, "#{cmd} returned #{rc}"}
     end
   end
 
@@ -433,7 +433,7 @@ defmodule PenguinMemories.Media do
 
     with :ok <- File.mkdir_p(dest_directory),
          {:ok, _} <- File.copy(media.path, dest_path),
-         :ok <- File.chmod(media.path, 0o644) do
+         :ok <- File.chmod(dest_path, 0o644) do
       get_media(dest_path, get_format(media))
     else
       {:error, reason} ->
