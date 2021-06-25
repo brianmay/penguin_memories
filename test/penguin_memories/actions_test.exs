@@ -351,7 +351,7 @@ defmodule PenguinMemories.Actionstest do
   end
 
   @tag :slow
-  test "process_photo/1 updates jpg", context do
+  test "process_photo/1 regenerates jpg", context do
     image_dir = context[:image_dir]
 
     album =
@@ -398,6 +398,43 @@ defmodule PenguinMemories.Actionstest do
     {:ok, _media} = Media.get_media("#{image_dir}/scaled/mid/2000/01/01/#{filename}.gif")
     {:ok, _media} = Media.get_media("#{image_dir}/scaled/large/2000/01/01/#{filename}.gif")
     {:error, _} = Media.get_media("#{image_dir}/scaled/special/#{filename}.jpg")
+  end
+
+  @tag :slow
+  test "process_photo/1 rotates jpg", context do
+    image_dir = context[:image_dir]
+
+    album =
+      %Album{
+        name: "test"
+      }
+      |> Repo.insert!()
+
+    {:ok, photo} = Upload.upload_file("priv/tests/2Y4A3211.JPG", album, date: ~D[2000-01-01])
+
+    filename =
+      photo.id
+      |> Integer.to_string()
+      |> String.pad_leading(8, "0")
+
+    # Rebuild should fix the width and height.
+    photo =
+      Photo
+      |> Repo.get(photo.id)
+      |> Repo.preload(:files)
+      |> Ecto.Changeset.change(action: "90")
+      |> Repo.update!()
+
+    new_photo = Actions.process_photo(photo)
+    %Photo{} = new_photo
+
+    # Check height and width of all files fixed.
+    orig = Enum.filter(new_photo.files, fn file -> file.size_key == "orig" end) |> hd()
+    assert orig.width == 5464
+    assert orig.height == 8192
+
+    {:ok, media} = Media.get_media("#{image_dir}/orig/2000/01/01/#{filename}.jpg")
+    assert Media.get_size(media) == %Media.Size{width: 5464, height: 8192}
   end
 
   test "process_pending/2 works" do

@@ -376,6 +376,31 @@ defmodule PenguinMemories.Media do
     end
   end
 
+  @spec rotate(t(), String.t(), String.t()) :: {:ok, t()} | {:error, String.t()}
+  def rotate(%__MODULE__{type: type, subtype: "jpeg"} = media, new_path, rotate_amount)
+      when guard_is_image(type) do
+    arg =
+      case rotate_amount do
+        "auto" -> "-a"
+        "90" -> "-9"
+        "180" -> "-1"
+        "270" -> "-2"
+      end
+
+    commands = [
+      ["exiftran", "-o", new_path, "-i", media.path, arg]
+    ]
+
+    case run_commands(commands) do
+      :ok ->
+        get_media(new_path, get_format(media))
+
+      {:error, _} = error ->
+        File.rm(new_path)
+        error
+    end
+  end
+
   @spec get_exif(t()) :: map()
   def get_exif(%__MODULE__{} = media) do
     Tools.exif(media.path)

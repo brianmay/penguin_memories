@@ -75,10 +75,8 @@ defmodule PenguinMemories.Actions do
     end
   end
 
-  @spec process_photo(Photo.t(), keyword()) :: Photo.t()
-  def process_photo(photo, opts \\ [])
-
-  def process_photo(%Photo{action: "R"} = photo, opts) do
+  @spec regenerate_photo(Photo.t(), keyword()) :: Photo.t()
+  def regenerate_photo(%Photo{action: "R"} = photo, opts) do
     original_file = get_original_file(photo)
     {:ok, original_media} = Storage.get_photo_file_media(original_file)
 
@@ -127,14 +125,59 @@ defmodule PenguinMemories.Actions do
       |> Repo.update!()
 
     if opts[:verbose] do
-      IO.puts("Done #{Photo.to_string(photo)}")
+      IO.puts("Regenerated #{Photo.to_string(photo)}")
 
       Enum.each(photo.files, fn file ->
-        IO.puts("     #{File.to_string(file)}")
+        IO.puts("--> #{File.to_string(file)}")
       end)
     end
 
     photo
+  end
+
+  @spec rotate_photo(Photo.t(), String.t(), keyword()) :: Photo.t()
+  def rotate_photo(%Photo{} = photo, rotate_amount, opts) do
+    {:ok, temp_path} = Temp.path()
+    original_file = get_original_file(photo)
+    path = Storage.get_photo_file_path(original_file)
+    {:ok, original_media} = Storage.get_photo_file_media(original_file)
+    {:ok, media} = Media.rotate(original_media, temp_path, rotate_amount)
+    {:ok, media} = Media.copy(media, path)
+    size = Media.get_size(media)
+
+    files =
+      Enum.map(photo.files, fn
+        %File{size_key: "orig"} ->
+          Ecto.Changeset.change(original_file, width: size.width, height: size.height)
+
+        %File{} = file ->
+          file
+      end)
+
+    photo =
+      photo
+      |> Ecto.Changeset.change(action: "R")
+      |> Ecto.Changeset.put_assoc(:files, files)
+      |> Repo.update!()
+
+    if opts[:verbose] do
+      IO.puts("Rotated #{Photo.to_string(photo)}")
+    end
+
+    photo
+  end
+
+  @spec process_photo(Photo.t(), keyword()) :: Photo.t()
+  def process_photo(photo, opts \\ [])
+
+  def process_photo(%Photo{action: "R"} = photo, opts) do
+    regenerate_photo(photo, opts)
+  end
+
+  def process_photo(%Photo{action: rotate_amount} = photo, opts)
+      when rotate_amount in ["auto", "90", "180", "270"] do
+    rotate_photo(photo, rotate_amount, opts)
+    |> regenerate_photo(opts)
   end
 
   def process_photo(%Photo{} = photo, _) do

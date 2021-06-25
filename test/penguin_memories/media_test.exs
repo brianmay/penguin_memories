@@ -569,6 +569,22 @@ defmodule PenguinMemories.MediaTest do
     end
   end
 
+  describe "rotate/3 jpeg file" do
+    test "to jpeg" do
+      {:ok, media} = Media.get_media("priv/tests/2Y4A3211.JPG")
+      assert Media.get_size(media) == %Media.Size{width: 8192, height: 5464}
+      new_path = Temp.path!()
+
+      {:ok, new_media} = Media.rotate(media, new_path, "90")
+      assert new_media.path == new_path
+      assert new_media.type == "image"
+      assert new_media.subtype == "jpeg"
+      assert Media.is_video(new_media) == false
+      assert Media.get_size(new_media) == %Media.Size{width: 5464, height: 8192}
+      Media.delete(new_media)
+    end
+  end
+
   describe "get_exif/1" do
     test "works valid file" do
       {:ok, media} = Media.get_media("priv/tests/100x100.jpg")
