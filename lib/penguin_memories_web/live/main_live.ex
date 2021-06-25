@@ -21,7 +21,13 @@ defmodule PenguinMemoriesWeb.MainLive do
     socket = assign_defaults(socket, session)
 
     socket =
-      assign(socket, reference_pid: nil, objects_pid: nil, photos_pid: nil, details_pid: nil)
+      assign(socket,
+        reference_pid: nil,
+        objects_pid: nil,
+        photos_pid: nil,
+        details_pid: nil,
+        page_title: nil
+      )
 
     PenguinMemoriesWeb.Endpoint.subscribe("refresh")
     {:ok, socket}
@@ -110,14 +116,17 @@ defmodule PenguinMemoriesWeb.MainLive do
     }
 
     page_title =
-      case reference do
-        nil ->
+      case {socket.assigns.page_title, reference} do
+        {nil, nil} ->
           name = Query.get_plural_name(type) |> String.capitalize()
           "#{name} · Penguin Memories"
 
-        {ref_type, ref_id} ->
+        {nil, {ref_type, ref_id}} ->
           ref_name = Query.get_single_name(ref_type) |> String.capitalize()
           "#{ref_name} #{ref_id} · Penguin Memories"
+
+        {page_title, _} ->
+          page_title
       end
 
     assigns = [
