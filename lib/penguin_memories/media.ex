@@ -118,10 +118,11 @@ defmodule PenguinMemories.Media do
   end
 
   def get_size(%__MODULE__{path: path, type: type}) when guard_is_image(type) do
-    cmdline = ["identify", "-format", "%wx%h", path]
+    cmdline = ["identify", "-format", "%wx%h:", path]
     [cmd | args] = cmdline
     {text, 0} = System.cmd(cmd, args, stderr_to_stdout: false)
-    [width, height] = String.split(text, "x", max_parts: 2)
+    [size_text | _] = String.split(text, ":")
+    [width, height] = String.split(size_text, "x", max_parts: 2)
     {width, ""} = Integer.parse(width)
     {height, ""} = Integer.parse(height)
     %Size{width: width, height: height}
