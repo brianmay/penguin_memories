@@ -13,6 +13,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Photos.Person
   alias PenguinMemories.Photos.PersonAscendant
+  alias PenguinMemories.Photos.PersonUpdate
   alias PenguinMemories.Photos.PhotoPerson
   alias PenguinMemories.Photos.Place
   alias PenguinMemories.Repo
@@ -218,10 +219,38 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   def get_update_fields do
     [
       %UpdateField{
-        id: :name,
-        field_id: :name,
-        name: "Name",
-        type: :string,
+        id: :mother,
+        field_id: :mother,
+        name: "Mother",
+        type: {:single, Person},
+        change: :set
+      },
+      %UpdateField{
+        id: :father,
+        field_id: :father,
+        name: "Father",
+        type: {:single, Person},
+        change: :set
+      },
+      %UpdateField{
+        id: :spouse,
+        field_id: :spouse,
+        name: "Spouse",
+        type: {:single, Person},
+        change: :set
+      },
+      %UpdateField{
+        id: :home,
+        field_id: :home,
+        name: "Home",
+        type: {:single, Place},
+        change: :set
+      },
+      %UpdateField{
+        id: :work,
+        field_id: :work,
+        name: "Work",
+        type: {:single, Place},
         change: :set
       },
       %UpdateField{
@@ -256,23 +285,20 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
 
   @impl API
   @spec update_changeset(
-          object :: Person.t(),
           attrs :: map(),
           assoc :: map(),
           enabled :: MapSet.t()
         ) ::
           Changeset.t()
-  def update_changeset(%Person{} = object, attrs, assoc, enabled) do
-    object
-    |> Private.selective_cast(attrs, enabled, [:name, :sort_name, :revised])
-    |> Private.selective_validate_required(enabled, [:name, :sort_name])
+  def update_changeset(attrs, assoc, enabled) do
+    %PersonUpdate{mother: nil, father: nil, spouse: nil, home: nil, work: nil}
+    |> Private.selective_cast(attrs, enabled, [:revised])
     |> Private.selective_put_assoc(assoc, enabled, [
       :mother,
       :father,
       :spouse,
       :work,
-      :home,
-      :cover_photo
+      :home
     ])
   end
 end

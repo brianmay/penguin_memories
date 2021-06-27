@@ -13,6 +13,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Photos.Category
   alias PenguinMemories.Photos.CategoryAscendant
+  alias PenguinMemories.Photos.CategoryUpdate
   alias PenguinMemories.Photos.PhotoCategory
   alias PenguinMemories.Repo
 
@@ -171,13 +172,6 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
   def get_update_fields do
     [
       %UpdateField{
-        id: :name,
-        field_id: :name,
-        name: "Name",
-        type: :string,
-        change: :set
-      },
-      %UpdateField{
         id: :parent,
         field_id: :parent,
         name: "Parent",
@@ -212,16 +206,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
 
   @impl API
   @spec update_changeset(
-          object :: Category.t(),
           attrs :: map(),
           assoc :: map(),
           enabled :: MapSet.t()
         ) ::
           Changeset.t()
-  def update_changeset(%Category{} = object, attrs, assoc, enabled) do
-    object
-    |> Private.selective_cast(attrs, enabled, [:name, :revised])
-    |> Private.selective_validate_required(enabled, [:name])
-    |> Private.selective_put_assoc(assoc, enabled, [:parent, :cover_photo])
+  def update_changeset(attrs, assoc, enabled) do
+    %CategoryUpdate{parent: nil}
+    |> Private.selective_cast(attrs, enabled, [:revised])
+    |> Private.selective_put_assoc(assoc, enabled, [:parent])
   end
 end

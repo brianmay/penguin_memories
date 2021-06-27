@@ -34,7 +34,6 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
 
   @callback edit_changeset(object :: struct(), attrs :: map(), assoc :: map()) :: Changeset.t()
   @callback update_changeset(
-              object :: struct(),
               attrs :: map(),
               assoc :: map(),
               enabled :: MapSet.t()

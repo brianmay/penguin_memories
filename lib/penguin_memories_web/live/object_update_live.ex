@@ -143,17 +143,15 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @spec handle_update(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_update(%Socket{} = socket) do
-    type = socket.assigns.request.type
-    enabled = MapSet.new()
-    obj = struct(type)
-    changeset = Updates.get_update_changeset(obj, [])
-    changeset = %{changeset | action: :update}
+    params = %{}
+    assoc = %{}
+    {enabled, changeset} = get_update_changeset(socket, params, assoc)
 
     assigns = [
       error: nil,
       changeset: changeset,
       enabled: enabled,
-      assoc: %{}
+      assoc: assoc
     ]
 
     {:noreply, assign(socket, assigns)}
@@ -162,7 +160,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
   @spec handle_validate(Socket.t(), map()) :: {:noreply, Socket.t()}
   def handle_validate(%Socket{} = socket, params) do
     assoc = socket.assigns.assoc
-    {enabled, _, changeset} = get_update_changeset(socket, params, assoc)
+    {enabled, changeset} = get_update_changeset(socket, params, assoc)
 
     assigns = [
       enabled: enabled,
@@ -178,11 +176,13 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     filter = socket.assigns.request.filter
     query = Query.query(type) |> Query.filter_by_filter(filter)
 
-    {_, updates, changeset} = get_update_changeset(socket, params, socket.assigns.assoc)
+    {_, changeset} = get_update_changeset(socket, params, socket.assigns.assoc)
 
     socket =
       case changeset.valid? do
         true ->
+          updates = get_updates(socket, params, socket.assigns.assoc)
+
           case Updates.apply_updates(updates, query) do
             :ok ->
               PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
@@ -221,26 +221,31 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     Map.get(params, Atom.to_string(id))
   end
 
+  @spec get_enabled(
+          fields :: list(Fields.UpdateField.t()),
+          params :: map()
+        ) :: MapSet.t()
+  defp get_enabled(fields, %{} = params) do
+    Enum.reduce(fields, MapSet.new(), fn
+      %Fields.UpdateField{} = field, enabled ->
+        enable_id = Atom.to_string(field_to_enable_field_id(field))
+        enable_value = string_to_boolean(Map.get(params, enable_id, "false"))
+
+        if enable_value do
+          MapSet.put(enabled, field.id)
+        else
+          enabled
+        end
+    end)
+  end
+
   @spec get_update_changes(
+          MapSet.t(),
           fields :: list(Fields.UpdateField.t()),
           params :: map(),
           assoc :: map()
-        ) ::
-          {MapSet.t(), list(Updates.UpdateChange.t())}
-  def get_update_changes(fields, %{} = params, %{} = assoc) do
-    enabled =
-      Enum.reduce(fields, MapSet.new(), fn
-        %Fields.UpdateField{} = field, enabled ->
-          enable_id = Atom.to_string(field_to_enable_field_id(field))
-          enable_value = string_to_boolean(Map.get(params, enable_id, "false"))
-
-          if enable_value do
-            MapSet.put(enabled, field.id)
-          else
-            enabled
-          end
-      end)
-
+        ) :: list(Updates.UpdateChange.t())
+  def get_update_changes(enabled, fields, %{} = params, %{} = assoc) do
     fields = Enum.filter(fields, fn field -> MapSet.member?(enabled, field.id) end)
 
     updates =
@@ -258,19 +263,28 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
           [update | updates]
       end)
 
-    {enabled, updates}
+    updates
+  end
+
+  @spec get_updates(socket :: Socket.t(), params :: map(), assoc :: map()) ::
+          list(Updates.UpdateChange.t())
+  defp get_updates(%Socket{} = socket, %{} = params, %{} = assoc) do
+    type = socket.assigns.request.type
+    fields = Fields.get_update_fields(type, socket.assigns.common.user)
+
+    enabled = get_enabled(fields, params)
+    get_update_changes(enabled, fields, params, assoc)
   end
 
   @spec get_update_changeset(socket :: Socket.t(), params :: map(), assoc :: map()) ::
-          {MapSet.t(), list(Updates.UpdateChange.t()), Changeset.t()}
+          {MapSet.t(), Changeset.t()}
   defp get_update_changeset(%Socket{} = socket, %{} = params, %{} = assoc) do
     type = socket.assigns.request.type
     fields = Fields.get_update_fields(type, socket.assigns.common.user)
 
-    obj = struct(type)
-    {enabled, updates} = get_update_changes(fields, params, assoc)
-    changeset = Updates.get_update_changeset(obj, updates)
-    {enabled, updates, changeset}
+    enabled = get_enabled(fields, params)
+    changeset = Updates.get_update_changeset(type, params, assoc, enabled)
+    {enabled, changeset}
   end
 
   @spec reload(Socket.t()) :: Socket.t()

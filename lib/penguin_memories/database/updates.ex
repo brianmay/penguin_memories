@@ -94,7 +94,7 @@ defmodule PenguinMemories.Database.Updates do
           updates :: list(UpdateChange.t()),
           object :: struct(),
           changes :: map(),
-          assoc :: map
+          assoc :: map()
         ) :: {:ok, map(), map()}
   defp apply_update_to_object([], _object, changes, assoc), do: {:ok, changes, assoc}
 
@@ -139,18 +139,26 @@ defmodule PenguinMemories.Database.Updates do
     apply_update_to_object(tail, object, changes, assoc)
   end
 
-  @spec get_update_changeset(object :: struct(), updates :: list(UpdateChange.t())) ::
+  @spec get_update_changeset(
+          type :: object_type,
+          changes :: map(),
+          assoc :: map(),
+          enabled :: MapSet.t()
+        ) ::
           Ecto.Changeset.t()
-  def get_update_changeset(object, updates) do
+  def get_update_changeset(type, params, assoc, enabled) do
+    backend = Types.get_backend!(type)
+    changeset = backend.update_changeset(params, assoc, enabled)
+    %{changeset | action: :update}
+  end
+
+  @spec get_update_obj_changeset(object :: struct(), updates :: list(UpdateChange.t())) ::
+          Ecto.Changeset.t()
+  defp get_update_obj_changeset(object, updates) do
     backend = get_object_backend(object)
 
-    enabled =
-      Enum.reduce(updates, MapSet.new(), fn %UpdateChange{field_id: id}, enabled ->
-        MapSet.put(enabled, id)
-      end)
-
     {:ok, changes, assoc} = apply_update_to_object(updates, object, %{}, %{})
-    changeset = backend.update_changeset(object, changes, assoc, enabled)
+    changeset = backend.edit_changeset(object, changes, assoc)
 
     %{changeset | action: :update}
   end
@@ -158,7 +166,7 @@ defmodule PenguinMemories.Database.Updates do
   @spec apply_updates_to_object(updates :: list(UpdateChange.t()), object :: struct()) ::
           {:ok, Ecto.Changeset.t(), struct()} | {:error, String.t()}
   defp apply_updates_to_object(updates, object) do
-    changeset = get_update_changeset(object, updates)
+    changeset = get_update_obj_changeset(object, updates)
 
     case Repo.update(changeset) do
       {:ok, new_obj} -> {:ok, changeset, new_obj}

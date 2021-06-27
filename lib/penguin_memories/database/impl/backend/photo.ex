@@ -13,6 +13,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Format
   alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Photos.PhotoUpdate
   alias PenguinMemories.Photos.Relation
   alias PenguinMemories.Repo
 
@@ -460,14 +461,20 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
 
   @impl API
   @spec update_changeset(
-          object :: Photo.t(),
           attrs :: map(),
           assoc :: map(),
           enabled :: MapSet.t()
         ) ::
           Changeset.t()
-  def update_changeset(%Photo{} = object, attrs, assoc, enabled) do
-    object
+  def update_changeset(attrs, assoc, enabled) do
+    %PhotoUpdate{
+      photographer: nil,
+      place: nil,
+      album_add: [],
+      album_delete: nil,
+      category_add: nil,
+      category_delete: nil
+    }
     |> Private.selective_cast(attrs, enabled, [
       :name,
       :view,
@@ -480,9 +487,10 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
     |> Private.selective_put_assoc(assoc, enabled, [
       :photographer,
       :place,
-      :albums,
-      :categories,
-      :cover_photo
+      :album_add,
+      :album_delete,
+      :category_add,
+      :category_delete
     ])
   end
 end

@@ -15,6 +15,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   alias PenguinMemories.Photos.PhotoPlace
   alias PenguinMemories.Photos.Place
   alias PenguinMemories.Photos.PlaceAscendant
+  alias PenguinMemories.Photos.PlaceUpdate
   alias PenguinMemories.Repo
 
   @behaviour API
@@ -209,24 +210,11 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   def get_update_fields do
     [
       %UpdateField{
-        id: :name,
-        field_id: :name,
-        name: "Name",
-        type: :string,
-        change: :set
-      },
-      %UpdateField{
         id: :parent,
         field_id: :parent,
         name: "Parent",
         type: {:single, Place},
         change: :set
-      },
-      %Field{
-        id: :children,
-        name: "Children",
-        type: {:multiple, Album},
-        read_only: true
       },
       %UpdateField{
         id: :revised,
@@ -263,16 +251,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
 
   @impl API
   @spec update_changeset(
-          object :: Place.t(),
           attrs :: map(),
           assoc :: map(),
           enabled :: MapSet.t()
         ) ::
           Changeset.t()
-  def update_changeset(%Place{} = object, attrs, assoc, enabled) do
-    object
-    |> Private.selective_cast(attrs, enabled, [:name, :revised])
-    |> Private.selective_validate_required(enabled, [:name])
-    |> Private.selective_put_assoc(assoc, enabled, [:parent, :cover_photo])
+  def update_changeset(attrs, assoc, enabled) do
+    %PlaceUpdate{parent: nil}
+    |> Private.selective_cast(attrs, enabled, [:revised])
+    |> Private.selective_put_assoc(assoc, enabled, [:parent])
   end
 end
