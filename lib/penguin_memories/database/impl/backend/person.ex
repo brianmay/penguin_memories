@@ -141,6 +141,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
         id: :id,
         name: "ID",
         type: :integer,
+        read_only: true,
         searchable: true
       },
       %Field{

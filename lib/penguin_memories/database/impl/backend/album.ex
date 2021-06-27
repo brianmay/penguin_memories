@@ -131,6 +131,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
         id: :id,
         name: "ID",
         type: :integer,
+        read_only: true,
         searchable: true
       },
       %Field{

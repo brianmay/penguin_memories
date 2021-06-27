@@ -180,6 +180,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         id: :id,
         name: "ID",
         type: :integer,
+        read_only: true,
         searchable: true
       },
       %Field{
