@@ -128,14 +128,22 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
   def get_fields do
     [
       %Field{
+        id: :id,
+        name: "ID",
+        type: :integer,
+        searchable: true
+      },
+      %Field{
         id: :name,
         name: "Name",
-        type: :string
+        type: :string,
+        searchable: true
       },
       %Field{
         id: :parent,
         name: "Parent",
-        type: {:single, Category}
+        type: {:single, Category},
+        searchable: true
       },
       %Field{
         id: :children,
@@ -157,12 +165,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
       %Field{
         id: :cover_photo,
         name: "Cover Photo",
-        type: {:single, PenguinMemories.Photos.Photo}
+        type: {:single, PenguinMemories.Photos.Photo},
+        searchable: true
       },
       %Field{
         id: :revised,
         name: "Revised time",
-        type: :datetime
+        type: :datetime,
+        searchable: true
       }
     ]
   end

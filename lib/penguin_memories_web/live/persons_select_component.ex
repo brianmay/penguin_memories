@@ -22,7 +22,8 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       selected: [],
       icons: %{},
       edit: nil,
-      text: ""
+      text: "",
+      error: nil
     ]
 
     {:ok, assign(socket, assigns)}
@@ -114,24 +115,33 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     if socket.assigns.disabled do
       {:noreply, socket}
     else
-      type = PenguinMemories.Photos.Person
+      type = socket.assigns.type
 
       selected =
         socket.assigns.selected
-        |> Enum.map(fn {person_id, _} -> person_id end)
+        |> Enum.map(fn selected -> selected.id end)
         |> MapSet.new()
 
-      icons =
-        search
-        |> Query.query_icons(10, type, "thumb")
-        |> Enum.reject(fn icon -> MapSet.member?(selected, icon.id) end)
+      case Query.query_icons(search, 10, type, "thumb") do
+        {:ok, icons} ->
+          icons = Enum.reject(icons, fn icon -> MapSet.member?(selected, icon.id) end)
 
-      assigns = [
-        choices: icons,
-        text: value
-      ]
+          assigns = [
+            choices: icons,
+            text: value
+          ]
 
-      {:noreply, assign(socket, assigns)}
+          {:noreply, assign(socket, assigns)}
+
+        {:error, reason} ->
+          assigns = [
+            choices: [],
+            text: value,
+            error: reason
+          ]
+
+          {:noreply, assign(socket, assigns)}
+      end
     end
   end
 

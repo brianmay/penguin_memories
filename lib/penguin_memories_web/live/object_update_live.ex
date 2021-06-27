@@ -174,29 +174,39 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
   defp handle_save(%Socket{} = socket, params) do
     type = socket.assigns.request.type
     filter = socket.assigns.request.filter
-    query = Query.query(type) |> Query.filter_by_filter(filter)
-
-    {_, changeset} = get_update_changeset(socket, params, socket.assigns.assoc)
 
     socket =
-      case changeset.valid? do
-        true ->
-          updates = get_updates(socket, params, socket.assigns.assoc)
+      case Query.query(type) |> Query.filter_by_filter(filter) do
+        {:ok, query} ->
+          handle_save_to_query(socket, query, params)
 
-          case Updates.apply_updates(updates, query) do
-            :ok ->
-              PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
-              assign(socket, edit: nil, changeset: nil, error: nil, enabled: nil)
-
-            {:error, reason} ->
-              assign(socket, :error, "Error bulk update: #{reason}")
-          end
-
-        false ->
-          assign(socket, :error, "Form is invalid")
+        {:error, reason} ->
+          assign(socket, error: reason)
       end
 
     {:noreply, socket}
+  end
+
+  @spec handle_save_to_query(Socket.t(), Ecto.Query.t(), map()) :: Socket.t()
+  defp handle_save_to_query(%Socket{} = socket, %Ecto.Query{} = query, params) do
+    {_, changeset} = get_update_changeset(socket, params, socket.assigns.assoc)
+
+    case changeset.valid? do
+      true ->
+        updates = get_updates(socket, params, socket.assigns.assoc)
+
+        case Updates.apply_updates(updates, query) do
+          :ok ->
+            PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+            assign(socket, edit: nil, changeset: nil, error: nil, enabled: nil)
+
+          {:error, reason} ->
+            assign(socket, :error, "Error bulk update: #{reason}")
+        end
+
+      false ->
+        assign(socket, :error, "Form is invalid")
+    end
   end
 
   @spec field_to_enable_field_id(Fields.UpdateField.t()) :: atom()
@@ -291,7 +301,13 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
   defp reload(%Socket{} = socket) do
     filter = socket.assigns.request.filter
     type = socket.assigns.request.type
-    count = Query.count_results(filter, type)
+
+    count =
+      case Query.count_results(filter, type) do
+        {:ok, count} -> count
+        {:error, _} -> 0
+      end
+
     assign(socket, count: count)
   end
 end

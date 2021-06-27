@@ -371,8 +371,18 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
           type :: Database.object_type()
         ) :: {Query.Icon.t() | nil, Query.Icon.t() | nil}
   def get_prev_next_icons(cursor, filter, type) do
-    prev_icon = Query.get_prev_next_id(filter, cursor, nil, "thumb", type)
-    next_icon = Query.get_prev_next_id(filter, nil, cursor, "thumb", type)
+    prev_icon =
+      case Query.get_prev_next_id(filter, cursor, nil, "thumb", type) do
+        {:ok, icon} -> icon
+        {:error, _} -> nil
+      end
+
+    next_icon =
+      case Query.get_prev_next_id(filter, nil, cursor, "thumb", type) do
+        {:ok, icon} -> icon
+        {:error, _} -> nil
+      end
+
     {prev_icon, next_icon}
   end
 

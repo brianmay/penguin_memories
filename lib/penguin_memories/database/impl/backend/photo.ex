@@ -177,9 +177,16 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   def get_fields do
     [
       %Field{
+        id: :id,
+        name: "ID",
+        type: :integer,
+        searchable: true
+      },
+      %Field{
         id: :name,
         name: "Name",
-        type: :string
+        type: :string,
+        searchable: true
       },
       %Field{
         id: :dir,
@@ -191,7 +198,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         id: :filename,
         name: "File Name",
         type: :string,
-        read_only: true
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :albums,
@@ -206,17 +214,20 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       %Field{
         id: :place,
         name: "Place",
-        type: {:single, PenguinMemories.Photos.Place}
+        type: {:single, PenguinMemories.Photos.Place},
+        searchable: true
       },
       %Field{
         id: :photographer,
         name: "Photographer",
-        type: {:single, PenguinMemories.Photos.Person}
+        type: {:single, PenguinMemories.Photos.Person},
+        searchable: true
       },
       %Field{
         id: :photo_persons,
         name: "Persons",
-        type: :persons
+        type: :persons,
+        searchable: true
       },
       %Field{
         id: :related,
@@ -232,7 +243,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       %Field{
         id: :rating,
         name: "Rating",
-        type: :string
+        type: :float
       },
       %Field{
         id: :description,
@@ -248,77 +259,90 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       %Field{
         id: :datetime,
         name: "Time",
-        type: {:datetime_with_offset, :utc_offset}
+        type: {:datetime_with_offset, :utc_offset},
+        searchable: true
       },
       %Field{
         id: :utc_offset,
         name: "UTC offset",
-        type: :utc_offset
+        type: :utc_offset,
+        searchable: true
       },
       %Field{
         id: :action,
         name: "Action",
-        type: :string
+        type: :string,
+        searchable: true
       },
       %Field{
         id: :camera_make,
         name: "Camera Make",
         type: :string,
-        read_only: true
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :camera_model,
         name: "Camera Model",
         type: :string,
-        read_only: true
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :flash_used,
         name: "Flash Used",
-        type: :string,
-        read_only: true
+        type: :boolean,
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :focal_length,
         name: "Focal Length",
-        type: :string,
-        read_only: true
+        type: :float,
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :exposure_time,
         name: "Exposure Time",
-        type: :string,
-        read_only: true
+        type: :float,
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :aperture,
         name: "Aperture",
-        type: :string,
-        read_only: true
+        type: :float,
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :iso_equiv,
         name: "ISO",
-        type: :string,
-        read_only: true
+        type: :integer,
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :metering_mode,
         name: "Metering Mode",
         type: :string,
-        read_only: true
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :focus_dist,
         name: "Focus Distance",
         type: :string,
-        read_only: true
+        read_only: true,
+        searchable: true
       },
       %Field{
         id: :ccd_width,
         name: "CCD Width",
         type: :string,
-        read_only: true
+        read_only: true,
+        searchable: true
       }
     ]
   end
@@ -387,7 +411,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         id: :rating,
         field_id: :rating,
         name: "Rating",
-        type: :string,
+        type: :float,
         change: :set
       },
       %UpdateField{

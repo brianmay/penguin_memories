@@ -1,5 +1,11 @@
 <%= if @request do %>
   <div class="details">
+    <%= if @response.error do %>
+      <div class="alert alert-danger">
+        <%= @response.error %>
+      </div>
+    <% end %>
+
     <h2><%= Query.get_plural_name(@request.type) |> String.capitalize() %></h2>
     <div class="buttons">
       <%= if @request.selected_value != :all do %>

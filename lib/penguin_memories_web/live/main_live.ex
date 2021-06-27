@@ -155,8 +155,22 @@ defmodule PenguinMemoriesWeb.MainLive do
         %{"query" => q} -> %{"query" => q}
       end
 
-    type = Types.get_name!(socket.assigns.objects.type)
-    url = Routes.main_path(socket, :index, type, search)
+    type = socket.assigns.objects.type
+    type_name = Types.get_name!(type)
+
+    url =
+      socket.assigns.url
+      |> Urls.set_path(Routes.main_path(socket, :index, type_name))
+      |> Urls.url_merge(search, [
+        "query",
+        "obj_selected",
+        "obj_before",
+        "obj_after",
+        "p_selected",
+        "p_before",
+        "p_after"
+      ])
+      |> URI.to_string()
 
     socket = push_patch(socket, to: url)
     {:noreply, socket}

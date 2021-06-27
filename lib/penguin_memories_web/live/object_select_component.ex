@@ -20,7 +20,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       choices: [],
       selected: [],
       icons: %{},
-      text: ""
+      text: "",
+      error: nil
     ]
 
     {:ok, assign(socket, assigns)}
@@ -97,17 +98,27 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
         |> Enum.map(fn selected -> selected.id end)
         |> MapSet.new()
 
-      icons =
-        search
-        |> Query.query_icons(10, type, "thumb")
-        |> Enum.reject(fn icon -> MapSet.member?(selected, icon.id) end)
+      case Query.query_icons(search, 10, type, "thumb") do
+        {:ok, icons} ->
+          icons = Enum.reject(icons, fn icon -> MapSet.member?(selected, icon.id) end)
 
-      assigns = [
-        choices: icons,
-        text: value
-      ]
+          assigns = [
+            choices: icons,
+            text: value,
+            error: nil
+          ]
 
-      {:noreply, assign(socket, assigns)}
+          {:noreply, assign(socket, assigns)}
+
+        {:error, reason} ->
+          assigns = [
+            choices: [],
+            text: value,
+            error: reason
+          ]
+
+          {:noreply, assign(socket, assigns)}
+      end
     end
   end
 

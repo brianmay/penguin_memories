@@ -16,6 +16,9 @@ defmodule PenguinMemories.Database.Fields do
           | {:single, object_type()}
           | {:multiple, object_type()}
           | :persons
+          | :integer
+          | :float
+          | :boolean
   @type change_type :: :set | :add | :delete | nil
 
   defmodule Field do
@@ -30,10 +33,11 @@ defmodule PenguinMemories.Database.Fields do
             name: String.t(),
             type: field_type(),
             read_only: boolean(),
-            access: :private | :all
+            access: :private | :all,
+            searchable: boolean()
           }
     @enforce_keys [:id, :name, :type]
-    defstruct id: nil, name: nil, type: nil, read_only: false, access: :all
+    defstruct id: nil, name: nil, type: nil, read_only: false, access: :all, searchable: false
   end
 
   defmodule UpdateField do

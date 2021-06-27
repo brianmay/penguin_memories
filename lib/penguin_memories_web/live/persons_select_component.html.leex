@@ -72,6 +72,12 @@
     <%= error_tag(@form, field_id) %>
   </div>
 
+  <%= if @error do %>
+    <div class="alert alert-danger">
+      <%= @error %>
+    </div>
+  <% end %>
+
   <%= if length(@choices) > 0 do %>
     <div class="dropdown-menu show">
       <div class="photo_list">

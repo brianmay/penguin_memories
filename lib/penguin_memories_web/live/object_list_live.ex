@@ -68,15 +68,17 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
             after_key: String.t(),
             after_url: String.t(),
             icons: list(Query.Icon.t()),
-            count: integer()
+            count: integer(),
+            error: String.t()
           }
-    @enforce_keys [:before_key, :before_url, :after_key, :after_url, :icons, :count]
+    @enforce_keys [:before_key, :before_url, :after_key, :after_url, :icons, :count, :error]
     defstruct before_key: nil,
               before_url: nil,
               after_key: nil,
               after_url: nil,
               icons: [],
-              count: 0
+              count: 0,
+              error: nil
   end
 
   @impl true
@@ -475,7 +477,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @spec load_objects(request :: Request.t(), url :: URI.t()) :: Response.t()
   defp load_objects(%Request{} = request, %URI{} = url) do
-    {icons, before_key, after_key, count} =
+    result =
       Query.get_page_icons(
         request.filter,
         request.before_key,
@@ -485,17 +487,35 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
         request.type
       )
 
-    before_url = create_before_after_url(url, request.before_name, request.after_name, before_key)
-    after_url = create_before_after_url(url, request.after_name, request.before_name, after_key)
+    case result do
+      {:ok, icons, before_key, after_key, count} ->
+        before_url =
+          create_before_after_url(url, request.before_name, request.after_name, before_key)
 
-    %Response{
-      before_key: before_key,
-      before_url: before_url,
-      after_key: after_key,
-      after_url: after_url,
-      icons: icons,
-      count: count
-    }
+        after_url =
+          create_before_after_url(url, request.after_name, request.before_name, after_key)
+
+        %Response{
+          before_key: before_key,
+          before_url: before_url,
+          after_key: after_key,
+          after_url: after_url,
+          icons: icons,
+          count: count,
+          error: nil
+        }
+
+      {:error, reason} ->
+        %Response{
+          before_key: nil,
+          before_url: nil,
+          after_key: nil,
+          after_url: nil,
+          icons: [],
+          count: 0,
+          error: reason
+        }
+    end
   end
 
   @spec set_selected(socket :: Socket.t(), selected :: selected_type) :: Socket.t()

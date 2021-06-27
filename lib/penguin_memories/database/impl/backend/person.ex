@@ -138,24 +138,34 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   def get_fields do
     [
       %Field{
+        id: :id,
+        name: "ID",
+        type: :integer,
+        searchable: true
+      },
+      %Field{
         id: :name,
         name: "Name",
-        type: :string
+        type: :string,
+        searchable: true
       },
       %Field{
         id: :sort_name,
         name: "Sort Name",
-        type: :string
+        type: :string,
+        searchable: true
       },
       %Field{
         id: :mother,
         name: "Mother",
-        type: {:single, Person}
+        type: {:single, Person},
+        searchable: true
       },
       %Field{
         id: :father,
         name: "Father",
-        type: {:single, Person}
+        type: {:single, Person},
+        searchable: true
       },
       %Field{
         id: :mother_of,
@@ -172,17 +182,20 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
       %Field{
         id: :spouse,
         name: "Spouse",
-        type: {:single, Person}
+        type: {:single, Person},
+        searchable: true
       },
       %Field{
         id: :home,
         name: "Home",
-        type: {:single, Place}
+        type: {:single, Place},
+        searchable: true
       },
       %Field{
         id: :work,
         name: "Work",
-        type: {:single, Place}
+        type: {:single, Place},
+        searchable: true
       },
       %Field{
         id: :email,
@@ -204,12 +217,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
       %Field{
         id: :cover_photo,
         name: "Cover Photo",
-        type: {:single, PenguinMemories.Photos.Photo}
+        type: {:single, PenguinMemories.Photos.Photo},
+        searchable: true
       },
       %Field{
         id: :revised,
         name: "Revised time",
-        type: :datetime
+        type: :datetime,
+        searchable: true
       }
     ]
   end

@@ -8,6 +8,7 @@ defmodule PenguinMemories.Database.Query do
   alias Ecto.Multi
 
   alias PenguinMemories.Database
+  alias PenguinMemories.Database.Fields
   alias PenguinMemories.Database.Index
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Photos.File
@@ -16,6 +17,7 @@ defmodule PenguinMemories.Database.Query do
   alias PenguinMemories.Repo
 
   @type object_type :: Database.object_type()
+  @type dynamic_type :: struct
   @type reference_type :: Database.reference_type()
 
   defmodule Icon do
@@ -141,18 +143,286 @@ defmodule PenguinMemories.Database.Query do
     backend.query()
   end
 
-  @spec filter_by_query(query :: Ecto.Query.t(), query_string :: String.t()) :: Ecto.Query.t()
-  def filter_by_query(%Ecto.Query{} = query, query_string) do
-    dynamic =
-      dynamic([o], fragment("to_tsvector(?) @@ plainto_tsquery(?)", o.name, ^query_string))
+  @spec date_to_utc(date :: Date.t()) :: DateTime.t()
+  def date_to_utc(date) do
+    date
+    |> DateTime.new!(~T[00:00:00], "Australia/Melbourne")
+    |> DateTime.shift_zone!("Etc/UTC")
+  end
 
-    dynamic =
-      case Integer.parse(query_string) do
-        {int, ""} -> dynamic([o], ^dynamic or o.id == ^int)
-        _ -> dynamic
+  @spec date_tomorrow_to_utc(date :: Date.t()) :: DateTime.t()
+  def date_tomorrow_to_utc(date) do
+    date
+    |> Date.add(1)
+    |> DateTime.new!(~T[00:00:00], "Australia/Melbourne")
+    |> DateTime.shift_zone!("Etc/UTC")
+  end
+
+  @spec filter_by_date(
+          dynamic :: dynamic_type(),
+          id :: atom(),
+          op :: String.t(),
+          date :: Date.t()
+        ) :: {:ok, dynamic_type()} | {:error, String.t()}
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
+  defp filter_by_date(%Ecto.Query.DynamicExpr{} = dynamic, id, op, date) do
+    case op do
+      "=" ->
+        start = date_to_utc(date)
+        stop = date_tomorrow_to_utc(date)
+        dynamic = dynamic([o], ^dynamic and (field(o, ^id) >= ^start and field(o, ^id) < ^stop))
+        {:ok, dynamic}
+
+      "<" ->
+        date = date_to_utc(date)
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) < ^date)
+        {:ok, dynamic}
+
+      "<=" ->
+        date = date_tomorrow_to_utc(date)
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) < ^date)
+        {:ok, dynamic}
+
+      ">" ->
+        date = date_tomorrow_to_utc(date)
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) >= ^date)
+        {:ok, dynamic}
+
+      ">=" ->
+        date = date_to_utc(date)
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) >= ^date)
+        {:ok, dynamic}
+
+      op ->
+        {:error, "Invalid operation #{op}"}
+    end
+  end
+
+  @spec filter_by_date_string(
+          dynamic :: dynamic_type(),
+          id :: atom(),
+          op :: String.t(),
+          value :: String.t()
+        ) :: {:ok, dynamic_type()} | {:error, String.t()}
+  defp filter_by_date_string(%Ecto.Query.DynamicExpr{} = dynamic, id, op, value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} ->
+        filter_by_date(dynamic, id, op, date)
+
+      {:error, _} ->
+        {:error, "Invalid date #{value}"}
+    end
+  end
+
+  @spec filter_by_number(
+          dynamic :: dynamic_type(),
+          id :: atom(),
+          op :: String.t(),
+          value :: integer() | float()
+        ) :: {:ok, dynamic_type()}
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
+  defp filter_by_number(%Ecto.Query.DynamicExpr{} = dynamic, id, op, value) do
+    case op do
+      "=" ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) == ^value)
+        {:ok, dynamic}
+
+      "<" ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) < ^value)
+        {:ok, dynamic}
+
+      "<=" ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) <= ^value)
+        {:ok, dynamic}
+
+      ">" ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) > ^value)
+        {:ok, dynamic}
+
+      ">=" ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) >= ^value)
+        {:ok, dynamic}
+
+      op ->
+        {:error, "Invalid operation #{op}"}
+    end
+  end
+
+  @spec filter_by_integer_string(
+          dynamic :: dynamic_type(),
+          id :: atom(),
+          op :: String.t(),
+          string :: String.t()
+        ) :: {:ok, dynamic_type()}
+  defp filter_by_integer_string(%Ecto.Query.DynamicExpr{} = dynamic, id, op, string) do
+    case Integer.parse(string) do
+      {value, ""} ->
+        filter_by_number(dynamic, id, op, value)
+
+      _ ->
+        {:error, "Cannot parse #{string} as integer"}
+    end
+  end
+
+  @spec filter_by_float_string(
+          dynamic :: dynamic_type(),
+          id :: atom(),
+          op :: String.t(),
+          string :: String.t()
+        ) :: {:ok, dynamic_type()}
+  defp filter_by_float_string(%Ecto.Query.DynamicExpr{} = dynamic, id, op, string) do
+    case Integer.parse(string) do
+      {value, ""} ->
+        filter_by_number(dynamic, id, op, value)
+
+      _ ->
+        {:error, "Cannot parse #{string} as integer"}
+    end
+  end
+
+  @spec filter_by_words(
+          dynamic :: dynamic_type(),
+          id :: atom(),
+          op :: String.t(),
+          value :: String.t()
+        ) :: {:ok, dynamic_type()} | {:error, String.t()}
+  defp filter_by_words(%Ecto.Query.DynamicExpr{} = dynamic, id, op, value) do
+    case {value, op} do
+      {_, "="} ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) == ^value)
+        {:ok, dynamic}
+
+      {value, "~"} when value != "" ->
+        dynamic =
+          dynamic(
+            [o],
+            ^dynamic and
+              fragment("to_tsvector(?) @@ plainto_tsquery(?)", field(o, ^id), ^value)
+          )
+
+        {:ok, dynamic}
+
+      {"", "~"} ->
+        {:ok, dynamic}
+
+      {_, op} ->
+        {:error, "Invalid operation #{op}"}
+    end
+  end
+
+  @spec filter_by_field(
+          dynamic :: dynamic_type(),
+          field :: Fields.Field.t(),
+          op :: String.t(),
+          value :: String.t()
+        ) :: {:ok, dynamic_type()} | {:error, String.t()}
+  defp filter_by_field(%Ecto.Query.DynamicExpr{} = dynamic, %Fields.Field{} = field, op, value) do
+    case field.type do
+      :datetime ->
+        filter_by_date_string(dynamic, field.id, op, value)
+
+      {:datetime_with_offset, _} ->
+        filter_by_date_string(dynamic, field.id, op, value)
+
+      :string ->
+        filter_by_words(dynamic, field.id, op, value)
+
+      :integer ->
+        filter_by_integer_string(dynamic, field.id, op, value)
+
+      :float ->
+        filter_by_float_string(dynamic, field.id, op, value)
+
+      {:single, _} ->
+        id = String.to_atom(Atom.to_string(field.id) <> "_id")
+        filter_by_integer_string(dynamic, id, op, value)
+
+      _ ->
+        {:error, "Unknown field type #{inspect(field.type)}"}
+    end
+  end
+
+  @spec partition_value(String.t()) :: {String.t(), String.t(), String.t()} | String.t()
+  def partition_value(string) do
+    case String.split(string, ~r/\b/, trim: true, parts: 3) do
+      [a, op, b] -> {a, op, b}
+      _ -> string
+    end
+  end
+
+  @spec filter_by_value(
+          words :: list(String.t()),
+          new_words :: list(String.t()),
+          dynamic :: dynamic_type(),
+          backend :: PenguinMemories.Database.Types.backend_type()
+        ) :: {:ok, words :: list(String.t()), dynamic_type()} | {:error, String.t()}
+  defp filter_by_value([], new_words, %Ecto.Query.DynamicExpr{} = dyanmic, _backend) do
+    {:ok, new_words, dyanmic}
+  end
+
+  defp filter_by_value([word | words], new_words, %Ecto.Query.DynamicExpr{} = dynamic, backend) do
+    fields = backend.get_fields()
+
+    result =
+      case partition_value(word) do
+        {key, op, value} ->
+          field =
+            fields
+            |> Enum.filter(fn field -> Atom.to_string(field.id) == key end)
+            |> Enum.filter(fn field -> field.searchable == true end)
+            |> List.first()
+
+          if field == nil do
+            {:error, "Field #{key} is not searchable"}
+          else
+            filter_by_field(dynamic, field, op, value)
+          end
+
+        word ->
+          {:ok, [word | new_words], dynamic}
       end
 
-    from [object: o] in query, where: ^dynamic
+    case result do
+      {:ok, new_words, %Ecto.Query.DynamicExpr{} = dynamic} ->
+        filter_by_value(words, new_words, dynamic, backend)
+
+      {:ok, %Ecto.Query.DynamicExpr{} = dynamic} ->
+        filter_by_value(words, new_words, dynamic, backend)
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  @spec filter_by_query(query :: Ecto.Query.t(), query_string :: String.t()) ::
+          {:ok, Ecto.Query.t()} | {:error, String.t()}
+  def filter_by_query(%Ecto.Query{} = query, nil) do
+    {:ok, query}
+  end
+
+  def filter_by_query(%Ecto.Query{} = query, query_string) do
+    backend = get_query_backend(query)
+
+    dynamic = dynamic([o], true)
+
+    result =
+      String.split(query_string)
+      |> filter_by_value([], dynamic, backend)
+
+    case result do
+      {:ok, words, dynamic} ->
+        case filter_by_words(dynamic, :name, "~", Enum.join(words, " ")) do
+          {:ok, dynamic} ->
+            query = from [object: o] in query, where: ^dynamic
+            {:ok, query}
+
+          {:error, _} = error ->
+            error
+        end
+
+      {:error, _} = error ->
+        error
+    end
   end
 
   @spec filter_by_id_map(query :: Ecto.Query.t(), ids :: MapSet.t()) :: Ecto.Query.t()
@@ -173,16 +443,14 @@ defmodule PenguinMemories.Database.Query do
   @spec filter_by_filter(
           query :: Ecto.Query.t(),
           filter :: Filter.t()
-        ) :: Ecto.Query.t()
+        ) :: {:ok, Ecto.Query.t()} | {:error, String.t()}
   def filter_by_filter(%Ecto.Query{} = query, %Filter{} = filter) do
     backend = get_query_backend(query)
 
     query
     |> filter_if_set(filter.ids, &filter_by_id_map/2)
-    # |> filter_if_set(filter.photo_id, &backend.filter_by_photo_id/2)
-    # |> filter_if_set(filter.parent_id, &backend.filter_by_parent_id/2)
-    |> filter_if_set(filter.query, &filter_by_query/2)
     |> filter_if_set(filter.reference, &backend.filter_by_reference/2)
+    |> filter_by_query(filter.query)
   end
 
   @spec filter_by_ascendants(query :: Ecto.Query.t(), id :: integer) :: Ecto.Query.t()
@@ -400,18 +668,28 @@ defmodule PenguinMemories.Database.Query do
     end)
   end
 
-  @spec count_results(Filter.t(), type :: object_type()) :: integer()
+  @spec count_results(Filter.t(), type :: object_type()) ::
+          {:ok, integer()} | {:error, String.t()}
   def count_results(%Filter{} = filter, type) do
-    type
-    |> query()
-    |> filter_by_filter(filter)
-    |> exclude(:preload)
-    |> exclude(:select)
-    |> exclude(:order_by)
-    |> select([object: o], struct(o, [:id]))
-    |> subquery
-    |> select(count("*"))
-    |> Repo.one!()
+    query = query(type)
+
+    case filter_by_filter(query, filter) do
+      {:ok, query} ->
+        count =
+          query
+          |> exclude(:preload)
+          |> exclude(:select)
+          |> exclude(:order_by)
+          |> select([object: o], struct(o, [:id]))
+          |> subquery
+          |> select(count("*"))
+          |> Repo.one!()
+
+        {:ok, count}
+
+      {:error, _} = error ->
+        error
+    end
   end
 
   @spec query_icons(
@@ -419,19 +697,27 @@ defmodule PenguinMemories.Database.Query do
           limit :: integer,
           type :: object_type(),
           size_key :: String.t()
-        ) :: list(Icon.t())
+        ) :: {:ok, list(Icon.t())} | {:error, String.t()}
   def query_icons(%Filter{} = filter, limit, type, size_key) do
     query =
       query(type)
-      |> filter_by_filter(filter)
       |> get_icons(size_key)
       |> limit(^limit)
 
-    entries = Repo.all(query)
+    case filter_by_filter(query, filter) do
+      {:ok, query} ->
+        entries = Repo.all(query)
 
-    Enum.map(entries, fn result ->
-      get_icon_from_result(result, type)
-    end)
+        icons =
+          Enum.map(entries, fn result ->
+            get_icon_from_result(result, type)
+          end)
+
+        {:ok, icons}
+
+      {:error, _} = error ->
+        error
+    end
   end
 
   @spec query_icon_by_id(id :: integer(), type :: object_type(), size_key :: String.t()) ::
@@ -510,30 +796,36 @@ defmodule PenguinMemories.Database.Query do
           limit :: integer(),
           size_key :: String.t(),
           type :: object_type()
-        ) :: {list(Icon.t()), String.t() | nil, String.t() | nil, integer}
+        ) ::
+          {:ok, list(Icon.t()), String.t() | nil, String.t() | nil, integer}
+          | {:error, String.t()}
   def get_page_icons(%Filter{} = filter, before_key, after_key, limit, size_key, type) do
     backend = Types.get_backend!(type)
+    query = query(type)
 
-    query =
-      query(type)
-      |> filter_by_filter(filter)
-      |> get_icons(size_key)
+    case filter_by_filter(query, filter) do
+      {:ok, query} ->
+        query = get_icons(query, size_key)
 
-    %{entries: entries, metadata: metadata} =
-      Repo.paginate(
-        query,
-        before: before_key,
-        after: after_key,
-        cursor_fields: backend.get_cursor_fields(),
-        limit: limit
-      )
+        %{entries: entries, metadata: metadata} =
+          Repo.paginate(
+            query,
+            before: before_key,
+            after: after_key,
+            cursor_fields: backend.get_cursor_fields(),
+            limit: limit
+          )
 
-    icons =
-      Enum.map(entries, fn result ->
-        get_icon_from_result(result, type)
-      end)
+        icons =
+          Enum.map(entries, fn result ->
+            get_icon_from_result(result, type)
+          end)
 
-    {icons, metadata.before, metadata.after, metadata.total_count}
+        {:ok, icons, metadata.before, metadata.after, metadata.total_count}
+
+      {:error, _} = error ->
+        error
+    end
   end
 
   @spec get_prev_next_id(
@@ -542,28 +834,32 @@ defmodule PenguinMemories.Database.Query do
           after_key :: String.t() | nil,
           size_key :: String.t(),
           type :: object_type()
-        ) :: nil | Icon.t()
+        ) :: {:ok, nil | Icon.t()} | {:error, String.t()}
   def get_prev_next_id(%Filter{} = filter, before_key, after_key, size_key, type) do
-    backend = Types.get_backend!(type)
+    query = query(type)
 
-    query =
-      query(type)
-      |> filter_by_filter(filter)
-      |> get_icons(size_key)
+    case filter_by_filter(query, filter) do
+      {:ok, query} ->
+        backend = Types.get_backend!(type)
+        query = get_icons(query, size_key)
 
-    %{entries: entries, metadata: _} =
-      Repo.paginate(
-        query,
-        before: before_key,
-        after: after_key,
-        cursor_fields: backend.get_cursor_fields(),
-        limit: 1,
-        include_total_count: false
-      )
+        %{entries: entries, metadata: _} =
+          Repo.paginate(
+            query,
+            before: before_key,
+            after: after_key,
+            cursor_fields: backend.get_cursor_fields(),
+            limit: 1,
+            include_total_count: false
+          )
 
-    case entries do
-      [result] -> get_icon_from_result(result, type)
-      [] -> nil
+        case entries do
+          [result] -> {:ok, get_icon_from_result(result, type)}
+          [] -> {:ok, nil}
+        end
+
+      {:error, _} = error ->
+        error
     end
   end
 
