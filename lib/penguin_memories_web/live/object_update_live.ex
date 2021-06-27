@@ -98,19 +98,29 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @impl true
   def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) do
-      handle_validate(socket, params)
-    else
-      {:noreply, assign(socket, :error, "Permission denied")}
+    cond do
+      not Auth.can_edit(socket.assigns.common.user) ->
+        {:noreply, assign(socket, :error, "Permission denied")}
+
+      not is_editing(socket.assigns) ->
+        {:noreply, socket}
+
+      true ->
+        handle_validate(socket, params)
     end
   end
 
   @impl true
   def handle_event("save", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) do
-      handle_save(socket, params)
-    else
-      {:noreply, assign(socket, :error, "Permission denied")}
+    cond do
+      not Auth.can_edit(socket.assigns.common.user) ->
+        {:noreply, assign(socket, :error, "Permission denied")}
+
+      not is_editing(socket.assigns) ->
+        {:noreply, socket}
+
+      true ->
+        handle_save(socket, params)
     end
   end
 
@@ -124,6 +134,11 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     ]
 
     {:noreply, assign(socket, assigns)}
+  end
+
+  @spec is_editing(assigns :: map()) :: boolean()
+  defp is_editing(assigns) do
+    assigns.changeset != nil
   end
 
   @spec handle_update(Socket.t()) :: {:noreply, Socket.t()}

@@ -6,7 +6,7 @@
       </div>
     <% end %>
 
-    <%= if @changeset do %>
+    <%= if is_editing(assigns) do %>
       <% fields = Fields.get_fields(@type, @common.user) %>
       <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save"] %>
         <%= for %Fields.Field{} = field <- fields do %>

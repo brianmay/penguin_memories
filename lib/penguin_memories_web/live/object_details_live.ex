@@ -136,19 +136,29 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) do
-      handle_validate(socket, params)
-    else
-      {:noreply, assign(socket, :error, "Permission denied")}
+    cond do
+      not Auth.can_edit(socket.assigns.common.user) ->
+        {:noreply, assign(socket, :error, "Permission denied")}
+
+      not is_editing(socket.assigns) ->
+        {:noreply, socket}
+
+      true ->
+        handle_validate(socket, params)
     end
   end
 
   @impl true
   def handle_event("save", %{"object" => params}, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) do
-      handle_save(socket, params)
-    else
-      {:noreply, assign(socket, :error, "Permission denied")}
+    cond do
+      not Auth.can_edit(socket.assigns.common.user) ->
+        {:noreply, assign(socket, :error, "Permission denied")}
+
+      not is_editing(socket.assigns) ->
+        {:noreply, socket}
+
+      true ->
+        handle_save(socket, params)
     end
   end
 
@@ -215,6 +225,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     assoc = Map.put(socket.assigns.assoc, id, value)
     socket = assign(socket, assoc: assoc)
     {:noreply, socket}
+  end
+
+  @spec is_editing(assigns :: map()) :: boolean()
+  defp is_editing(assigns) do
+    assigns.mode == :edit
   end
 
   @spec handle_create(Socket.t()) :: {:noreply, Socket.t()}
