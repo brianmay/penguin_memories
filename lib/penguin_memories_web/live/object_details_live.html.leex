@@ -4,8 +4,10 @@
 
   <div
     class="details <%= if @big do %>big<% end %> <%= IconHelpers.icon_classes(@details.icon) %>"
-    phx-window-keydown="key"
-    phx-throttle="500"
+    <%= if @big do %>
+      phx-window-keydown="key"
+      phx-throttle="500"
+    <% end %>
   >
     <h2>
       <%= @title %>
