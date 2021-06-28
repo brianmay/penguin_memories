@@ -98,6 +98,30 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   @impl true
+  def handle_event("key", %{"key" => key}, %Socket{} = socket) do
+    case key do
+      "ArrowLeft" ->
+        icon = socket.assigns.prev_icon
+
+        if icon != nil do
+          send(socket.parent_pid, {:select_object, icon.id})
+        end
+
+      "ArrowRight" ->
+        icon = socket.assigns.next_icon
+
+        if icon != nil do
+          send(socket.parent_pid, {:select_object, icon.id})
+        end
+
+      _ ->
+        nil
+    end
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("unbig", _params, %Socket{} = socket) do
     url =
       socket.assigns.common.url
