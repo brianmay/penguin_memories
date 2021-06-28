@@ -84,7 +84,17 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
   def handle_info({:selected, id, value}, %Socket{} = socket) do
     assoc = Map.put(socket.assigns.assoc, id, value)
     socket = assign(socket, assoc: assoc)
-    {:noreply, socket}
+
+    cond do
+      not Auth.can_edit(socket.assigns.common.user) ->
+        {:noreply, assign(socket, :error, "Permission denied")}
+
+      not is_editing(socket.assigns) ->
+        {:noreply, socket}
+
+      true ->
+        handle_validate(socket, socket.assigns.changeset.params)
+    end
   end
 
   @impl true
