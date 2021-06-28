@@ -23,7 +23,8 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       icons: %{},
       edit: nil,
       text: "",
-      error: nil
+      error: nil,
+      disabled: true
     ]
 
     {:ok, assign(socket, assigns)}
@@ -61,7 +62,8 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
             disabled: boolean(),
             field: Field.t(),
             form: Form.t(),
-            updates: {module(), String.t()}
+            updates: {module(), String.t()},
+            error: nil
           },
           Phoenix.LiveView.Socket.t()
         ) :: {:ok, Phoenix.LiveView.Socket.t()}
@@ -115,11 +117,11 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     if socket.assigns.disabled do
       {:noreply, socket}
     else
-      type = socket.assigns.type
+      type = PenguinMemories.Photos.Person
 
       selected =
         socket.assigns.selected
-        |> Enum.map(fn selected -> selected.id end)
+        |> Enum.map(fn {person_id, _} -> person_id end)
         |> MapSet.new()
 
       case Query.query_icons(search, 10, type, "thumb") do

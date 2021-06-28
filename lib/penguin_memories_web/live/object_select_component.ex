@@ -21,7 +21,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       selected: [],
       icons: %{},
       text: "",
-      error: nil
+      error: nil,
+      disabled: true
     ]
 
     {:ok, assign(socket, assigns)}
