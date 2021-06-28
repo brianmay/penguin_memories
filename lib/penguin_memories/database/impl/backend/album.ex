@@ -170,6 +170,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
         searchable: true
       },
       %Field{
+        id: :reindex,
+        name: "Re-index",
+        type: :boolean,
+        searchable: true
+      },
+      %Field{
         id: :revised,
         name: "Revised time",
         type: :datetime,
@@ -204,6 +210,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   def edit_changeset(%Album{} = object, attrs, assoc) do
     object
     |> cast(attrs, [
+      :name,
       :revised
     ])
     |> validate_required([:name])

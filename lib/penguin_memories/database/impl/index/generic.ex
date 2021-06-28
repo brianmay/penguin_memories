@@ -105,8 +105,8 @@ defmodule PenguinMemories.Database.Impl.Index.Generic do
   end
 
   @impl API
-  @spec delete_index(id :: integer, index :: {integer, integer}, type :: object_type) :: :ok
-  def delete_index(id, index, type) do
+  @spec update_index(id :: integer, index :: {integer, integer}, type :: object_type) :: :ok
+  def update_index(id, index, type) do
     backend = Types.get_backend!(type)
 
     case backend.get_index_type() do
@@ -114,14 +114,45 @@ defmodule PenguinMemories.Database.Impl.Index.Generic do
         :ok
 
       index_type ->
-        {referenced_id, _position} = index
+        {referenced_id, position} = index
 
-        Repo.delete_all(
-          from oa in index_type,
+        query =
+          from(oa in index_type,
             where: oa.ascendant_id == ^referenced_id and oa.descendant_id == ^id
-        )
+          )
 
+        {1, _} = Repo.update_all(query, set: [position: position])
         :ok
     end
+  end
+
+  @impl API
+  @spec delete_index(id :: integer, ref_id :: integer, type :: object_type) :: :ok
+  def delete_index(id, ref_id, type) do
+    backend = Types.get_backend!(type)
+
+    case backend.get_index_type() do
+      nil ->
+        :ok
+
+      index_type ->
+        query =
+          from(oa in index_type,
+            where: oa.ascendant_id == ^ref_id and oa.descendant_id == ^id
+          )
+
+        Repo.delete_all(query)
+        :ok
+    end
+  end
+
+  @impl API
+  @spec set_done(integer, object_type) :: :ok
+  def set_done(id, type) do
+    {1, _} =
+      from(o in type, where: o.id == ^id)
+      |> Repo.update_all(set: [reindex: false])
+
+    :ok
   end
 end

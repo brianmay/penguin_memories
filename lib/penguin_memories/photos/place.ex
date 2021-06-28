@@ -28,6 +28,7 @@ defmodule PenguinMemories.Photos.Place do
           ascendants: list(PlaceAscendant.t()) | Ecto.Association.NotLoaded.t(),
           descendants: list(PlaceAscendant.t()) | Ecto.Association.NotLoaded.t(),
           photos: list(Photo.t()) | Ecto.Association.NotLoaded.t(),
+          reindex: boolean() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -50,6 +51,7 @@ defmodule PenguinMemories.Photos.Place do
     has_many :ascendants, PenguinMemories.Photos.PlaceAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.PlaceAscendant, foreign_key: :ascendant_id
     has_many :photos, PenguinMemories.Photos.Photo, foreign_key: :place_id
+    field :reindex, :boolean
     timestamps()
   end
 end

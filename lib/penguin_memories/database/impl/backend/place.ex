@@ -208,6 +208,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
         searchable: true
       },
       %Field{
+        id: :reindex,
+        name: "Re-index",
+        type: :boolean,
+        searchable: true
+      },
+      %Field{
         id: :revised,
         name: "Revised time",
         type: :datetime,

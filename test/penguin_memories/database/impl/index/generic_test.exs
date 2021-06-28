@@ -149,7 +149,7 @@ defmodule PenguinMemories.Database.Impl.Index.GenericTest do
         index = Types.get_backend!(type).get_index_type()
         obj = create(type, "object")
         struct(index, ascendant_id: obj.id, descendant_id: obj.id, position: 0) |> Repo.insert!()
-        :ok = Generic.delete_index(obj.id, {obj.id, 999}, type)
+        :ok = Generic.delete_index(obj.id, obj.id, type)
         result = Generic.get_index(obj.id, type)
         assert result == MapSet.new([])
       end

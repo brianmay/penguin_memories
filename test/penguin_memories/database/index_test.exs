@@ -245,32 +245,40 @@ defmodule PenguinMemories.Database.IndexTest do
       child_data = reverse_map(parent_data)
 
       index = %{
-        1 => MapSet.new([{1, 1}])
+        1 => MapSet.new([{1, 1}, {5, 1}])
       }
 
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
+      {:ok, update_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
       PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
-      |> expect(:delete_index, 1, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
+      |> expect(:set_done, 1, fn _, _ -> :ok end)
+      |> expect(:delete_index, 1, fn id, ref_id, _ ->
+        :ok = GenServer.call(delete_table, {:put, id, ref_id, 99})
         :ok
       end)
-      |> expect(:create_index, 1, fn id, {ref_id, position}, _ ->
+      |> expect(:create_index, 0, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(create_table, {:put, id, ref_id, position})
+        :ok
+      end)
+      |> expect(:update_index, 1, fn id, {ref_id, position}, _ ->
+        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
         :ok
       end)
 
       {:ok, _} = Index.fix_index_tree(1, @dummy_type)
 
       assert GenServer.call(delete_table, :get) == %{
-               1 => MapSet.new([{1, 1}])
+               1 => MapSet.new([{5, 99}])
              }
 
-      assert GenServer.call(create_table, :get) == %{
+      assert GenServer.call(create_table, :get) == %{}
+
+      assert GenServer.call(update_table, :get) == %{
                1 => MapSet.new([{1, 0}])
              }
 
@@ -294,32 +302,39 @@ defmodule PenguinMemories.Database.IndexTest do
       }
 
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
+      {:ok, update_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
       PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
-      |> expect(:delete_index, 2, fn id, {ref_id, position}, _ ->
+      |> expect(:set_done, 3, fn _, _ -> :ok end)
+      |> expect(:delete_index, 0, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
         :ok
       end)
-      |> expect(:create_index, 6, fn id, {ref_id, position}, _ ->
+      |> expect(:create_index, 4, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(create_table, {:put, id, ref_id, position})
+        :ok
+      end)
+      |> expect(:update_index, 2, fn id, {ref_id, position}, _ ->
+        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
         :ok
       end)
 
       {:ok, _} = Index.fix_index_tree(3, @dummy_type)
 
-      assert GenServer.call(delete_table, :get) == %{
-               1 => MapSet.new([{1, 98}]),
-               2 => MapSet.new([{1, 99}])
-             }
+      assert GenServer.call(delete_table, :get) == %{}
 
       assert GenServer.call(create_table, :get) == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{2, 0}, {1, 1}]),
+               2 => MapSet.new([{2, 0}]),
                3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
+
+      assert GenServer.call(update_table, :get) == %{
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{1, 1}])
              }
 
       verify!()
@@ -342,32 +357,40 @@ defmodule PenguinMemories.Database.IndexTest do
       }
 
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
+      {:ok, update_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
       PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
-      |> expect(:delete_index, 4, fn id, {ref_id, position}, _ ->
+      |> expect(:set_done, 6, fn _, _ -> :ok end)
+      |> expect(:delete_index, 0, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
         :ok
       end)
-      |> expect(:create_index, 18, fn id, {ref_id, position}, _ ->
+      |> expect(:create_index, 14, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(create_table, {:put, id, ref_id, position})
+        :ok
+      end)
+      |> expect(:update_index, 4, fn id, {ref_id, position}, _ ->
+        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
         :ok
       end)
 
       {:ok, _} = Index.fix_index_tree(3, @dummy_type)
 
-      assert GenServer.call(delete_table, :get) == %{
-               1 => MapSet.new([{1, 98}]),
-               2 => MapSet.new([{1, 99}])
-             }
+      assert GenServer.call(delete_table, :get) == %{}
 
       assert GenServer.call(create_table, :get) == %{
-               1 => MapSet.new([{1, 0}, {3, 1}, {2, 2}]),
-               2 => MapSet.new([{2, 0}, {1, 1}, {3, 2}]),
+               1 => MapSet.new([{3, 1}, {2, 2}]),
+               2 => MapSet.new([{2, 0}, {3, 2}]),
                3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
+
+      assert GenServer.call(update_table, :get) == %{
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{1, 1}])
              }
 
       verify!()
@@ -390,32 +413,39 @@ defmodule PenguinMemories.Database.IndexTest do
       }
 
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
+      {:ok, update_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
       PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
-      |> expect(:delete_index, 2, fn id, {ref_id, position}, _ ->
+      |> expect(:set_done, 3, fn _, _ -> :ok end)
+      |> expect(:delete_index, 0, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
         :ok
       end)
-      |> expect(:create_index, 6, fn id, {ref_id, position}, _ ->
+      |> expect(:create_index, 4, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(create_table, {:put, id, ref_id, position})
+        :ok
+      end)
+      |> expect(:update_index, 2, fn id, {ref_id, position}, _ ->
+        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
         :ok
       end)
 
       {:ok, _} = Index.fix_index_tree(3, @dummy_type)
 
-      assert GenServer.call(delete_table, :get) == %{
-               1 => MapSet.new([{1, 98}]),
-               2 => MapSet.new([{1, 99}])
-             }
+      assert GenServer.call(delete_table, :get) == %{}
 
       assert GenServer.call(create_table, :get) == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{2, 0}, {1, 1}]),
+               2 => MapSet.new([{2, 0}]),
                3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
+
+      assert GenServer.call(update_table, :get) == %{
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{1, 1}])
              }
 
       verify!()
@@ -438,32 +468,40 @@ defmodule PenguinMemories.Database.IndexTest do
       }
 
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
+      {:ok, update_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
       PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
-      |> expect(:delete_index, 4, fn id, {ref_id, position}, _ ->
+      |> expect(:set_done, 6, fn _, _ -> :ok end)
+      |> expect(:delete_index, 0, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
         :ok
       end)
-      |> expect(:create_index, 18, fn id, {ref_id, position}, _ ->
+      |> expect(:create_index, 14, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(create_table, {:put, id, ref_id, position})
+        :ok
+      end)
+      |> expect(:update_index, 4, fn id, {ref_id, position}, _ ->
+        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
         :ok
       end)
 
       {:ok, _} = Index.fix_index_tree(3, @dummy_type)
 
-      assert GenServer.call(delete_table, :get) == %{
-               1 => MapSet.new([{1, 98}]),
-               2 => MapSet.new([{1, 99}])
-             }
+      assert GenServer.call(delete_table, :get) == %{}
 
       assert GenServer.call(create_table, :get) == %{
-               1 => MapSet.new([{1, 0}, {3, 1}, {2, 2}]),
-               2 => MapSet.new([{2, 0}, {1, 1}, {3, 2}]),
+               1 => MapSet.new([{3, 1}, {2, 2}]),
+               2 => MapSet.new([{2, 0}, {3, 2}]),
                3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+             }
+
+      assert GenServer.call(update_table, :get) == %{
+               1 => MapSet.new([{1, 0}]),
+               2 => MapSet.new([{1, 1}])
              }
 
       verify!()

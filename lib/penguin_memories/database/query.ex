@@ -9,7 +9,6 @@ defmodule PenguinMemories.Database.Query do
 
   alias PenguinMemories.Database
   alias PenguinMemories.Database.Fields
-  alias PenguinMemories.Database.Index
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.FileOrder
@@ -874,7 +873,18 @@ defmodule PenguinMemories.Database.Query do
       end
 
     type = object.__struct__
-    {assoc, get_edit_changeset(struct(type), attrs, assoc)}
+    backend = Types.get_backend!(type)
+    parent_fields = backend.get_parent_fields()
+
+    obj = struct(type)
+
+    obj =
+      parent_fields
+      |> Enum.reduce(obj, fn field, obj ->
+        Map.put(obj, field, nil)
+      end)
+
+    {assoc, get_edit_changeset(obj, attrs, assoc)}
   end
 
   @spec get_edit_changeset(object :: struct(), attrs :: map(), assoc :: map()) ::
@@ -884,48 +894,66 @@ defmodule PenguinMemories.Database.Query do
     backend.edit_changeset(object, attrs, assoc)
   end
 
-  @spec get_changed_parents(changeset :: Ecto.Changeset.t()) :: list(integer())
+  @spec get_object_id(struct()) :: integer() | nil
+  defp get_object_id(nil), do: nil
+  defp get_object_id(%{id: id}), do: id
+
+  @spec get_changed_parents(changeset :: Ecto.Changeset.t()) :: list({integer(), integer()})
   defp get_changed_parents(%Ecto.Changeset{} = changeset) do
     type = changeset.data.__struct__
     backend = Types.get_backend!(type)
     parent_fields = backend.get_parent_fields()
 
     Enum.map(parent_fields, fn field ->
-      Ecto.Changeset.fetch_change(changeset, field)
+      case Ecto.Changeset.fetch_change(changeset, field) do
+        {:ok, new_value} ->
+          old_value = Map.fetch!(changeset.data, field)
+          {get_object_id(old_value), new_value.data.id}
+
+        :error ->
+          nil
+      end
     end)
-    |> Enum.filter(fn
-      {:ok, _value} -> true
-      :error -> false
-    end)
-    |> Enum.map(fn
-      {:ok, nil} -> nil
-      {:ok, value} -> value.data.id
-    end)
+    |> Enum.reject(fn value -> value == nil end)
   end
 
-  @spec fix_index(changeset :: Ecto.Changeset.t(), id :: integer(), cache :: Index.cache_type()) ::
-          {:ok, Index.cache_type()}
-  def fix_index(%Ecto.Changeset{} = changeset, id, cache) do
+  @spec fix_index(changeset :: Ecto.Changeset.t(), obj :: struct()) :: {:ok, struct()}
+  def fix_index(%Ecto.Changeset{} = changeset, obj) do
     # We can't use the id value from the changeset, because it will be nil for new objects.+
     type = changeset.data.__struct__
     parent_ids = get_changed_parents(changeset)
 
-    case parent_ids do
-      [] ->
-        {:ok, cache}
+    reindex =
+      case parent_ids do
+        [] ->
+          # Force update for new objects
+          changeset.action == :insert
 
-      list_ids ->
-        cache =
-          Enum.reduce(list_ids, cache, fn
-            nil, cache ->
-              cache
+        list_ids ->
+          Enum.each(list_ids, fn
+            {nil, _} ->
+              :ok
 
-            parent_id, cache ->
-              {:ok, cache} = Index.fix_index_tree(parent_id, type, cache)
-              cache
+            {old_parent_id, _} ->
+              from(o in type, where: o.id == ^old_parent_id)
+              |> Repo.update_all(set: [reindex: true])
           end)
 
-        Index.fix_index_tree(id, type, cache)
+          # Update required as parents changed
+          true
+      end
+
+    case reindex do
+      true ->
+        obj =
+          obj
+          |> Ecto.Changeset.change(%{reindex: true})
+          |> Repo.update!()
+
+        {:ok, obj}
+
+      false ->
+        {:ok, obj}
     end
   end
 
@@ -940,7 +968,7 @@ defmodule PenguinMemories.Database.Query do
     |> Multi.insert_or_update({:update, id}, changeset)
     |> Multi.run({:index, id}, fn _, data ->
       obj = Map.fetch!(data, {:update, id})
-      fix_index(changeset, obj.id, %{})
+      {:ok, _} = fix_index(changeset, obj)
     end)
   end
 
@@ -999,30 +1027,25 @@ defmodule PenguinMemories.Database.Query do
   defp do_delete(object) do
     type = object.__struct__
     backend = Types.get_backend!(type)
-    index = backend.get_index_type()
+    parent_id_fields = backend.get_parent_id_fields()
 
     result =
       Ecto.Multi.new()
-      |> Ecto.Multi.delete_all(
-        :index1,
-        from(obj in index, where: obj.ascendant_id == ^object.id)
-      )
-      |> Ecto.Multi.delete_all(
-        :index2,
-        from(obj in index, where: obj.descendant_id == ^object.id)
-      )
-      |> Ecto.Multi.run(:object, fn _, _ -> Repo.delete(object) end)
+      |> Ecto.Multi.run(:object, fn _, _ ->
+        Enum.each(parent_id_fields, fn id_field ->
+          id = Map.fetch!(object, id_field)
+
+          from(o in type, where: o.id == ^id)
+          |> Repo.update_all(set: [reindex: true])
+        end)
+
+        Repo.delete(object)
+      end)
       |> Repo.transaction()
 
     case result do
       {:ok, _} ->
         :ok
-
-      {:error, :index1, _, _} ->
-        {:error, "Cannot index 1"}
-
-      {:error, :index2, _, _} ->
-        {:error, "Cannot index 2"}
 
       {:error, :object, _, _} ->
         {:error, "Cannot delete object"}
@@ -1036,11 +1059,4 @@ defmodule PenguinMemories.Database.Query do
       {:no, error} -> {:error, error}
     end
   end
-
-  # @spec get_photo_params(id :: integer) :: map() | nil
-  # def get_photo_params(id) do
-  #   %{
-  #     "album" => id
-  #   }
-  # end
 end

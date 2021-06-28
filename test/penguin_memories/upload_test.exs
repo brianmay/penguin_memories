@@ -23,6 +23,7 @@ defmodule PenguinMemories.Uploadtest do
     |> Mox.stub(:get_child_ids, fn _, _ -> [] end)
     |> Mox.stub(:get_index, fn _, _ -> MapSet.new() end)
     |> Mox.stub(:create_index, fn _, _, _ -> :ok end)
+    |> Mox.stub(:set_done, fn _, _ -> :ok end)
 
     {:ok, image_dir: image_dir}
   end

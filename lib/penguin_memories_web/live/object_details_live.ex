@@ -286,7 +286,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, assign(socket, changeset: changeset)}
   end
 
-  @spec changeset_errors(Changeset.t()) :: list(String.t())
+  @spec changeset_errors(Changeset.t() | list(Changeset.t())) :: list(String.t())
   defp changeset_errors(%Changeset{} = changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn
       {msg, opts} -> String.replace(msg, "%{count}", to_string(opts[:count]))
@@ -298,8 +298,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     |> List.flatten()
   end
 
-  @spec changeset_errors(list(Changeset.t())) :: list(String.t())
-  defp changesets_errors(changesets) do
+  defp changeset_errors(changesets) do
     changesets
     |> Enum.map(fn changeset -> changeset_errors(changeset) end)
     |> List.flatten()
@@ -308,7 +307,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @spec add_nested_errors(Changeset.t()) :: Changeset.t()
   defp add_nested_errors(%Changeset{} = changeset) do
     Enum.map(changeset.changes, fn
-      {key, changesets} -> {key, changesets_errors(changesets)}
+      {key, changesets} -> {key, changeset_errors(changesets)}
     end)
     |> Enum.reduce(changeset, fn {key, errors}, changeset ->
       Enum.reduce(errors, changeset, fn error, changeset ->

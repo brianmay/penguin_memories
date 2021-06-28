@@ -5,7 +5,6 @@ defmodule PenguinMemories.Database.Updates do
   import Ecto.Query
 
   alias PenguinMemories.Database
-  alias PenguinMemories.Database.Index
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Repo
@@ -174,19 +173,16 @@ defmodule PenguinMemories.Database.Updates do
     end
   end
 
-  @spec fix_index(
-          result :: {:ok, Ecto.Changeset.t(), struct()} | {:error, String.t()},
-          cache :: Index.cache_type()
-        ) :: {:ok, Index.cache_type()} | {:error, String.t()}
-  defp fix_index({:error, _} = rc, _cache), do: rc
+  @spec fix_index(result :: {:ok, Ecto.Changeset.t(), struct()} | {:error, String.t()}) ::
+          {:ok, struct()} | {:error, String.t()}
+  defp fix_index({:error, _} = rc), do: rc
 
-  defp fix_index({:ok, %Ecto.Changeset{} = changeset, new_obj}, cache) do
-    Query.fix_index(changeset, new_obj.id, cache)
+  defp fix_index({:ok, %Ecto.Changeset{} = changeset, new_obj}) do
+    Query.fix_index(changeset, new_obj)
   end
 
-  @spec rollback_if_error(result :: {:ok, Index.cache_type()} | {:error, String.t()}) ::
-          Index.cache_type()
-  defp rollback_if_error({:ok, cache}), do: cache
+  @spec rollback_if_error(result :: {:ok, struct()} | {:error, String.t()}) :: :ok
+  defp rollback_if_error({:ok, _}), do: :ok
   defp rollback_if_error({:error, reason}), do: Repo.rollback(reason)
 
   @spec decode_result({:ok, :ok} | {:error, String.t()}) :: :ok | {:error, String.t()}
@@ -202,11 +198,11 @@ defmodule PenguinMemories.Database.Updates do
       query
       |> select_merge([object: o], %{o: o})
       |> Repo.stream()
-      |> Stream.scan(%{}, fn result, cache ->
+      |> Stream.each(fn result ->
         [obj] = backend.preload_details_from_results([result.o])
 
         apply_updates_to_object(updates, obj)
-        |> fix_index(cache)
+        |> fix_index()
         |> rollback_if_error()
       end)
       |> Stream.run()

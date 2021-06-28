@@ -222,6 +222,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
         searchable: true
       },
       %Field{
+        id: :reindex,
+        name: "Re-index",
+        type: :boolean,
+        searchable: true
+      },
+      %Field{
         id: :revised,
         name: "Revised time",
         type: :datetime,

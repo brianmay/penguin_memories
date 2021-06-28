@@ -36,6 +36,7 @@ defmodule PenguinMemories.Photos.Person do
           ascendants: list(PersonAscendant.t()) | Ecto.Association.NotLoaded.t(),
           descendants: list(PersonAscendant.t()) | Ecto.Association.NotLoaded.t(),
           photos: list(Photo.t()) | Ecto.Association.NotLoaded.t(),
+          reindex: boolean() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -61,6 +62,7 @@ defmodule PenguinMemories.Photos.Person do
     has_many :ascendants, PenguinMemories.Photos.PersonAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.PersonAscendant, foreign_key: :ascendant_id
     many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoPerson
+    field :reindex, :boolean
     timestamps()
   end
 end

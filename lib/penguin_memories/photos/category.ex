@@ -22,6 +22,7 @@ defmodule PenguinMemories.Photos.Category do
           ascendants: list(CategoryAscendant.t()) | Ecto.Association.NotLoaded.t(),
           descendants: list(CategoryAscendant.t()) | Ecto.Association.NotLoaded.t(),
           photos: list(Photo.t()) | Ecto.Association.NotLoaded.t(),
+          reindex: boolean() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -37,6 +38,7 @@ defmodule PenguinMemories.Photos.Category do
     has_many :ascendants, PenguinMemories.Photos.CategoryAscendant, foreign_key: :descendant_id
     has_many :descendants, PenguinMemories.Photos.CategoryAscendant, foreign_key: :ascendant_id
     many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoCategory
+    field :reindex, :boolean
     timestamps()
   end
 end
