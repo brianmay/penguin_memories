@@ -12,7 +12,7 @@ defmodule PenguinMemories.Application do
       # Start the Telemetry supervisor
       PenguinMemoriesWeb.Telemetry,
       # Start the PubSub system
-      {Phoenix.PubSub, name: PenguinMemories.PubSub},
+      {Phoenix.PubSub, name: PenguinMemories.PubSub, adapter: Phoenix.PubSub.PG2},
       # Start the Endpoint (http/https)
       PenguinMemoriesWeb.Endpoint
       # Start a worker by calling: PenguinMemories.Worker.start_link(arg)
