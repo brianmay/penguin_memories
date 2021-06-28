@@ -153,9 +153,13 @@
         <% end %>
 
         <%= if @big do %>
-          <div class="btn btn-secondary" phx-click="unbig">Unbig</div>
+          <%= live_redirect to: get_unbig_url(@socket, assigns), class: "btn btn-secondary" do %>
+            Unbig
+          <% end %>
         <% else %>
-          <div class="btn btn-secondary" phx-click="big">Big</div>
+          <%= live_redirect to: get_big_url(@socket, assigns), class: "btn btn-secondary" do %>
+            Big
+          <% end %>
         <% end %>
 
         <%= if @details.orig != nil and Auth.can_see_orig(@common.user) do %>

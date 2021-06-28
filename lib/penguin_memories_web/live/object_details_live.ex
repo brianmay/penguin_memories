@@ -87,17 +87,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   @impl true
-  def handle_event("big", _params, %Socket{} = socket) do
-    url =
-      socket.assigns.common.url
-      |> Urls.url_merge(%{"big" => socket.id}, [])
-      |> URI.to_string()
-
-    socket = push_patch(socket, to: url)
-    {:noreply, socket}
-  end
-
-  @impl true
   def handle_event("key", %{"key" => key}, %Socket{} = socket) do
     case key do
       "ArrowLeft" ->
@@ -118,17 +107,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
         nil
     end
 
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("unbig", _params, %Socket{} = socket) do
-    url =
-      socket.assigns.common.url
-      |> Urls.url_merge(%{}, ["big"])
-      |> URI.to_string()
-
-    socket = push_patch(socket, to: url)
     {:noreply, socket}
   end
 
@@ -482,6 +460,20 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     }
 
     Routes.main_path(socket, :index, "photo", params)
+  end
+
+  @spec get_big_url(socket :: Socket.t(), assigns :: map()) :: String.t()
+  defp get_big_url(%Socket{} = socket, %{} = assigns) do
+    assigns.common.url
+    |> Urls.url_merge(%{"big" => socket.id}, [])
+    |> URI.to_string()
+  end
+
+  @spec get_unbig_url(socket :: Socket.t(), assigns :: map()) :: String.t()
+  defp get_unbig_url(%Socket{} = _socket, %{} = assigns) do
+    assigns.common.url
+    |> Urls.url_merge(%{}, ["big"])
+    |> URI.to_string()
   end
 
   @spec to_int(String.t()) :: integer
