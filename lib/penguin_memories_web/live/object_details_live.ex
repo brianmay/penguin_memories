@@ -244,7 +244,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     assigns.mode == :edit
   end
 
-  @spec handle_create(Socket.t()) :: {:noreply, Socket.t()}
+  @spec handle_create(socket :: Socket.t()) :: {:noreply, Socket.t()}
   defp handle_create(%Socket{} = socket) do
     {assoc, changeset} = Query.get_create_child_changeset(socket.assigns.details.obj, %{}, %{})
 
@@ -260,7 +260,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, assign(socket, assigns)}
   end
 
-  @spec handle_edit(Socket.t()) :: {:noreply, Socket.t()}
+  @spec handle_edit(socket :: Socket.t()) :: {:noreply, Socket.t()}
   defp handle_edit(%Socket{} = socket) do
     changeset = Query.get_edit_changeset(socket.assigns.details.obj, %{}, %{})
     changeset = %{changeset | action: :update}
@@ -277,7 +277,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, assign(socket, assigns)}
   end
 
-  @spec handle_delete(Socket.t()) :: {:noreply, Socket.t()}
+  @spec handle_delete(socket :: Socket.t()) :: {:noreply, Socket.t()}
   defp handle_delete(%Socket{} = socket) do
     error =
       case Query.delete(socket.assigns.details.obj) do
@@ -292,7 +292,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, assign(socket, error: error)}
   end
 
-  @spec handle_validate(Socket.t(), map()) :: {:noreply, Socket.t()}
+  @spec handle_validate(socket :: Socket.t(), params :: map()) :: {:noreply, Socket.t()}
   def handle_validate(%Socket{} = socket, params) do
     changeset = get_edit_changeset(socket, params)
     {:noreply, assign(socket, changeset: changeset)}
@@ -316,7 +316,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     |> List.flatten()
   end
 
-  @spec add_nested_errors(Changeset.t()) :: Changeset.t()
+  @spec add_nested_errors(changeset :: Changeset.t()) :: Changeset.t()
   defp add_nested_errors(%Changeset{} = changeset) do
     Enum.map(changeset.changes, fn
       {key, changesets} -> {key, changeset_errors(changesets)}
@@ -328,7 +328,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     end)
   end
 
-  @spec handle_save(Socket.t(), map()) :: {:noreply, Socket.t()}
+  @spec handle_save(socket :: Socket.t(), params :: map()) :: {:noreply, Socket.t()}
   defp handle_save(%Socket{} = socket, params) do
     changeset = get_edit_changeset(socket, params)
 
@@ -370,7 +370,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, assign(socket, assigns)}
   end
 
-  @spec get_edit_changeset(Socket.t(), map()) :: Changeset.t()
+  @spec get_edit_changeset(socket :: Socket.t(), params :: map()) :: Changeset.t()
   defp get_edit_changeset(%Socket{} = socket, params) do
     changeset = Query.get_edit_changeset(socket.assigns.edit_object, params, socket.assigns.assoc)
     %Changeset{changeset | action: socket.assigns.action}
@@ -397,7 +397,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {prev_icon, next_icon}
   end
 
-  @spec reload_prev_next_icons(Socket.t()) :: Socket.t()
+  @spec reload_prev_next_icons(socket :: Socket.t()) :: Socket.t()
   def reload_prev_next_icons(%Socket{} = socket) do
     {prev_icon, next_icon} =
       case socket.assigns.details do
@@ -414,7 +414,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     assign(socket, prev_icon: prev_icon, next_icon: next_icon)
   end
 
-  @spec reload_details(Socket.t()) :: Socket.t()
+  @spec reload_details(socket :: Socket.t()) :: Socket.t()
   def reload_details(%Socket{} = socket) do
     request = socket.assigns.request
 
@@ -449,7 +449,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     end
   end
 
-  @spec get_photo_url(Socket.t(), reference :: struct()) :: String.t() | nil
+  @spec get_photo_url(socket :: Socket.t(), reference :: struct()) :: String.t() | nil
   defp get_photo_url(%Socket{}, %Photos.Photo{}), do: nil
 
   defp get_photo_url(%Socket{} = socket, %{__struct__: type, id: id}) do
