@@ -404,6 +404,12 @@ defmodule PenguinMemories.Database.Query do
 
     dynamic = dynamic([o], true)
 
+    dynamic_id =
+      case Integer.parse(query_string) do
+        {int, ""} -> dynamic([o], o.id == ^int)
+        _ -> false
+      end
+
     result =
       String.split(query_string)
       |> filter_by_value([], dynamic, backend)
@@ -412,6 +418,7 @@ defmodule PenguinMemories.Database.Query do
       {:ok, words, dynamic} ->
         case filter_by_words(dynamic, :name, "~", Enum.join(words, " ")) do
           {:ok, dynamic} ->
+            dynamic = dynamic([o], ^dynamic or ^dynamic_id)
             query = from [object: o] in query, where: ^dynamic
             {:ok, query}
 
