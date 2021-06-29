@@ -151,6 +151,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
         searchable: true
       },
       %Field{
+        id: :called,
+        name: "Called",
+        type: :string,
+        searchable: true
+      },
+      %Field{
         id: :sort_name,
         name: "Sort Name",
         type: :string,
@@ -290,7 +296,6 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   def edit_changeset(%Person{} = person, attrs, assoc) do
     person
     |> cast(attrs, [
-      :cover_photo_id,
       :name,
       :called,
       :sort_name,
@@ -299,6 +304,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
       :description,
       :private_notes,
       :email,
+      :reindex,
       :revised
     ])
     |> validate_required([:name, :sort_name])

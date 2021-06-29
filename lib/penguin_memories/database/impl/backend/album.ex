@@ -211,6 +211,9 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
     object
     |> cast(attrs, [
       :name,
+      :description,
+      :private_notes,
+      :reindex,
       :revised
     ])
     |> validate_required([:name])

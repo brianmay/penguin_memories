@@ -260,6 +260,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
       :url,
       :private_notes,
       :parent_id,
+      :reindex,
       :revised
     ])
     |> validate_required([:name])

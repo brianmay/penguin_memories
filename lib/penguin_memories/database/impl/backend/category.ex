@@ -210,12 +210,11 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
   def edit_changeset(%Category{} = category, attrs, assoc) do
     category
     |> cast(attrs, [
-      :cover_photo_id,
       :name,
       :description,
       :private_notes,
-      :revised,
-      :parent_id
+      :reindex,
+      :revised
     ])
     |> validate_required([:name])
     |> Private.put_all_assoc(assoc, [:parent, :cover_photo])
