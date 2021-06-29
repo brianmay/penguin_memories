@@ -86,7 +86,6 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   def mount(_params, _session, socket) do
     assigns = [
       request: nil,
-      url: nil,
       last_clicked_id: nil,
       response: nil,
       selected_pid: nil,
@@ -158,7 +157,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     after_name = socket.assigns.request.after_name
 
     url =
-      socket.assigns.url
+      socket.assigns.common.url
       |> Urls.url_merge(%{name => true}, [before_name, after_name])
       |> URI.to_string()
 
@@ -171,7 +170,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     name = socket.assigns.request.show_selected_name
 
     url =
-      socket.assigns.url
+      socket.assigns.common.url
       |> Urls.url_merge(%{}, [name])
       |> URI.to_string()
 
@@ -531,7 +530,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
     {add, drop} =
       case string do
-        nil -> {%{}, [request.selected_name]}
+        nil -> {%{}, [request.selected_name, request.show_selected_name]}
         string -> {%{request.selected_name => string}, []}
       end
 
