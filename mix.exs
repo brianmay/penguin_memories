@@ -59,6 +59,7 @@ defmodule PenguinMemories.MixProject do
       {:thumbnex, "~> 0.3.3"},
       {:temp, "~> 0.4"},
       {:timex, "~> 3.5"},
+      {:libcluster, "~> 3.3"},
       {:dialyxir, "~> 1.1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:assertions, "~> 0.10", only: [:dev, :test], runtime: false}

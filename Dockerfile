@@ -52,6 +52,7 @@ WORKDIR /opt/app
 COPY lib /opt/app/lib/
 COPY priv /opt/app/priv/
 RUN mix compile
+COPY rel /opt/app/rel/
 RUN mix release
 
 # From this line onwards, we're in a new image, which will be the image used in production

@@ -6,6 +6,8 @@ defmodule PenguinMemories.Application do
   use Application
 
   def start(_type, _args) do
+    topologies = Application.get_env(:libcluster, :topologies)
+
     children = [
       # Start the Ecto repository
       PenguinMemories.Repo,
@@ -14,7 +16,8 @@ defmodule PenguinMemories.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: PenguinMemories.PubSub, adapter: Phoenix.PubSub.PG2},
       # Start the Endpoint (http/https)
-      PenguinMemoriesWeb.Endpoint
+      PenguinMemoriesWeb.Endpoint,
+      {Cluster.Supervisor, [topologies, [name: PenguinMemories.ClusterSupervisor]]}
       # Start a worker by calling: PenguinMemories.Worker.start_link(arg)
       # {PenguinMemories.Worker, arg}
     ]

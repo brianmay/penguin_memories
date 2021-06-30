@@ -18,3 +18,17 @@ config :penguin_memories, PenguinMemoriesWeb.Endpoint,
 config :penguin_memories, PenguinMemories.Accounts.Guardian,
   issuer: "penguin_memories",
   secret_key: System.get_env("GUARDIAN_SECRET")
+
+config :libcluster,
+  topologies: [
+    k8s: [
+      strategy: Elixir.Cluster.Strategy.Kubernetes,
+      config: [
+        mode: :dns,
+        kubernetes_node_basename: "penguin_memories",
+        kubernetes_selector: System.get_env("KUBERNETES_SELECTOR"),
+        kubernetes_namespace: System.get_env("NAMESPACE"),
+        polling_interval: 10_000
+      ]
+    ]
+  ]
