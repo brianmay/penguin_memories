@@ -76,7 +76,7 @@ defmodule PenguinMemories.Actions do
   end
 
   @spec regenerate_photo(Photo.t(), keyword()) :: Photo.t()
-  def regenerate_photo(%Photo{action: "R"} = photo, opts) do
+  def regenerate_photo(%Photo{} = photo, opts) do
     original_file = get_original_file(photo)
     {:ok, original_media} = Storage.get_photo_file_media(original_file)
 
@@ -135,6 +135,34 @@ defmodule PenguinMemories.Actions do
     photo
   end
 
+  @spec delete_photo(Photo.t(), keyword()) :: Photo.t()
+  def delete_photo(%Photo{} = photo, opts) do
+    old_filenames =
+      photo.files
+      |> Enum.map(fn file -> {file.dir, file.filename} end)
+      |> Enum.map(fn {dir, filename} -> Storage.build_path(dir, filename) end)
+      |> MapSet.new()
+
+    old_filenames
+    |> Enum.each(fn path ->
+      {:ok, media} = Media.get_media(path)
+
+      if opts[:verbose] do
+        IO.puts("Deleting #{path}")
+      end
+
+      :ok = Media.delete(media)
+    end)
+
+    Repo.delete!(photo)
+
+    if opts[:verbose] do
+      IO.puts("Deleted #{Photo.to_string(photo)}")
+    end
+
+    photo
+  end
+
   @spec rotate_photo(Photo.t(), String.t(), keyword()) :: Photo.t()
   def rotate_photo(%Photo{} = photo, rotate_amount, opts) do
     {:ok, temp_path} = Temp.path()
@@ -169,6 +197,10 @@ defmodule PenguinMemories.Actions do
 
   @spec process_photo(Photo.t(), keyword()) :: Photo.t()
   def process_photo(photo, opts \\ [])
+
+  def process_photo(%Photo{action: "D"} = photo, opts) do
+    delete_photo(photo, opts)
+  end
 
   def process_photo(%Photo{action: "R"} = photo, opts) do
     regenerate_photo(photo, opts)
