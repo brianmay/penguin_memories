@@ -517,5 +517,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       :category_add,
       :category_delete
     ])
+    |> validate_action()
+    |> validate_delete()
   end
 end
