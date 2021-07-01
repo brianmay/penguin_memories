@@ -468,7 +468,7 @@ defmodule PenguinMemories.Database.Query do
       join: oa in ^index_type,
       on: o.id == oa.ascendant_id,
       as: :ascendants,
-      where: oa.descendant_id == ^id
+      where: oa.descendant_id == ^id and oa.position > 0
   end
 
   @spec filter_by_id(query :: Ecto.Query.t(), id :: integer) :: Ecto.Query.t()
