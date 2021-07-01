@@ -46,7 +46,7 @@ defmodule PenguinMemories.Database.IndexTest do
     Map.get(map, id, MapSet.new())
   end
 
-  describe "generate_index/5" do
+  describe "test walk_tree/5" do
     test "single item" do
       # 1 object with no parents or children.
       parent_data = %{
@@ -59,21 +59,19 @@ defmodule PenguinMemories.Database.IndexTest do
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
-      seen = MapSet.new()
-      cache = %{}
+      {:ok, parents, children} =
+        Index.walk_tree(1, %{}, %{}, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
 
-      {seen, cache, index} = Index.generate_index(1, 0, @dummy_type, seen, cache)
-
-      assert seen == MapSet.new([1])
-
-      assert cache == %{
-               1 => MapSet.new([{1, 0}])
+      assert parents == %{
+               1 => []
              }
 
-      assert index == MapSet.new([{1, 0}])
+      assert children == %{
+               1 => []
+             }
     end
 
-    test "simple tree" do
+    test "simple tree from child of child" do
       # Child, parent, grandparent.
       parent_data = %{
         1 => [],
@@ -87,20 +85,50 @@ defmodule PenguinMemories.Database.IndexTest do
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
-      seen = MapSet.new()
-      cache = %{}
+      {:ok, parents, children} =
+        Index.walk_tree(3, %{}, %{}, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
 
-      {seen, cache, index} = Index.generate_index(3, 0, @dummy_type, seen, cache)
-
-      assert seen == MapSet.new([1, 2, 3])
-
-      assert cache == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{2, 0}, {1, 1}]),
-               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+      assert parents == %{
+               1 => [],
+               2 => [1],
+               3 => [2]
              }
 
-      assert index == MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+      assert children == %{
+               1 => [2],
+               2 => [3],
+               3 => []
+             }
+    end
+
+    test "simple tree from parent of parent" do
+      # Child, parent, grandparent.
+      parent_data = %{
+        1 => [],
+        2 => [1],
+        3 => [2]
+      }
+
+      child_data = reverse_map(parent_data)
+
+      PenguinMemories.Database.Impl.Index.Mock
+      |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
+      |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
+
+      {:ok, parents, children} =
+        Index.walk_tree(1, %{}, %{}, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
+
+      assert parents == %{
+               1 => [],
+               2 => [1],
+               3 => [2]
+             }
+
+      assert children == %{
+               1 => [2],
+               2 => [3],
+               3 => []
+             }
     end
 
     test "loop" do
@@ -117,20 +145,20 @@ defmodule PenguinMemories.Database.IndexTest do
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
-      seen = MapSet.new()
-      cache = %{}
+      {:ok, parents, children} =
+        Index.walk_tree(3, %{}, %{}, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
 
-      {seen, cache, index} = Index.generate_index(3, 0, @dummy_type, seen, cache)
-
-      assert seen == MapSet.new([1, 2, 3])
-
-      assert cache == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{2, 0}, {1, 1}]),
-               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+      assert parents == %{
+               1 => [3],
+               2 => [1],
+               3 => [2]
              }
 
-      assert index == MapSet.new([{3, 0}, {2, 1}, {1, 2}])
+      assert children == %{
+               1 => [2],
+               2 => [3],
+               3 => [1]
+             }
     end
 
     test "multiple parents" do
@@ -151,24 +179,28 @@ defmodule PenguinMemories.Database.IndexTest do
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
-      seen = MapSet.new()
-      cache = %{}
+      {:ok, parents, children} =
+        Index.walk_tree(7, %{}, %{}, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
 
-      {seen, cache, index} = Index.generate_index(7, 0, @dummy_type, seen, cache)
-
-      assert seen == MapSet.new([1, 2, 3, 4, 5, 6, 7])
-
-      assert cache == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{2, 0}]),
-               3 => MapSet.new([{3, 0}]),
-               4 => MapSet.new([{4, 0}]),
-               5 => MapSet.new([{5, 0}, {1, 1}, {2, 1}]),
-               6 => MapSet.new([{6, 0}, {3, 1}, {4, 1}]),
-               7 => MapSet.new([{7, 0}, {5, 1}, {6, 1}, {1, 2}, {2, 2}, {3, 2}, {4, 2}])
+      assert parents == %{
+               1 => [],
+               2 => [],
+               3 => [],
+               4 => [],
+               5 => [2, 1],
+               6 => [4, 3],
+               7 => [6, 5]
              }
 
-      assert index == MapSet.new([{7, 0}, {5, 1}, {6, 1}, {1, 2}, {2, 2}, {3, 2}, {4, 2}])
+      assert children == %{
+               1 => [5],
+               2 => [5],
+               3 => [6],
+               4 => [6],
+               5 => [7],
+               6 => [7],
+               7 => []
+             }
     end
 
     test "shared path" do
@@ -186,21 +218,22 @@ defmodule PenguinMemories.Database.IndexTest do
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
-      seen = MapSet.new()
-      cache = %{}
+      {:ok, parents, children} =
+        Index.walk_tree(4, %{}, %{}, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
 
-      {seen, cache, index} = Index.generate_index(4, 0, @dummy_type, seen, cache)
-
-      assert seen == MapSet.new([1, 2, 3, 4])
-
-      assert cache == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{2, 0}, {1, 1}]),
-               3 => MapSet.new([{3, 0}, {1, 1}]),
-               4 => MapSet.new([{4, 0}, {2, 1}, {3, 1}, {1, 2}])
+      assert parents == %{
+               1 => [],
+               2 => [1],
+               3 => [1],
+               4 => [3, 2]
              }
 
-      assert index == MapSet.new([{4, 0}, {2, 1}, {3, 1}, {4, 0}, {1, 2}])
+      assert children == %{
+               1 => [3, 2],
+               2 => [4],
+               3 => [4],
+               4 => []
+             }
     end
 
     test "shared path different position" do
@@ -218,50 +251,189 @@ defmodule PenguinMemories.Database.IndexTest do
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
 
-      seen = MapSet.new()
-      cache = %{}
+      {:ok, parents, children} =
+        Index.walk_tree(3, %{}, %{}, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
 
-      {seen, cache, index} = Index.generate_index(3, 0, @dummy_type, seen, cache)
-
-      assert seen == MapSet.new([1, 2, 3])
-
-      assert cache == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{2, 0}, {1, 1}]),
-               3 => MapSet.new([{3, 0}, {1, 1}, {2, 1}, {1, 2}])
+      assert parents == %{
+               1 => [],
+               2 => [1],
+               3 => [1, 2]
              }
 
-      assert index == MapSet.new([{1, 2}, {1, 1}, {2, 1}, {3, 0}])
+      assert children == %{
+               1 => [3, 2],
+               2 => [3],
+               3 => []
+             }
     end
   end
 
-  describe "fix_index_tree/4" do
+  describe "generate_index/5" do
     test "single item" do
       # 1 object with no parents or children.
-      parent_data = %{
+      parents = %{
         1 => []
       }
 
-      child_data = reverse_map(parent_data)
-
-      index = %{
-        1 => MapSet.new([{1, 1}, {5, 1}])
+      children = %{
+        1 => []
       }
+
+      {:ok, index} =
+        Index.generate_index(1, 0, parents, children, %{}, do_parents: true, do_children: true)
+
+      assert index == %{1 => 0}
+    end
+
+    test "simple tree from child of child" do
+      # Child, parent, grandparent.
+      parents = %{
+        1 => [],
+        2 => [1],
+        3 => [2]
+      }
+
+      children = %{
+        1 => [2],
+        2 => [3],
+        3 => []
+      }
+
+      {:ok, index} =
+        Index.generate_index(3, 0, parents, children, %{}, do_parents: true, do_children: true)
+
+      assert index == %{3 => 0, 2 => 1, 1 => 2}
+    end
+
+    test "simple tree from parent of parent" do
+      # Child, parent, grandparent.
+      parents = %{
+        1 => [],
+        2 => [1],
+        3 => [2]
+      }
+
+      children = %{
+        1 => [2],
+        2 => [3],
+        3 => []
+      }
+
+      {:ok, index} =
+        Index.generate_index(1, 0, parents, children, %{}, do_parents: true, do_children: true)
+
+      assert index == %{3 => -2, 2 => -1, 1 => 0}
+    end
+
+    test "loop" do
+      # Grandparent's parent is child.
+      parents = %{
+        1 => [3],
+        2 => [1],
+        3 => [2]
+      }
+
+      children = %{
+        1 => [2],
+        2 => [3],
+        3 => [1]
+      }
+
+      {:ok, index} =
+        Index.generate_index(3, 0, parents, children, %{}, do_parents: true, do_children: true)
+
+      assert index == %{3 => 0, 2 => 1, 1 => 2}
+    end
+
+    test "multiple parents" do
+      # Child has two parents and four grandparents.
+      parents = %{
+        1 => [],
+        2 => [],
+        3 => [],
+        4 => [],
+        5 => [2, 1],
+        6 => [4, 3],
+        7 => [6, 5]
+      }
+
+      children = %{
+        1 => [5],
+        2 => [5],
+        3 => [6],
+        4 => [6],
+        5 => [7],
+        6 => [7],
+        7 => []
+      }
+
+      {:ok, index} =
+        Index.generate_index(7, 0, parents, children, %{}, do_parents: true, do_children: true)
+
+      assert index == %{7 => 0, 5 => 1, 6 => 1, 1 => 2, 2 => 2, 3 => 2, 4 => 2}
+    end
+
+    test "shared path" do
+      # Two siblings have a child.
+      parents = %{
+        1 => [],
+        2 => [1],
+        3 => [1],
+        4 => [3, 2]
+      }
+
+      children = %{
+        1 => [3, 2],
+        2 => [4],
+        3 => [4],
+        4 => []
+      }
+
+      {:ok, index} =
+        Index.generate_index(4, 0, parents, children, %{}, do_parents: true, do_children: true)
+
+      assert index == %{4 => 0, 2 => 1, 3 => 1, 1 => 2}
+    end
+
+    test "shared path different position" do
+      # Object is parent and grandparent.
+      # This is likely to get confusing rather quickly.
+      parents = %{
+        1 => [],
+        2 => [1],
+        3 => [1, 2]
+      }
+
+      children = %{
+        1 => [3, 2],
+        2 => [3],
+        3 => []
+      }
+
+      {:ok, index} =
+        Index.generate_index(3, 0, parents, children, %{}, do_parents: true, do_children: true)
+
+      assert index == %{1 => 1, 2 => 1, 3 => 0}
+    end
+  end
+
+  describe "update_index/4" do
+    test "simple update" do
+      old_index = %{1 => MapSet.new([{1, 1}, {5, 1}])}
+      new_index = %{2 => 1, 1 => 2}
 
       {:ok, delete_table} = GenServer.start(MapSetStore, %{})
       {:ok, update_table} = GenServer.start(MapSetStore, %{})
       {:ok, create_table} = GenServer.start(MapSetStore, %{})
 
       PenguinMemories.Database.Impl.Index.Mock
-      |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
-      |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
-      |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
+      |> stub(:get_index, fn id, _ -> map_fetch(old_index, id) end)
       |> expect(:set_done, 1, fn _, _ -> :ok end)
       |> expect(:delete_index, 1, fn id, ref_id, _ ->
         :ok = GenServer.call(delete_table, {:put, id, ref_id, 99})
         :ok
       end)
-      |> expect(:create_index, 0, fn id, {ref_id, position}, _ ->
+      |> expect(:create_index, 1, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(create_table, {:put, id, ref_id, position})
         :ok
       end)
@@ -270,21 +442,26 @@ defmodule PenguinMemories.Database.IndexTest do
         :ok
       end)
 
-      {:ok, _} = Index.fix_index_tree(1, @dummy_type)
+      :ok =
+        Index.update_index(1, new_index, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
 
       assert GenServer.call(delete_table, :get) == %{
                1 => MapSet.new([{5, 99}])
              }
 
-      assert GenServer.call(create_table, :get) == %{}
+      assert GenServer.call(create_table, :get) == %{
+               1 => MapSet.new([{2, 1}])
+             }
 
       assert GenServer.call(update_table, :get) == %{
-               1 => MapSet.new([{1, 0}])
+               1 => MapSet.new([{1, 2}])
              }
 
       verify!()
     end
+  end
 
+  describe "fix_index_tree/4" do
     test "multiple item parents" do
       # Node, parent, grandparent.
       parent_data = %{
@@ -314,7 +491,7 @@ defmodule PenguinMemories.Database.IndexTest do
         :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
         :ok
       end)
-      |> expect(:create_index, 4, fn id, {ref_id, position}, _ ->
+      |> expect(:create_index, 7, fn id, {ref_id, position}, _ ->
         :ok = GenServer.call(create_table, {:put, id, ref_id, position})
         :ok
       end)
@@ -323,179 +500,14 @@ defmodule PenguinMemories.Database.IndexTest do
         :ok
       end)
 
-      {:ok, _} = Index.fix_index_tree(3, @dummy_type)
+      {:ok, _, _} =
+        Index.fix_index_tree(3, %{}, %{}, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
 
       assert GenServer.call(delete_table, :get) == %{}
 
       assert GenServer.call(create_table, :get) == %{
-               2 => MapSet.new([{2, 0}]),
-               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-             }
-
-      assert GenServer.call(update_table, :get) == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{1, 1}])
-             }
-
-      verify!()
-    end
-
-    test "multiple item parents loop" do
-      # Node, parent, grandparent.
-      parent_data = %{
-        1 => [3],
-        2 => [1],
-        3 => [2]
-      }
-
-      child_data = reverse_map(parent_data)
-
-      index = %{
-        1 => MapSet.new([{1, 98}]),
-        2 => MapSet.new([{1, 99}]),
-        3 => MapSet.new([])
-      }
-
-      {:ok, delete_table} = GenServer.start(MapSetStore, %{})
-      {:ok, update_table} = GenServer.start(MapSetStore, %{})
-      {:ok, create_table} = GenServer.start(MapSetStore, %{})
-
-      PenguinMemories.Database.Impl.Index.Mock
-      |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
-      |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
-      |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
-      |> expect(:set_done, 6, fn _, _ -> :ok end)
-      |> expect(:delete_index, 0, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
-        :ok
-      end)
-      |> expect(:create_index, 14, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(create_table, {:put, id, ref_id, position})
-        :ok
-      end)
-      |> expect(:update_index, 4, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
-        :ok
-      end)
-
-      {:ok, _} = Index.fix_index_tree(3, @dummy_type)
-
-      assert GenServer.call(delete_table, :get) == %{}
-
-      assert GenServer.call(create_table, :get) == %{
-               1 => MapSet.new([{3, 1}, {2, 2}]),
-               2 => MapSet.new([{2, 0}, {3, 2}]),
-               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-             }
-
-      assert GenServer.call(update_table, :get) == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{1, 1}])
-             }
-
-      verify!()
-    end
-
-    test "multiple item children" do
-      # Node, child, grandchild
-      parent_data = %{
-        1 => [],
-        2 => [1],
-        3 => [2]
-      }
-
-      child_data = reverse_map(parent_data)
-
-      index = %{
-        1 => MapSet.new([{1, 98}]),
-        2 => MapSet.new([{1, 99}]),
-        3 => MapSet.new([])
-      }
-
-      {:ok, delete_table} = GenServer.start(MapSetStore, %{})
-      {:ok, update_table} = GenServer.start(MapSetStore, %{})
-      {:ok, create_table} = GenServer.start(MapSetStore, %{})
-
-      PenguinMemories.Database.Impl.Index.Mock
-      |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
-      |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
-      |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
-      |> expect(:set_done, 3, fn _, _ -> :ok end)
-      |> expect(:delete_index, 0, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
-        :ok
-      end)
-      |> expect(:create_index, 4, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(create_table, {:put, id, ref_id, position})
-        :ok
-      end)
-      |> expect(:update_index, 2, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
-        :ok
-      end)
-
-      {:ok, _} = Index.fix_index_tree(3, @dummy_type)
-
-      assert GenServer.call(delete_table, :get) == %{}
-
-      assert GenServer.call(create_table, :get) == %{
-               2 => MapSet.new([{2, 0}]),
-               3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-             }
-
-      assert GenServer.call(update_table, :get) == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{1, 1}])
-             }
-
-      verify!()
-    end
-
-    test "multiple item children loop" do
-      # Node, child, grandchild
-      parent_data = %{
-        1 => [3],
-        2 => [1],
-        3 => [2]
-      }
-
-      child_data = reverse_map(parent_data)
-
-      index = %{
-        1 => MapSet.new([{1, 98}]),
-        2 => MapSet.new([{1, 99}]),
-        3 => MapSet.new([])
-      }
-
-      {:ok, delete_table} = GenServer.start(MapSetStore, %{})
-      {:ok, update_table} = GenServer.start(MapSetStore, %{})
-      {:ok, create_table} = GenServer.start(MapSetStore, %{})
-
-      PenguinMemories.Database.Impl.Index.Mock
-      |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
-      |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
-      |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
-      |> expect(:set_done, 6, fn _, _ -> :ok end)
-      |> expect(:delete_index, 0, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
-        :ok
-      end)
-      |> expect(:create_index, 14, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(create_table, {:put, id, ref_id, position})
-        :ok
-      end)
-      |> expect(:update_index, 4, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
-        :ok
-      end)
-
-      {:ok, _} = Index.fix_index_tree(3, @dummy_type)
-
-      assert GenServer.call(delete_table, :get) == %{}
-
-      assert GenServer.call(create_table, :get) == %{
-               1 => MapSet.new([{3, 1}, {2, 2}]),
-               2 => MapSet.new([{2, 0}, {3, 2}]),
+               1 => MapSet.new([{2, -1}, {3, -2}]),
+               2 => MapSet.new([{2, 0}, {3, -1}]),
                3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
              }
 

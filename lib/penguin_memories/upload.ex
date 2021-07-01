@@ -310,7 +310,8 @@ defmodule PenguinMemories.Upload do
           |> Ecto.Changeset.change()
           |> Repo.insert!()
 
-        {:ok, _} = Index.fix_index_tree(album.id, Album)
+        api = Index.get_index_api()
+        {:ok, _, _} = Index.fix_index_tree(album.id, %{}, %{}, Album, api)
         album
 
       %Album{} = album ->

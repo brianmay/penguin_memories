@@ -9,82 +9,139 @@ defmodule PenguinMemories.Database.Index do
   alias PenguinMemories.Repo
 
   @type object_type :: Database.object_type()
-  @type seen_type :: MapSet.t()
-  @type cache_type :: %{required(integer) => MapSet.t()}
+  # @type seen_type :: MapSet.t()
+  # @type cache_type :: %{required(integer) => MapSet.t()}
 
-  @spec get_index_api :: module()
-  defp get_index_api do
+  @type index_type :: %{integer() => integer()}
+  @type index_api_type :: module()
+
+  @spec get_index_api :: index_api_type
+  def get_index_api do
     Application.get_env(:penguin_memories, :index_api)
   end
 
+  @type relations :: %{integer => integer}
+
+  @spec walk_tree(
+          id :: integer,
+          parents :: relations(),
+          children :: relations(),
+          type :: object_type(),
+          api :: index_api_type()
+        ) :: {:ok, relations(), relations()}
+  def walk_tree(id, parents, children, type, api) do
+    parent_list =
+      if Map.has_key?(parents, id) do
+        []
+      else
+        api.get_parent_ids(id, type)
+      end
+
+    child_list =
+      if Map.has_key?(children, id) do
+        []
+      else
+        api.get_child_ids(id, type)
+      end
+
+    parents = Map.put_new(parents, id, [])
+    children = Map.put_new(children, id, [])
+
+    parents =
+      Enum.reduce(parent_list, parents, fn parent_id, parents ->
+        Map.update!(parents, id, fn the_list ->
+          [parent_id | the_list]
+        end)
+      end)
+
+    children =
+      Enum.reduce(child_list, children, fn child_id, children ->
+        Map.update!(children, id, fn the_list ->
+          [child_id | the_list]
+        end)
+      end)
+
+    {parents, children} =
+      Enum.reduce(parent_list, {parents, children}, fn parent_id, {parents, children} ->
+        {:ok, parents, children} = walk_tree(parent_id, parents, children, type, api)
+        {parents, children}
+      end)
+
+    {parents, children} =
+      Enum.reduce(child_list, {parents, children}, fn child_id, {parents, children} ->
+        {:ok, parents, children} = walk_tree(child_id, parents, children, type, api)
+        {parents, children}
+      end)
+
+    {:ok, parents, children}
+  end
+
   @spec generate_index(
-          integer,
-          integer,
-          object_type,
-          seen_type,
-          cache_type
-        ) :: {seen_type, cache_type, MapSet.t()}
-  def generate_index(id, position, type, seen, cache) when is_integer(id) do
-    api = get_index_api()
+          id :: integer(),
+          position :: integer(),
+          parents :: relations(),
+          children :: relations(),
+          index :: index_type(),
+          opts :: keyword()
+        ) :: {:ok, index_type()}
+  def generate_index(id, position, parents, children, index, opts \\ []) do
+    if Map.has_key?(index, id) do
+      {:ok, index}
+    else
+      index = Map.put(index, id, position)
 
-    cond do
-      Map.has_key?(cache, id) ->
-        cache_item = Map.fetch!(cache, id)
+      # Note we don't care about the children of a parent.
+      index =
+        if opts[:do_parents] do
+          parent_list = Map.fetch!(parents, id)
 
-        index = MapSet.new()
+          Enum.reduce(parent_list, index, fn parent_id, index ->
+            {:ok, index} =
+              generate_index(parent_id, position + 1, parents, children, index, do_parents: true)
 
-        index =
-          Enum.reduce(cache_item, index, fn
-            {a, b}, index -> MapSet.put(index, {a, b + position})
+            index
           end)
+        else
+          index
+        end
 
-        {seen, cache, index}
+      # Note we don't care about the parents of a child.
+      index =
+        if opts[:do_children] do
+          child_list = Map.fetch!(children, id)
 
-      MapSet.member?(seen, id) ->
-        # Seen is to prevent infinite loops if
-        # we have a circular structure.
-        index = MapSet.new()
-        {seen, cache, index}
+          Enum.reduce(child_list, index, fn child_id, index ->
+            {:ok, index} =
+              generate_index(child_id, position - 1, parents, children, index, do_children: true)
 
-      true ->
-        seen = MapSet.put(seen, id)
-
-        index = MapSet.new()
-        index = MapSet.put(index, {id, position})
-
-        parents = api.get_parent_ids(id, type)
-
-        {seen, cache, index} =
-          Enum.reduce(parents, {seen, cache, index}, fn
-            parent_id, {seen, cache, index} ->
-              {seen, cache, new_index} =
-                generate_index(parent_id, position + 1, type, seen, cache)
-
-              {seen, cache, MapSet.union(index, new_index)}
+            index
           end)
+        else
+          index
+        end
 
-        cache_item =
-          Enum.reduce(index, MapSet.new(), fn
-            {a, b}, cache_item -> MapSet.put(cache_item, {a, b - position})
-          end)
-
-        cache = Map.put(cache, id, cache_item)
-
-        {seen, cache, index}
+      {:ok, index}
     end
   end
 
-  @spec fix_index(integer, object_type, cache_type) :: cache_type
-  def fix_index(id, type, cache) when is_integer(id) do
-    api = get_index_api()
-
-    {_, cache, new_index} = generate_index(id, 0, type, MapSet.new(), cache)
+  @spec update_index(
+          id :: integer,
+          index :: index_type,
+          type :: object_type,
+          api :: index_api_type()
+        ) :: :ok
+  def update_index(id, index, type, api) do
     old_index = api.get_index(id, type)
+
+    new_index =
+      Enum.reduce(index, MapSet.new(), fn
+        {_id, _position} = index, mapset -> MapSet.put(mapset, index)
+      end)
 
     # IO.puts("")
     # IO.puts("xxxxxxx #{id}")
-
     # IO.inspect(old_index)
+    # IO.inspect(index)
     # IO.inspect(new_index)
 
     new_index_ids =
@@ -119,73 +176,74 @@ defmodule PenguinMemories.Database.Index do
     )
 
     api.set_done(id, type)
-    cache
+
+    :ok
   end
 
-  @spec fix_index_parents(integer, object_type, seen_type, cache_type) :: {seen_type, cache_type}
-  def fix_index_parents(id, type, seen, cache) when is_integer(id) do
-    api = get_index_api()
+  @spec fix_index_tree_internal(
+          id :: integer,
+          parents :: relations(),
+          children :: relations(),
+          type :: object_type,
+          api :: index_api_type(),
+          seen :: MapSet.t()
+        ) :: {:ok, relations(), relations(), MapSet.t()}
+  defp fix_index_tree_internal(id, parents, children, type, api, seen) do
+    if MapSet.member?(seen, id) do
+      {:ok, parents, children, seen}
+    else
+      seen = MapSet.put(seen, id)
 
-    cond do
-      MapSet.member?(seen, id) ->
-        # Seen is independant of seen in generate_index
-        # but also to prevent circular loops.
-        {seen, cache}
+      {:ok, parents, children} = walk_tree(id, parents, children, type, api)
 
-      true ->
-        fix_index(id, type, cache)
-        parents = api.get_parent_ids(id, type)
-        seen = MapSet.put(seen, id)
+      {:ok, index} =
+        generate_index(id, 0, parents, children, %{}, do_parents: true, do_children: true)
 
-        Enum.reduce(parents, {seen, cache}, fn
-          parent, {seen, cache} -> fix_index_parents(parent, type, seen, cache)
+      :ok = update_index(id, index, type, api)
+
+      parent_list = Map.get(parents, id)
+      children_list = Map.get(children, id)
+
+      {parents, children, seen} =
+        Enum.reduce(parent_list, {parents, children, seen}, fn id, {parents, children, seen} ->
+          {:ok, parents, children, seen} =
+            fix_index_tree_internal(id, parents, children, type, api, seen)
+
+          {parents, children, seen}
         end)
+
+      {parents, children, seen} =
+        Enum.reduce(children_list, {parents, children, seen}, fn id, {parents, children, seen} ->
+          {:ok, parents, children, seen} =
+            fix_index_tree_internal(id, parents, children, type, api, seen)
+
+          {parents, children, seen}
+        end)
+
+      {:ok, parents, children, seen}
     end
   end
 
-  @spec fix_index_children(integer, object_type, seen_type, cache_type) :: {seen_type, cache_type}
-  def fix_index_children(id, type, seen, cache) when is_integer(id) do
-    api = get_index_api()
-
-    cond do
-      MapSet.member?(seen, id) ->
-        # Seen is independant of seen in generate_index
-        # but also to prevent circular loops.
-        {seen, cache}
-
-      true ->
-        fix_index(id, type, cache)
-        children = api.get_child_ids(id, type)
-        seen = MapSet.put(seen, id)
-
-        Enum.reduce(children, {seen, cache}, fn
-          child, {seen, cache} -> fix_index_children(child, type, seen, cache)
-        end)
-    end
-  end
-
-  @spec fix_index_tree(integer, object_type, cache_type) :: {:ok, cache_type}
-  def fix_index_tree(id, type, cache \\ %{}) when is_integer(id) do
-    api = get_index_api()
-    {_, cache} = fix_index_parents(id, type, MapSet.new(), cache)
-
-    # Note we have to descend all children even if we have seen the parent
-    # before, This may lead to duplication of nodes processed in weird
-    # situations. However we try to avoid processing id twice, so make testing
-    # easier.
+  @spec fix_index_tree(
+          id :: integer,
+          parents :: relations(),
+          children :: relations(),
+          type :: object_type,
+          api :: index_api_type()
+        ) :: {:ok, relations(), relations()}
+  def fix_index_tree(id, parents, children, type, api) do
     seen = MapSet.new()
-    children = api.get_child_ids(id, type)
-
-    {_, cache} =
-      Enum.reduce(children, {seen, cache}, fn
-        child, {seen, cache} -> fix_index_children(child, type, seen, cache)
-      end)
-
-    {:ok, cache}
+    {:ok, parents, children, _} = fix_index_tree_internal(id, parents, children, type, api, seen)
+    {:ok, parents, children}
   end
 
-  @spec internal_process_pending(object_type, integer, cache_type) :: :ok
-  defp internal_process_pending(type, start_id, cache) do
+  @spec internal_process_pending(
+          type :: object_type,
+          start_id :: integer,
+          parents :: relations(),
+          children :: relations()
+        ) :: :ok
+  defp internal_process_pending(type, start_id, parents, children) do
     obj =
       Repo.one(
         from o in type,
@@ -194,24 +252,26 @@ defmodule PenguinMemories.Database.Index do
           order_by: :id
       )
 
+    api = get_index_api()
+
     case obj do
       nil ->
         :ok
 
       obj ->
-        {:ok, cache} =
+        {:ok, {parents, children}} =
           Repo.transaction(fn ->
-            fix_index(obj.id, type, cache)
+            {:ok, parents, children} = fix_index_tree(obj.id, parents, children, type, api)
+            {parents, children}
           end)
 
-        internal_process_pending(type, obj.id + 1, cache)
+        internal_process_pending(type, obj.id + 1, parents, children)
     end
   end
 
   @spec process_pending(object_type) :: :ok
   def process_pending(type) do
-    cache = %{}
-    internal_process_pending(type, 0, cache)
+    :ok = internal_process_pending(type, 0, %{}, %{})
   end
 
   @spec process_all :: :ok

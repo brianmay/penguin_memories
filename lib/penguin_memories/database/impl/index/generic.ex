@@ -66,7 +66,7 @@ defmodule PenguinMemories.Database.Impl.Index.Generic do
 
     case backend.get_index_type() do
       nil ->
-        []
+        MapSet.new()
 
       index_type ->
         query =
