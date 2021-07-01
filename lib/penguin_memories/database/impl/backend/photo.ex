@@ -244,7 +244,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       %Field{
         id: :rating,
         name: "Rating",
-        type: :float
+        type: :float,
+        searchable: true
       },
       %Field{
         id: :description,
