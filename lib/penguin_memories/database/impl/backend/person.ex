@@ -50,7 +50,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
     from o in Person,
       as: :object,
       select: %{sort_name: o.sort_name, id: o.id, o: %{name: o.name}},
-      order_by: [asc: o.sort_name, asc: o.id]
+      order_by: [asc: o.sort_name, asc: o.name, asc: o.id]
   end
 
   @impl API
