@@ -77,6 +77,13 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       updates: updates
     ]
 
+    assigns =
+      if params.disabled do
+        [{:choices, []}, {:text, nil}, {:error, nil} | assigns]
+      else
+        assigns
+      end
+
     {:ok, assign(socket, assigns)}
   end
 
@@ -140,7 +147,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
         # form: %{socket.assigns.form | source: changeset},
         icons: icons,
         selected: selected,
-        text: ""
+        text: "",
+        error: nil
       ]
 
       {:noreply, assign(socket, assigns)}
@@ -162,7 +170,8 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
         # form: %{socket.assigns.form | source: changeset},
         icons: icons,
         selected: selected,
-        text: ""
+        text: "",
+        error: nil
       ]
 
       {:noreply, assign(socket, assigns)}

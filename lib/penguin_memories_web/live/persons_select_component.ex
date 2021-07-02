@@ -102,6 +102,13 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       position: position
     ]
 
+    assigns =
+      if params.disabled do
+        [{:choices, []}, {:text, nil}, {:error, nil} | assigns]
+      else
+        assigns
+      end
+
     {:ok, assign(socket, assigns)}
   end
 
@@ -189,7 +196,8 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       assigns = [
         choices: [],
         icons: icons,
-        edit: edit
+        edit: edit,
+        error: nil
       ]
 
       {:noreply, assign(socket, assigns)}
@@ -212,7 +220,8 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       assigns = [
         choices: [],
         text: "",
-        edit: edit
+        edit: edit,
+        error: nil
       ]
 
       {:noreply, assign(socket, assigns)}
@@ -227,7 +236,8 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       assigns = [
         choices: [],
         text: "",
-        edit: nil
+        edit: nil,
+        error: nil
       ]
 
       {:noreply, assign(socket, assigns)}
