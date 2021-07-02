@@ -53,7 +53,10 @@ defmodule PenguinMemoriesWeb.Router do
     resources "/users", UserController
     get "/users/:id/password", UserController, :password_edit
     put "/users/:id/password", UserController, :password_update
-    live_dashboard "/dashboard", metrics: PenguinMemoriesWeb.Telemetry, ecto_repos: [PenguinMemories.Repo]
+
+    live_dashboard "/dashboard",
+      metrics: PenguinMemoriesWeb.Telemetry,
+      ecto_repos: [PenguinMemories.Repo]
   end
 
   scope "/", PenguinMemoriesWeb do
