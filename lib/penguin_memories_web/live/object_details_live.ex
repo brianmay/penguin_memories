@@ -166,14 +166,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("cancel", _params, %Socket{} = socket) do
-    assigns = [
-      mode: :display,
-      changeset: nil,
-      error: nil,
-      edit_obj: nil
-    ]
-
-    {:noreply, assign(socket, assigns)}
+    socket = cancel_edit(socket)
+    {:noreply, socket}
   end
 
   @impl true
@@ -183,6 +177,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, socket}
   end
 
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def handle_info(
         {:parameters, %Query.Filter{} = filter, %LiveRequest{} = common, %Request{} = request},
         %Socket{} = socket
@@ -204,6 +199,13 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     socket =
       LiveRequest.apply_common(socket, common)
       |> assign(assigns)
+
+    socket =
+      if request_changed do
+        cancel_edit(socket)
+      else
+        socket
+      end
 
     socket =
       if big_changed or user_changed or request_changed or common.force_reload do
@@ -242,6 +244,18 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @spec is_editing(assigns :: map()) :: boolean()
   defp is_editing(assigns) do
     assigns.mode == :edit
+  end
+
+  @spec cancel_edit(socket :: Socket.t()) :: Socket.t()
+  defp cancel_edit(%Socket{} = socket) do
+    assigns = [
+      mode: :display,
+      changeset: nil,
+      error: nil,
+      edit_obj: nil
+    ]
+
+    assign(socket, assigns)
   end
 
   @spec handle_create(socket :: Socket.t()) :: {:noreply, Socket.t()}
@@ -332,7 +346,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   defp handle_save(%Socket{} = socket, params) do
     changeset = get_edit_changeset(socket, params)
 
-    {socket, assigns} =
+    socket =
       case Query.apply_edit_changeset(changeset) do
         {:error, changeset, error} ->
           changeset = add_nested_errors(changeset)
@@ -342,7 +356,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
             error: error
           ]
 
-          {socket, assigns}
+          assign(socket, assigns)
 
         {:ok, object} ->
           PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
@@ -358,16 +372,10 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
                 socket
             end
 
-          assigns = [
-            mode: :display,
-            changeset: nil,
-            error: nil
-          ]
-
-          {socket, assigns}
+          cancel_edit(socket)
       end
 
-    {:noreply, assign(socket, assigns)}
+    {:noreply, socket}
   end
 
   @spec get_edit_changeset(socket :: Socket.t(), params :: map()) :: Changeset.t()
