@@ -15,7 +15,8 @@ config :penguin_memories,
   image_url: "/images",
   cameras: %{
     "Canon EOS R5" => "10:59:36",
-    "Canon EOS 350D DIGITAL" => "11:00:00"
+    "Canon EOS 350D DIGITAL" => "11:00:00",
+    "Canon EOS 5D Mark III" => "09:59:28"
   },
   sizes: %{
     "thumb" => %{max_width: 120, max_height: 90},
