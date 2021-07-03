@@ -8,7 +8,6 @@ defmodule PenguinMemories.Upload do
   import File
 
   alias PenguinMemories.Database.Conflicts
-  alias PenguinMemories.Database.Index
   alias PenguinMemories.Media
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.File
@@ -305,13 +304,12 @@ defmodule PenguinMemories.Upload do
         album =
           %Album{
             name: name,
-            parent_id: parent.id
+            parent_id: parent.id,
+            reindex: true
           }
           |> Ecto.Changeset.change()
           |> Repo.insert!()
 
-        api = Index.get_index_api()
-        {:ok, _, _} = Index.fix_index_tree(album.id, %{}, %{}, Album, api)
         album
 
       %Album{} = album ->
