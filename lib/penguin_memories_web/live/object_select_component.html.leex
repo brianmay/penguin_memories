@@ -18,7 +18,7 @@
           ><%= icon.name %></span>
         <% end %>
       <% end %>
-      <%= text_input(@form, dummy_field_id, phx_keyup: "search", phx_target: @myself, value: @text, disabled: @disabled) %>
+      <%= text_input(@form, dummy_field_id, phx_blur: "blur", phx_keyup: "search", phx_target: @myself, value: @text, disabled: @disabled) %>
     </div>
     <%= error_tag(@form, field_id) %>
   </div>

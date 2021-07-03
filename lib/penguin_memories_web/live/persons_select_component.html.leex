@@ -7,7 +7,8 @@
   <div class="form-group" phx_feedback_for="<%= feedback_for %>">
     <%= label(@form, dummy_field_id, @field.name, class: "control-label") %>
     <div class="autoselect form-control <%= field_class %>">
-      <%= for {_, pp} <- @selected do %>
+      <% selected = get_sorted(@selected) %>
+      <%= for pp <- selected do %>
         <div>
           <% person_id = get_person_id(pp) %>
           <% position = get_position(pp) %>

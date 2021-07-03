@@ -93,6 +93,12 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
   end
 
   @impl true
+  def handle_event("blur", _, socket) do
+    assigns = []
+    {:noreply, assign(socket, assigns)}
+  end
+
+  @impl true
   def handle_event("search", %{"value" => value}, socket) do
     search = %Filter{query: value}
 

@@ -20,7 +20,8 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
   def mount(socket) do
     assigns = [
       choices: [],
-      selected: [],
+      base: %{},
+      selected: %{},
       icons: %{},
       text: "",
       error: nil,
@@ -30,7 +31,9 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     {:ok, assign(socket, assigns)}
   end
 
-  @spec get_person_id(Changeset.t() | Photos.PhotoPerson.t()) :: integer()
+  @type change_type :: Changeset.t() | Photos.PhotoPerson.t()
+
+  @spec get_person_id(change_type()) :: integer()
   defp get_person_id(%Changeset{} = changeset) do
     Ecto.Changeset.get_field(changeset, :person_id)
   end
@@ -39,7 +42,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     value.person_id
   end
 
-  @spec get_position(Changeset.t() | Photos.PhotoPerson.t()) :: integer()
+  @spec get_position(change_type()) :: integer()
   defp get_position(%Changeset{} = changeset) do
     Ecto.Changeset.get_field(changeset, :position)
   end
@@ -48,12 +51,23 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     value.position
   end
 
-  @spec get_new_position(map()) :: integer()
+  @spec get_new_position(%{integer => change_type()}) :: integer()
   def get_new_position(selected) do
     case Enum.max_by(selected, fn {_, v} -> get_position(v) end, fn -> nil end) do
       nil -> 1
       {_, max} -> get_position(max) + 1
     end
+  end
+
+  @spec get_sorted(selected :: %{integer => change_type()}) :: list(change_type())
+  defp get_sorted(selected) do
+    # Sort by person_id because it is deterministic and doesn't
+    # keep changing (unlike position).
+    # Sorting by position would in theory be better, but means the fields
+    # jump around causing endless UI problems.
+    selected
+    |> Enum.map(fn {_, pp} -> pp end)
+    |> Enum.sort_by(fn value -> get_person_id(value) end)
   end
 
   @impl true
@@ -74,8 +88,15 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     updates = params.updates
     search = Map.get(params, :search, %{})
 
+    source = Map.fetch!(form.source.data, field.id)
+
+    base =
+      source
+      |> Enum.map(fn v -> {v.person_id, v} end)
+      |> Enum.into(%{})
+
     selected =
-      Changeset.get_field(form.source, field.id)
+      Changeset.get_change(form.source, field.id, source)
       |> Enum.map(fn v -> {get_person_id(v), v} end)
       |> Enum.into(%{})
 
@@ -94,6 +115,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     assigns = [
       form: form,
       field: field,
+      base: base,
       selected: selected,
       icons: icons,
       disabled: Map.get(params, :disabled, false),
@@ -264,7 +286,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       edit = %{person_id: person_id, position: position}
 
       base_object =
-        case Map.fetch(socket.assigns.selected, edit.person_id) do
+        case Map.fetch(socket.assigns.base, person_id) do
           {:ok, %Changeset{data: data}} -> data
           {:ok, value} -> value
           :error -> %Photos.PhotoPerson{}
@@ -276,7 +298,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
         |> Ecto.Changeset.unique_constraint([:photo_id, :person_id])
         |> Ecto.Changeset.unique_constraint([:photo_id, :position])
 
-      selected = Map.put(socket.assigns.selected, edit.person_id, changeset)
+      selected = Map.put(socket.assigns.selected, person_id, changeset)
       notify(socket, selected)
 
       new_position = get_new_position(selected)
