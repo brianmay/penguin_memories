@@ -42,6 +42,15 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     value.person_id
   end
 
+  @spec is_update(change_type()) :: integer()
+  defp is_update(%Changeset{} = changeset) do
+    changeset.action == :update
+  end
+
+  defp is_update(%Photos.PhotoPerson{}) do
+    true
+  end
+
   @spec get_position(change_type()) :: integer()
   defp get_position(%Changeset{} = changeset) do
     Ecto.Changeset.get_field(changeset, :position)
@@ -97,6 +106,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
 
     selected =
       Changeset.get_change(form.source, field.id, source)
+      |> Enum.filter(fn changeset -> is_update(changeset) end)
       |> Enum.map(fn v -> {get_person_id(v), v} end)
       |> Enum.into(%{})
 
