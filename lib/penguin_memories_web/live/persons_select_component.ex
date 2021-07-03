@@ -263,8 +263,15 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     else
       edit = %{person_id: person_id, position: position}
 
+      base_object =
+        case Map.fetch(socket.assigns.selected, edit.person_id) do
+          {:ok, %Changeset{data: data}} -> data
+          {:ok, value} -> value
+          :error -> %Photos.PhotoPerson{}
+        end
+
       changeset =
-        %Photos.PhotoPerson{}
+        base_object
         |> Ecto.Changeset.cast(edit, [:person_id, :position])
         |> Ecto.Changeset.unique_constraint([:photo_id, :person_id])
         |> Ecto.Changeset.unique_constraint([:photo_id, :position])
