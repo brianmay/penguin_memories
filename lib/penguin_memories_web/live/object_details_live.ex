@@ -325,6 +325,10 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   defp changeset_errors(changesets) do
+    if is_atom(changesets) do
+      IO.puts("xxxxxxx  #{inspect(changesets)}")
+    end
+
     changesets
     |> Enum.map(fn changeset -> changeset_errors(changeset) end)
     |> List.flatten()
