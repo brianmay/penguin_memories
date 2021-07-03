@@ -312,33 +312,32 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, assign(socket, changeset: changeset)}
   end
 
-  @spec changeset_errors(Changeset.t() | list(Changeset.t())) :: list(String.t())
-  defp changeset_errors(%Changeset{} = changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn
-      {msg, opts} -> String.replace(msg, "%{count}", to_string(opts[:count]))
-      msg -> msg
-    end)
-    |> Enum.map(fn {key, errors} ->
-      Enum.map(errors, fn error -> "#{Atom.to_string(key)}: #{error}" end)
+  @spec map_error(error :: String.t() | map()) :: list(String.t())
+  defp map_error(%{} = error) do
+    Enum.map(error, fn {key, error_list} ->
+      Enum.map(error_list, fn value -> "#{key}: #{value}" end)
     end)
     |> List.flatten()
   end
 
-  defp changeset_errors(changesets) do
-    if is_atom(changesets) do
-      IO.puts("xxxxxxx  #{inspect(changesets)}")
-    end
+  defp map_error(error) when is_binary(error) do
+    error
+  end
 
-    changesets
-    |> Enum.map(fn changeset -> changeset_errors(changeset) end)
+  @spec map_error_list(list :: list(String.t() | map())) :: list(String.t())
+  defp map_error_list(list) do
+    Enum.map(list, fn error -> map_error(error) end)
     |> List.flatten()
   end
 
   @spec add_nested_errors(changeset :: Changeset.t()) :: Changeset.t()
   defp add_nested_errors(%Changeset{} = changeset) do
-    Enum.map(changeset.changes, fn
-      {key, changesets} -> {key, changeset_errors(changesets)}
+    Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
     end)
+    |> Enum.map(fn {key, error} -> {key, map_error_list(error)} end)
     |> Enum.reduce(changeset, fn {key, errors}, changeset ->
       Enum.reduce(errors, changeset, fn error, changeset ->
         Changeset.add_error(changeset, key, error)
