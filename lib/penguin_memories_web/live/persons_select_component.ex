@@ -8,6 +8,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
 
   import Phoenix.HTML.Form
   alias Phoenix.HTML.Form
+  alias Phoenix.LiveView.Socket
 
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Query
@@ -21,7 +22,6 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       choices: [],
       selected: [],
       icons: %{},
-      edit: nil,
       text: "",
       error: nil,
       disabled: true
@@ -89,17 +89,17 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
 
     icons = Map.merge(socket.assigns.icons, icons)
 
-    position = get_new_position(selected)
+    new_position = get_new_position(selected)
 
     assigns = [
       form: form,
       field: field,
       selected: selected,
       icons: icons,
-      disabled: params.disabled,
+      disabled: Map.get(params, :disabled, false),
       search: search,
       updates: updates,
-      position: position
+      new_position: new_position
     ]
 
     assigns =
@@ -118,11 +118,16 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
   end
 
   @impl true
-  def handle_event("search", %{"value" => value}, socket) do
+  def handle_event("new_search", %{"value" => value}, socket) do
     search = %Filter{query: value}
 
-    if socket.assigns.disabled do
-      {:noreply, socket}
+    if socket.assigns.disabled or value == "" do
+      assigns = [
+        choices: [],
+        text: value
+      ]
+
+      {:noreply, assign(socket, assigns)}
     else
       type = PenguinMemories.Photos.Person
 
@@ -154,25 +159,41 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     end
   end
 
-  def handle_event("position", %{"value" => value}, socket) do
+  def handle_event("new_position", %{"value" => value}, socket) do
     position =
       case Integer.parse(value) do
         {value, ""} -> value
-        _ -> socket.assigns.position
+        _ -> nil
       end
 
     socket =
-      case socket.assigns.edit do
-        nil ->
-          assign(socket, position: position)
+      if position != nil do
+        assign(socket, new_position: position)
+      else
+        socket
+      end
 
-        edit ->
-          edit = %{
-            person_id: edit.person_id,
-            position: position
-          }
+    {:noreply, socket}
+  end
 
-          assign(socket, edit: edit)
+  def handle_event("position", %{"person-id" => person_id, "value" => value}, socket) do
+    person_id =
+      case Integer.parse(person_id) do
+        {value, ""} -> value
+        _ -> nil
+      end
+
+    position =
+      case Integer.parse(value) do
+        {value, ""} -> value
+        _ -> nil
+      end
+
+    socket =
+      if person_id != nil and position != nil do
+        commit(socket, person_id, position)
+      else
+        assign(socket, error: "Invalid values")
       end
 
     {:noreply, socket}
@@ -180,76 +201,67 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
 
   @impl true
   def handle_event("set", %{"id" => id}, socket) do
+    socket =
+      if socket.assigns.disabled do
+        socket
+      else
+        position = socket.assigns.new_position
+
+        person_id =
+          case Integer.parse(id) do
+            {value, ""} -> value
+            _ -> nil
+          end
+
+        [icon | _] = socket.assigns.choices |> Enum.filter(fn icon -> icon.id == person_id end)
+        icons = add_icon(socket.assigns.icons, icon)
+
+        assigns = [
+          choices: [],
+          text: "",
+          icons: icons,
+          error: nil
+        ]
+
+        socket
+        |> assign(assigns)
+        |> commit(person_id, position)
+      end
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("delete", %{"person-id" => person_id}, socket) do
     if socket.assigns.disabled do
       {:noreply, socket}
     else
-      position = socket.assigns.position
-      {id, ""} = Integer.parse(id)
-      [icon | _] = socket.assigns.choices |> Enum.filter(fn icon -> icon.id == id end)
-      icons = add_icon(socket.assigns.icons, icon)
+      person_id =
+        case Integer.parse(person_id) do
+          {value, ""} -> value
+          _ -> nil
+        end
 
-      edit = %{
-        person_id: id,
-        position: position
-      }
+      selected = Map.delete(socket.assigns.selected, person_id)
+      notify(socket, selected)
+
+      new_position = get_new_position(selected)
 
       assigns = [
-        choices: [],
-        icons: icons,
-        edit: edit,
-        error: nil
+        selected: selected,
+        new_position: new_position
       ]
 
       {:noreply, assign(socket, assigns)}
     end
   end
 
-  @impl true
-  def handle_event("edit", %{"id" => id}, socket) do
+  @spec commit(socket :: Socket.t(), person_id :: integer(), position :: integer()) :: Socket.t()
+  def commit(%Socket{} = socket, person_id, position) do
     if socket.assigns.disabled do
-      {:noreply, socket}
+      socket
     else
-      {id, ""} = Integer.parse(id)
-      value = Map.fetch!(socket.assigns.selected, id)
-
-      edit = %{
-        person_id: id,
-        position: get_position(value)
-      }
-
-      assigns = [
-        choices: [],
-        text: "",
-        edit: edit,
-        error: nil
-      ]
-
-      {:noreply, assign(socket, assigns)}
-    end
-  end
-
-  @impl true
-  def handle_event("unedit", _, socket) do
-    if socket.assigns.disabled do
-      {:noreply, socket}
-    else
-      assigns = [
-        choices: [],
-        text: "",
-        edit: nil,
-        error: nil
-      ]
-
-      {:noreply, assign(socket, assigns)}
-    end
-  end
-
-  @impl true
-  def handle_event("commit", _, socket) do
-    if socket.assigns.disabled do
-      {:noreply, socket}
-    else
-      edit = socket.assigns.edit
+      edit = %{person_id: person_id, position: position}
 
       changeset =
         %Photos.PhotoPerson{}
@@ -260,38 +272,15 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
       selected = Map.put(socket.assigns.selected, edit.person_id, changeset)
       notify(socket, selected)
 
-      position = get_new_position(selected)
+      new_position = get_new_position(selected)
 
       assigns = [
         selected: selected,
-        text: "",
-        edit: nil,
-        position: position
+        new_position: new_position,
+        error: nil
       ]
 
-      {:noreply, assign(socket, assigns)}
-    end
-  end
-
-  @impl true
-  def handle_event("delete", _, socket) do
-    if socket.assigns.disabled do
-      {:noreply, socket}
-    else
-      edit = socket.assigns.edit
-
-      selected = Map.delete(socket.assigns.selected, edit.person_id)
-      notify(socket, selected)
-
-      position = get_new_position(selected)
-
-      assigns = [
-        selected: selected,
-        edit: nil,
-        position: position
-      ]
-
-      {:noreply, assign(socket, assigns)}
+      assign(socket, assigns)
     end
   end
 

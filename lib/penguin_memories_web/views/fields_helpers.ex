@@ -175,14 +175,13 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
         ) :: any()
   def input_field(form, field, opts \\ []) do
     opts = [{:label, field.name} | opts]
+    disabled = Keyword.get(opts, :disabled, false)
 
     case field.type do
       :markdown ->
         textarea_input_field(form, field.id, opts)
 
       {:single, type} ->
-        disabled = opts[:disabled]
-
         live_component(PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
           form: form,
@@ -194,8 +193,6 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
         )
 
       {:multiple, type} ->
-        disabled = opts[:disabled]
-
         live_component(PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
           form: form,
@@ -207,8 +204,6 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
         )
 
       :persons ->
-        disabled = opts[:disabled]
-
         live_component(PenguinMemoriesWeb.PersonsSelectComponent,
           form: form,
           field: field,

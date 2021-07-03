@@ -71,7 +71,7 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       field: field,
       selected: selected,
       icons: icons,
-      disabled: params.disabled,
+      disabled: Map.get(params, :disabled, false),
       single_choice: params.single_choice,
       search: search,
       updates: updates
@@ -96,8 +96,13 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
   def handle_event("search", %{"value" => value}, socket) do
     search = %Filter{query: value}
 
-    if socket.assigns.disabled do
-      {:noreply, socket}
+    if socket.assigns.disabled or value == "" do
+      assigns = [
+        choices: [],
+        text: value
+      ]
+
+      {:noreply, assign(socket, assigns)}
     else
       type = socket.assigns.type
 
