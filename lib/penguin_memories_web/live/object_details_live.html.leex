@@ -38,16 +38,20 @@
           <%= if length(@details.videos) > 0 do %>
             <% first = hd(@details.videos) %>
             <video
-              phx-hook="video"
+              phx-update="ignore"
               controls="controls"
               width="<%= first.width %>"
               height="<%= first.height %>"
-              id="<%= @socket.id %>_video"
+            ></video>
+            <div
+              phx-hook="video"
+              controls="controls"
+              id="<%= @socket.id %>_video_hook"
             >
               <%= for video <- @details.videos do %>
                 <source src="<%= video.url %>" type="<%= video.mime_type %>" />
               <% end %>
-            </video>
+            </div>
           <% else %>
             <%= if @details.icon.url do %>
               <img

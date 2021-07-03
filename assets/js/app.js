@@ -31,6 +31,19 @@ import {Socket} from "phoenix";
 import NProgress from "nprogress";
 import {LiveSocket} from "phoenix_live_view";
 
+function get_video(node) {
+    let parent = node.parentNode; // gives the parent DIV
+    let children = parent.childNodes;
+    let result = null;
+    for (var i=0; i < children.length; i++) {
+        if (children[i].tagName == "VIDEO") {
+            result = children[i];
+            break;
+        }
+    }
+    return result;
+}
+
 let Hooks = {};
 Hooks.video = {
     mounted() {
@@ -38,14 +51,15 @@ Hooks.video = {
     },
 
     updated() {
+        let video = get_video(this.el);
         let children = this.el.children;
         for (let i = 0; i < children.length; i++) {
             let child = children[i];
             let current_src = this.el.getAttribute("src");
             let src = child.getAttribute("src");
             let type = child.getAttribute("type");
-            if (this.el.canPlayType(type) && src != current_src) {
-                this.el.setAttribute("src", src);
+            if (video.canPlayType(type) && src != current_src) {
+                video.setAttribute("src", src);
                 break
             }
         }
