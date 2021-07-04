@@ -42,14 +42,11 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     value.person_id
   end
 
-  @spec is_update(change_type()) :: boolean()
-  defp is_update(%Changeset{} = changeset) do
-    changeset.action == :update
-  end
-
-  defp is_update(%Photos.PhotoPerson{}) do
-    true
-  end
+  @spec is_update_or_insert(change_type()) :: boolean()
+  defp is_update_or_insert(%Changeset{action: :update}), do: true
+  defp is_update_or_insert(%Changeset{action: :insert}), do: true
+  defp is_update_or_insert(%Changeset{}), do: false
+  defp is_update_or_insert(%Photos.PhotoPerson{}), do: true
 
   @spec get_position(change_type()) :: integer()
   defp get_position(%Changeset{} = changeset) do
@@ -106,7 +103,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
 
     selected =
       Changeset.get_change(form.source, field.id, source)
-      |> Enum.filter(fn changeset -> is_update(changeset) end)
+      |> Enum.filter(fn changeset -> is_update_or_insert(changeset) end)
       |> Enum.map(fn v -> {get_person_id(v), v} end)
       |> Enum.into(%{})
 
