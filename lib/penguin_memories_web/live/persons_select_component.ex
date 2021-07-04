@@ -42,7 +42,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
     value.person_id
   end
 
-  @spec is_update(change_type()) :: integer()
+  @spec is_update(change_type()) :: boolean()
   defp is_update(%Changeset{} = changeset) do
     changeset.action == :update
   end
