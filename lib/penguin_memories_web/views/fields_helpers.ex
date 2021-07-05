@@ -150,6 +150,10 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     end)
   end
 
+  defp output_field_value(_, value, %Field{type: :url}) do
+    Phoenix.HTML.Link.link("link", to: value)
+  end
+
   defp output_field_value(_, value, _field) when is_integer(value) do
     Integer.to_string(value)
   end

@@ -188,7 +188,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
       %Field{
         id: :url,
         name: "URL",
-        type: :string
+        type: :url
       },
       %Field{
         id: :description,

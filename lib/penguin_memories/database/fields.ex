@@ -19,6 +19,7 @@ defmodule PenguinMemories.Database.Fields do
           | :integer
           | :float
           | :boolean
+          | :url
   @type change_type :: :set | :add | :delete | nil
 
   defmodule Field do
