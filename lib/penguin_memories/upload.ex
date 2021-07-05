@@ -17,12 +17,12 @@ defmodule PenguinMemories.Upload do
   alias PenguinMemories.Repo
   alias PenguinMemories.Storage
 
-  @spec get_camera_offset(String.t()) :: integer()
-  defp get_camera_offset(nil), do: 0
+  @spec get_camera_offset(String.t()) :: {String.t(), integer()}
+  defp get_camera_offset(nil), do: {"Etc/UTC", 0}
 
   defp get_camera_offset(camera_model) do
     cameras = Application.get_env(:penguin_memories, :cameras)
-    string = Map.fetch!(cameras, camera_model)
+    {timezone, string} = Map.fetch!(cameras, camera_model)
 
     [hh, mm, ss] = String.split(string, ":")
 
@@ -30,7 +30,7 @@ defmodule PenguinMemories.Upload do
     {mm, ""} = Integer.parse(mm)
     {ss, ""} = Integer.parse(ss)
 
-    (hh * 60 + mm) * 60 + ss
+    {timezone, (hh * 60 + mm) * 60 + ss}
   end
 
   @spec metering_mode(integer() | nil) :: String.t()
@@ -249,13 +249,14 @@ defmodule PenguinMemories.Upload do
     filename = Keyword.get(opts, :filename, Path.basename(path))
 
     exif = Media.get_exif(media)
-    offset = get_camera_offset(exif["EXIF:Model"])
+    {file_timezone, offset} = get_camera_offset(exif["EXIF:Model"])
 
     utc_datetime =
       media
       |> Media.get_datetime()
-      |> DateTime.from_naive!("Etc/UTC")
+      |> DateTime.from_naive!(file_timezone)
       |> DateTime.add(-offset)
+      |> DateTime.shift_zone!("Etc/UTC")
 
     local_datetime = DateTime.shift_zone!(utc_datetime, timezone)
 
@@ -378,7 +379,7 @@ defmodule PenguinMemories.Upload do
         path = Path.join(directory, filename)
 
         if opts[:verbose] do
-          IO.puts("---> #{filename}")
+          IO.puts("---> #{directory} #{filename}")
         end
 
         # Do not put this in a transaction here, as if transaction
