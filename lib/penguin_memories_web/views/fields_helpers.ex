@@ -5,6 +5,8 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   use PenguinMemoriesWeb, :view
 
+  alias Phoenix.HTML.Link
+
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Query
@@ -151,7 +153,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   end
 
   defp output_field_value(_, value, %Field{type: :url}) do
-    Phoenix.HTML.Link.link("link", to: value)
+    Link.link("link", to: value)
   end
 
   defp output_field_value(_, value, _field) when is_integer(value) do
