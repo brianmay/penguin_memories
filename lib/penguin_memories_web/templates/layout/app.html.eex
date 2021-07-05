@@ -15,16 +15,16 @@
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item <%= active_class(@active, "album") %>">
-        <%= link("Albums", to: Routes.main_path(@conn, :index, "album"), class: "nav-link " <> active_class(@active, "album")) %>
+        <%= link("Albums", to: Routes.main_path(@conn, :index, "album", 1), class: "nav-link " <> active_class(@active, "album")) %>
       </li>
       <li class="nav-item <%= active_class(@active, "category") %>">
-        <%= link("Categories", to: Routes.main_path(@conn, :index, "category"), class: "nav-link " <> active_class(@active, "category")) %>
+        <%= link("Categories", to: Routes.main_path(@conn, :index, "category", 1), class: "nav-link " <> active_class(@active, "category")) %>
       </li>
       <li class="nav-item <%= active_class(@active, "person") %>">
         <%= link("People", to: Routes.main_path(@conn, :index, "person"), class: "nav-link " <> active_class(@active, "person")) %>
       </li>
       <li class="nav-item <%= active_class(@active, "place") %>">
-        <%= link("Places", to: Routes.main_path(@conn, :index, "place"), class: "nav-link " <> active_class(@active, "place")) %>
+        <%= link("Places", to: Routes.main_path(@conn, :index, "place", 1), class: "nav-link " <> active_class(@active, "place")) %>
       </li>
       <li class="nav-item <%= active_class(@active, "photo") %>">
         <%= link("Photos", to: Routes.main_path(@conn, :index, "photo"), class: "nav-link " <> active_class(@active, "photo")) %>

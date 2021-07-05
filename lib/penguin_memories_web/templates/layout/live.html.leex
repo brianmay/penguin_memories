@@ -15,16 +15,16 @@
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item <%= active_class(@active, "album") %>">
-        <%= live_redirect("Albums", to: Routes.main_path(@socket, :index, "album"), class: "nav-link " <> active_class(@active, "album")) %>
+        <%= live_redirect("Albums", to: Routes.main_path(@socket, :index, "album", 1), class: "nav-link " <> active_class(@active, "album")) %>
       </li>
       <li class="nav-item <%= active_class(@active, "category") %>">
-        <%= live_redirect("Categories", to: Routes.main_path(@socket, :index, "category"), class: "nav-link " <> active_class(@active, "category")) %>
+        <%= live_redirect("Categories", to: Routes.main_path(@socket, :index, "category", 1), class: "nav-link " <> active_class(@active, "category")) %>
       </li>
       <li class="nav-item <%= active_class(@active, "person") %>">
         <%= live_redirect("People", to: Routes.main_path(@socket, :index, "person"), class: "nav-link " <> active_class(@active, "person")) %>
       </li>
       <li class="nav-item <%= active_class(@active, "place") %>">
-        <%= live_redirect("Places", to: Routes.main_path(@socket, :index, "place"), class: "nav-link " <> active_class(@active, "place")) %>
+        <%= live_redirect("Places", to: Routes.main_path(@socket, :index, "place", 1), class: "nav-link " <> active_class(@active, "place")) %>
       </li>
       <li class="nav-item <%= active_class(@active, "photo") %>">
         <%= live_redirect("Photos", to: Routes.main_path(@socket, :index, "photo"), class: "nav-link " <> active_class(@active, "photo")) %>
