@@ -157,13 +157,13 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
   @spec handle_create(Socket.t()) :: {:noreply, Socket.t()}
   defp handle_create(%Socket{} = socket) do
     type = socket.assigns.type
-    changeset = Query.get_edit_changeset(struct(type), %{}, %{})
+    {assoc, changeset} = Query.get_create_child_changeset(struct(type), %{}, %{})
 
     assigns = [
       error: nil,
       changeset: changeset,
       edit_object: changeset.data,
-      assoc: %{}
+      assoc: assoc
     ]
 
     {:noreply, assign(socket, assigns)}
