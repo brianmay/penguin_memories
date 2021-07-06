@@ -305,6 +305,7 @@ defmodule PenguinMemories.Upload do
         album =
           %Album{
             name: name,
+            sort_name: name,
             parent_id: parent.id,
             reindex: true
           }

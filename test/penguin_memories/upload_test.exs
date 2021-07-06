@@ -48,7 +48,8 @@ defmodule PenguinMemories.Uploadtest do
   test "get_upload_album/1" do
     root_album =
       %Album{
-        name: "Uploads"
+        name: "Uploads",
+        sort_name: "Uploads"
       }
       |> Repo.insert!()
 

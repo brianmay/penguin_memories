@@ -13,6 +13,7 @@ defmodule PenguinMemories.Photos.Album do
           cover_photo_id: integer() | nil,
           cover_photo: Photo.t() | Ecto.Association.NotLoaded.t(),
           name: String.t() | nil,
+          sort_name: String.t() | nil,
           description: String.t() | nil,
           private_notes: String.t() | nil,
           revised: DateTime.t() | nil,
@@ -30,6 +31,7 @@ defmodule PenguinMemories.Photos.Album do
   schema "pm_album" do
     belongs_to :cover_photo, Photo, on_replace: :nilify
     field :name, :string
+    field :sort_name, :string
     field :description, :string
     field :private_notes, :string
     field :revised, :utc_datetime

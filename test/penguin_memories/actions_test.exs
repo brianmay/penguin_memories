@@ -440,7 +440,8 @@ defmodule PenguinMemories.Actionstest do
   test "process_pending/2 works" do
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 

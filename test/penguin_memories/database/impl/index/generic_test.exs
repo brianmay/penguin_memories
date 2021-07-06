@@ -22,6 +22,12 @@ defmodule PenguinMemories.Database.Impl.Index.GenericTest do
     struct(module, opts) |> Repo.insert!()
   end
 
+  defp create(Album = module, name, opts) do
+    opts = Keyword.put(opts, :name, name)
+    opts = Keyword.put(opts, :sort_name, name)
+    struct(module, opts) |> Repo.insert!()
+  end
+
   defp create(Photo = module, name, opts) do
     datetime = ~U[2000-01-01 12:00:00Z]
     opts = Keyword.put(opts, :name, name)

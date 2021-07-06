@@ -29,7 +29,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
 
   @impl API
   @spec get_cursor_fields :: list(atom())
-  def get_cursor_fields, do: [:name, :id]
+  def get_cursor_fields, do: [:sort_name, :name, :id]
 
   @impl API
   @spec get_parent_fields :: list(atom())
@@ -48,8 +48,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   def query do
     from o in Album,
       as: :object,
-      select: %{name: o.name, id: o.id},
-      order_by: [asc: o.name, asc: o.id]
+      select: %{sort_name: o.sort_name, name: o.name, id: o.id},
+      order_by: [asc: o.sort_name, asc: o.name, asc: o.id]
   end
 
   @impl API
@@ -98,8 +98,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
 
   @impl API
   @spec get_subtitle_from_result(result :: map()) :: String.t() | nil
-  def get_subtitle_from_result(%{} = _result) do
-    nil
+  def get_subtitle_from_result(%{} = result) do
+    "#{result.sort_name}"
   end
 
   @impl API
@@ -137,6 +137,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
       %Field{
         id: :name,
         name: "Name",
+        type: :string,
+        searchable: true
+      },
+      %Field{
+        id: :sort_name,
+        name: "Sort Name",
         type: :string,
         searchable: true
       },
@@ -211,12 +217,13 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
     object
     |> cast(attrs, [
       :name,
+      :sort_name,
       :description,
       :private_notes,
       :reindex,
       :revised
     ])
-    |> validate_required([:name])
+    |> validate_required([:sort_name, :name])
     |> Private.put_all_assoc(assoc, [:parent, :cover_photo])
   end
 
