@@ -285,10 +285,27 @@ defmodule PenguinMemories.Database.Query do
           op :: String.t(),
           value :: String.t()
         ) :: {:ok, dynamic_type()} | {:error, String.t()}
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp filter_by_words(%Ecto.Query.DynamicExpr{} = dynamic, id, op, value) do
     case {value, op} do
       {_, "="} ->
         dynamic = dynamic([o], ^dynamic and field(o, ^id) == ^value)
+        {:ok, dynamic}
+
+      {_, "<"} ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) < ^value)
+        {:ok, dynamic}
+
+      {_, "<="} ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) <= ^value)
+        {:ok, dynamic}
+
+      {_, ">"} ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) > ^value)
+        {:ok, dynamic}
+
+      {_, ">="} ->
+        dynamic = dynamic([o], ^dynamic and field(o, ^id) >= ^value)
         {:ok, dynamic}
 
       {value, "~"} when value != "" ->
