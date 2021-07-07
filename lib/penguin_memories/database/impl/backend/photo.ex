@@ -205,12 +205,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       %Field{
         id: :albums,
         name: "Albums",
-        type: {:multiple, PenguinMemories.Photos.Album}
+        type: {:multiple, PenguinMemories.Photos.Album},
+        searchable: true
       },
       %Field{
         id: :categorys,
         name: "Categories",
-        type: {:multiple, PenguinMemories.Photos.Category}
+        type: {:multiple, PenguinMemories.Photos.Category},
+        searchable: true
       },
       %Field{
         id: :place,
@@ -226,7 +228,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       },
       %Field{
         id: :photo_persons,
-        name: "Persons",
+        name: "People",
         type: :persons,
         searchable: true
       },
