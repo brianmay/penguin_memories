@@ -129,39 +129,21 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  @spec save_photo(rc()) :: rc()
+  @spec save_photo(rc(), Album.t()) :: rc()
   # defp save_photo({:error, _} = rc), do: rc
-  defp save_photo({:skipped, _} = rc), do: rc
+  defp save_photo({:skipped, _} = rc, %Album{}), do: rc
 
-  defp save_photo({:ok, %Photo{} = photo}) do
+  defp save_photo({:ok, %Photo{} = photo}, %Album{} = album) do
     rc =
       photo
       |> Ecto.Changeset.change()
-      |> Ecto.Changeset.put_assoc(:albums, [])
+      |> Ecto.Changeset.put_assoc(:albums, [album])
       |> Ecto.Changeset.put_assoc(:files, [])
       |> Ecto.Changeset.put_assoc(:photo_relations, [])
       |> Repo.insert()
 
     case rc do
       {:ok, %Photo{}} = rc -> rc
-      {:error, %Ecto.Changeset{} = cs} -> {:error, changeset_error_to_string(cs)}
-    end
-  end
-
-  @spec add_album(rc(), Album.t()) :: rc()
-  defp add_album({:error, _} = rc, _), do: rc
-
-  defp add_album({status, %Photo{} = photo}, %Album{} = album) do
-    albums = add_item(photo.albums, album, fn a, b -> a.id == b.id end)
-
-    rc =
-      photo
-      |> Ecto.Changeset.change()
-      |> Ecto.Changeset.put_assoc(:albums, albums)
-      |> Repo.update()
-
-    case rc do
-      {:ok, %Photo{} = photo} -> {status, photo}
       {:error, %Ecto.Changeset{} = cs} -> {:error, changeset_error_to_string(cs)}
     end
   end
@@ -230,14 +212,6 @@ defmodule PenguinMemories.Upload do
 
   defp print_status(rc, _, _), do: rc
 
-  @spec rollback_if_error(rc()) :: {:ok | :skipped, Photo.t()}
-  defp rollback_if_error({:error, _} = rc) do
-    Repo.rollback(rc)
-  end
-
-  defp rollback_if_error({:skipped, %Photo{}} = rc), do: rc
-  defp rollback_if_error({:ok, %Photo{}} = rc), do: rc
-
   @spec upload_file(String.t(), Album.t(), keyword()) :: rc
   def upload_file(path, album, opts \\ []) do
     {:ok, media} = Media.get_media(path)
@@ -274,24 +248,20 @@ defmodule PenguinMemories.Upload do
     photo = add_exif_to_photo(photo, media)
 
     rc =
-      Repo.transaction(fn ->
-        {:ok, photo}
-        |> check_file_conflicts(media, size_key)
-        |> save_photo()
-        |> add_album(album)
-        |> create_file(media, size_key)
-        |> print_status(opts[:verbose], path)
-        |> rollback_if_error()
-      end)
+      {:ok, photo}
+      |> check_file_conflicts(media, size_key)
+      |> save_photo(album)
+      |> create_file(media, size_key)
+      |> print_status(opts[:verbose], path)
 
     case rc do
-      {:ok, {:ok, %Photo{}} = rc} ->
+      {:ok, %Photo{}} = rc ->
         rc
 
-      {:ok, {:skipped, %Photo{}} = rc} ->
+      {:skipped, %Photo{}} = rc ->
         rc
 
-      {:error, {:error, reason}} ->
+      {:error, reason} ->
         {:error, "Error processing #{path}: #{reason}"}
     end
   end
