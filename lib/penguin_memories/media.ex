@@ -38,7 +38,7 @@ defmodule PenguinMemories.Media do
   defguardp guard_is_image(type) when type == "image"
 
   defguardp guard_is_raw(type, subtype)
-            when guard_is_image(type) and subtype in ["cr2", "x-canon-cr2"]
+            when guard_is_image(type) and subtype in ["cr2", "x-canon-cr2", "dng"]
 
   defguardp guard_is_video(type) when type == "video"
 
@@ -67,9 +67,12 @@ defmodule PenguinMemories.Media do
 
   @spec get_media(String.t(), String.t() | nil) :: {:ok, t()} | {:error, String.t()}
   def get_media(path, format \\ nil) do
+    extension = Path.extname(path)
+
     format =
       cond do
         format != nil -> format
+        extension == ".dng" -> "image/dng"
         true -> MIME.from_path(path)
       end
 
@@ -90,6 +93,10 @@ defmodule PenguinMemories.Media do
   end
 
   @spec get_extension(t()) :: String.t()
+  def get_extension(%__MODULE__{type: "image", subtype: "dng"}) do
+    "dng"
+  end
+
   def get_extension(%__MODULE__{} = media) do
     media
     |> get_format()
