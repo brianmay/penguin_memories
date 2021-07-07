@@ -418,6 +418,10 @@ defmodule PenguinMemories.Upload do
         path = Path.join(directory, filename)
         dir?(path)
       end)
+      |> Enum.reject(fn filename ->
+        Path.extname(filename) in [".CR3", ".dng"]
+      end)
+      |> Enum.sort()
 
     files
     |> Enum.group_by(fn f -> Path.rootname(f) end)
