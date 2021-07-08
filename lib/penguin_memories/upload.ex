@@ -12,8 +12,6 @@ defmodule PenguinMemories.Upload do
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
-  alias PenguinMemories.Photos.PhotoRelation
-  alias PenguinMemories.Photos.Relation
   alias PenguinMemories.Repo
   alias PenguinMemories.Storage
 
@@ -289,89 +287,7 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  @spec create_relation(list(Photo.t()), String.t()) :: :ok
-  defp create_relation(photos, rootname) do
-    related_title = "Files for #{rootname}"
-
-    ids = Enum.map(photos, fn photo -> photo.id end)
-
-    {:ok, :ok} =
-      Repo.transaction(fn ->
-        query =
-          from r in Relation,
-            join: pr in PhotoRelation,
-            on: pr.relation_id == r.id,
-            join: p in Photo,
-            on: pr.photo_id == p.id,
-            where: p.id in ^ids and r.name == ^related_title,
-            order_by: [desc: p.id],
-            limit: 1
-
-        relation =
-          case Repo.one(query) do
-            nil ->
-              %Relation{
-                name: related_title
-              }
-              |> Repo.insert!()
-
-            relation ->
-              relation
-          end
-
-        Enum.each(photos, fn photo ->
-          pr = %PhotoRelation{
-            relation_id: relation.id,
-            name: photo.filename
-          }
-
-          prs =
-            add_item(photo.photo_relations, pr, fn a, b ->
-              a.relation_id == b.relation_id
-            end)
-
-          photo
-          |> Ecto.Changeset.change()
-          |> Ecto.Changeset.put_assoc(:photo_relations, prs)
-          |> Repo.update!()
-        end)
-
-        :ok
-      end)
-
-    :ok
-  end
-
-  @spec upload_group(String.t(), String.t(), list(String.t()), Album.t(), keyword()) ::
-          list(Photo.t())
-  defp upload_group(directory, rootname, filenames, %Album{} = album, opts) do
-    photos =
-      Enum.map(filenames, fn filename ->
-        path = Path.join(directory, filename)
-
-        if opts[:verbose] do
-          IO.puts("---> #{directory} #{filename}")
-        end
-
-        # Do not put this in a transaction here, as if transaction
-        # gets rolled back the files will still be created.
-        photo =
-          case upload_file(path, album, opts) do
-            {:ok, %Photo{} = photo} -> photo
-            {:skipped, %Photo{} = photo} -> photo
-          end
-
-        photo
-      end)
-
-    if length(filenames) > 1 do
-      create_relation(photos, rootname)
-    end
-
-    photos
-  end
-
-  @spec upload_directory(String.t(), keyword()) :: list(Photo.t() | nil)
+  @spec upload_directory(String.t(), keyword()) :: list(Photo.t())
   def upload_directory(directory, opts \\ []) do
     default_date = DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
     upload_date = Keyword.get(opts, :date, default_date)
@@ -382,22 +298,22 @@ defmodule PenguinMemories.Upload do
       |> Path.basename()
       |> get_upload_album()
 
-    files =
-      ls!(directory)
-      |> Enum.reject(fn filename ->
-        path = Path.join(directory, filename)
-        dir?(path)
-      end)
-      |> Enum.reject(fn filename ->
-        Path.extname(filename) in [".CR3", ".dng"]
-      end)
-      |> Enum.sort()
-
-    files
-    |> Enum.group_by(fn f -> Path.rootname(f) end)
-    |> Enum.map(fn {rootname, filenames} ->
-      upload_group(directory, rootname, filenames, album, opts)
+    ls!(directory)
+    |> Enum.sort()
+    |> Enum.map(fn filename ->
+      Path.join(directory, filename)
     end)
-    |> List.flatten()
+    |> Enum.reject(fn path ->
+      dir?(path)
+    end)
+    |> Enum.reject(fn path ->
+      Path.extname(path) in [".CR3", ".dng", ".pp3"]
+    end)
+    |> Enum.map(fn path ->
+      case upload_file(path, album, opts) do
+        {:ok, %Photo{} = photo} -> photo
+        {:skipped, %Photo{} = photo} -> photo
+      end
+    end)
   end
 end
