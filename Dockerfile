@@ -51,6 +51,7 @@ ENV VCS_REF=${VCS_REF}
 WORKDIR /opt/app
 COPY lib /opt/app/lib/
 COPY priv /opt/app/priv/
+COPY src /opt/app/src/
 RUN mix compile
 COPY rel /opt/app/rel/
 RUN mix release
