@@ -46,6 +46,7 @@ defmodule PenguinMemories.Photos.Photo do
           photographer: Person.t() | Ecto.Association.NotLoaded.t() | nil,
           photo_persons: list(PhotoPerson.t()) | Ecto.Association.NotLoaded.t() | nil,
           photo_relations: list(PhotoRelation.t()) | Ecto.Association.NotLoaded.t() | nil,
+          persons: list(Person.t()) | Ecto.Association.NotLoaded.t() | nil,
           related: list(%{r: Relation.t(), pr: PhotoRelation.t()}) | nil
         }
 
@@ -78,6 +79,7 @@ defmodule PenguinMemories.Photos.Photo do
     belongs_to :place, Place, on_replace: :nilify
     belongs_to :photographer, Person, on_replace: :nilify
     has_many :photo_persons, PhotoPerson, on_replace: :delete
+    many_to_many :persons, Person, join_through: PhotoPerson
 
     has_many :photo_relations, PhotoRelation, foreign_key: :photo_id
 
