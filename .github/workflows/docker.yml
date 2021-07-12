@@ -46,7 +46,7 @@ jobs:
           # required for Elixir
           # sudo apt-get install --yes wget unzip libtinfo5
       - name: Setup elixir
-        uses: erlef/setup-elixir@v1.7
+        uses: erlef/setup-elixir@v1.8.2
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
@@ -95,7 +95,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2.3.4
       - name: Setup elixir
-        uses: erlef/setup-elixir@v1.7
+        uses: erlef/setup-elixir@v1.8.2
         with:
           elixir-version: ${{ matrix.elixir }}
           otp-version: ${{ matrix.otp }}
@@ -116,7 +116,7 @@ jobs:
         id: plt-cache
         with:
           path: priv/plts
-          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-2
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plts-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}-3
       - name: Build
         run: |
           mix compile
