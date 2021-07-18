@@ -60,12 +60,17 @@ defmodule PenguinMemoriesWeb.Router do
   end
 
   scope "/", PenguinMemoriesWeb do
-    pipe_through [:browser, :auth]
+    pipe_through [:browser]
 
-    live "/", PageLive, :index
     live "/login", SessionLive, :login
     post "/login", SessionController, :login
     post "/logout", SessionController, :logout
+  end
+
+  scope "/", PenguinMemoriesWeb do
+    pipe_through [:browser, :auth]
+
+    live "/", PageLive, :index
     get "/file/:id/size/:size/", RedirectController, :photo
     live "/:type/", MainLive, :index
     live "/:type/:id/", MainLive, :index
