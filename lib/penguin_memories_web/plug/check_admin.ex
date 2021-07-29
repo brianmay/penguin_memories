@@ -13,7 +13,7 @@ defmodule PenguinMemoriesWeb.Plug.CheckAdmin do
       conn
     else
       conn
-      |> put_flash(:error, "Permission denied: Not authorized")
+      |> put_flash(:danger, "Permission denied: Not authorized")
       |> redirect(to: Routes.session_path(conn, :login, next: conn.request_path))
       |> halt()
     end
