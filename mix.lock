@@ -1,6 +1,6 @@
 %{
   "argon2_elixir": {:hex, :argon2_elixir, "2.4.0", "2a22ea06e979f524c53b42b598fc6ba38cdcbc977a155e33e057732cfb1fb311", [:make, :mix], [{:comeonin, "~> 5.3", [hex: :comeonin, repo: "hexpm", optional: false]}, {:elixir_make, "~> 0.6", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "4ea82e183cf8e7f66dab1f767fedcfe6a195e140357ef2b0423146b72e0a551d"},
-  "assertions": {:hex, :assertions, "0.18.1", "a7e1e0c65dacac7d6c010345f2831e63e1897ba0c028c608fc508677c662d3d4", [:mix], [], "hexpm", "3b0479514b8f5ef5cb2a193202e792f60f87554a72d3b9c6fd791da0d81ae1e1"},
+  "assertions": {:hex, :assertions, "0.19.0", "f177fcc22b55df6a41a58b151e430d189d0a1083dae3240522503dedaf8e1174", [:mix], [], "hexpm", "759bdbf977fe3e2d2b79f8a65d8674f29ac757781136a6cb4adf88f1574af1d8"},
   "bunt": {:hex, :bunt, "0.2.0", "951c6e801e8b1d2cbe58ebbd3e616a869061ddadcc4863d0a2182541acae9a38", [:mix], [], "hexpm", "7af5c7e09fe1d40f76c8e4f9dd2be7cebd83909f31fee7cd0e9eadc567da8353"},
   "certifi": {:hex, :certifi, "2.6.1", "dbab8e5e155a0763eea978c913ca280a6b544bfa115633fa20249c3d396d9493", [:rebar3], [], "hexpm", "524c97b4991b3849dd5c17a631223896272c6b0af446778ba4675a1dff53bb7e"},
   "combine": {:hex, :combine, "0.10.0", "eff8224eeb56498a2af13011d142c5e7997a80c8f5b97c499f84c841032e429f", [:mix], [], "hexpm", "1b1dbc1790073076580d0d1d64e42eae2366583e7aecd455d1215b0d16f2451b"},
