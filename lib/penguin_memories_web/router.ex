@@ -1,5 +1,6 @@
 defmodule PenguinMemoriesWeb.Router do
   use PenguinMemoriesWeb, :router
+  import Phoenix.LiveDashboard.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -44,8 +45,6 @@ defmodule PenguinMemoriesWeb.Router do
     pipe_through [:browser, :auth, :static]
     get "/*path", FileNotFoundController, :index
   end
-
-  import Phoenix.LiveDashboard.Router
 
   scope "/", PenguinMemoriesWeb do
     pipe_through [:browser, :auth, :ensure_admin]
