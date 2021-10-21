@@ -48,7 +48,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
       common: %LiveRequest{
         url: nil,
         host_url: nil,
-        user: nil,
+        current_user: nil,
         big_id: nil,
         force_reload: nil
       }
@@ -86,7 +86,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     socket = assign(socket, assoc: assoc)
 
     cond do
-      not Auth.can_edit(socket.assigns.common.user) ->
+      not Auth.can_edit(socket.assigns.common.current_user) ->
         {:noreply, assign(socket, :error, "Permission denied")}
 
       not is_editing(socket.assigns) ->
@@ -99,7 +99,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
 
   @impl true
   def handle_event("update", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) do
+    if Auth.can_edit(socket.assigns.common.current_user) do
       handle_update(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -109,7 +109,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
   @impl true
   def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
     cond do
-      not Auth.can_edit(socket.assigns.common.user) ->
+      not Auth.can_edit(socket.assigns.common.current_user) ->
         {:noreply, assign(socket, :error, "Permission denied")}
 
       not is_editing(socket.assigns) ->
@@ -123,7 +123,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
   @impl true
   def handle_event("save", %{"object" => params}, %Socket{} = socket) do
     cond do
-      not Auth.can_edit(socket.assigns.common.user) ->
+      not Auth.can_edit(socket.assigns.common.current_user) ->
         {:noreply, assign(socket, :error, "Permission denied")}
 
       not is_editing(socket.assigns) ->
@@ -290,7 +290,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
           list(Updates.UpdateChange.t())
   defp get_updates(%Socket{} = socket, %{} = params, %{} = assoc) do
     type = socket.assigns.request.type
-    fields = Fields.get_update_fields(type, socket.assigns.common.user)
+    fields = Fields.get_update_fields(type, socket.assigns.common.current_user)
 
     enabled = get_enabled(fields, params)
     get_update_changes(enabled, fields, params, assoc)
@@ -300,7 +300,7 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
           {MapSet.t(), Changeset.t()}
   defp get_update_changeset(%Socket{} = socket, %{} = params, %{} = assoc) do
     type = socket.assigns.request.type
-    fields = Fields.get_update_fields(type, socket.assigns.common.user)
+    fields = Fields.get_update_fields(type, socket.assigns.common.current_user)
 
     enabled = get_enabled(fields, params)
     changeset = Updates.get_update_changeset(type, params, assoc, enabled)

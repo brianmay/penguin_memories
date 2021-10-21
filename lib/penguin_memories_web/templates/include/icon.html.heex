@@ -1,0 +1,30 @@
+<%
+  target = assigns[:target]
+  classes =
+    ["photo_item"]
+    |> prepend_list_if(true, icon_classes(@icon))
+    |> prepend_list_if(true, @classes)
+    |> Enum.join(" ")
+%>
+<div
+  class={classes}
+  phx-click={@event}
+  phx-value-type={PenguinMemories.Database.Types.get_name!(@icon.type)}
+  phx-value-id={@icon.id}
+  phx-target={target}
+>
+  <%= if @icon.url do %>
+    <img
+      src={@icon.url}
+      alt=""
+      width={@icon.width}
+      height={@icon.height}
+    />
+  <% else %>
+    No image
+  <% end %>
+  <div class="name"><%= @icon.name %></div>
+  <%= if @icon.subtitle do %>
+    <div class="subtitle"><%= @icon.subtitle %></div>
+  <% end %>
+</div>

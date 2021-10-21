@@ -4,17 +4,17 @@
   <% field_class = field_class(@form, field_id, "") %>
   <% feedback_for = get_feedback_for(@form, dummy_field_id) %>
 
-  <div class="form-group" phx_feedback_for="<%= feedback_for %>">
+  <div class="form-group" phx_feedback_for={feedback_for}>
     <%= label(@form, dummy_field_id, @field.name, class: "control-label") %>
-    <div class="autoselect form-control <%= field_class %>">
+    <div class={"autoselect form-control #{field_class}"}>
       <%= for obj <- @selected do %>
         <% icon = Map.get(@icons, obj.id) %>
         <%= if icon do %>
           <span
             class="selected"
             phx-click="remove"
-            phx-value-id="<%= icon.id %>"
-            phx-target="<%= @myself %>"
+            phx-value-id={icon.id}
+            phx-target={@myself}
           ><%= icon.name %></span>
         <% end %>
       <% end %>

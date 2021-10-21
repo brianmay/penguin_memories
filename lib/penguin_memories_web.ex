@@ -48,8 +48,6 @@ defmodule PenguinMemoriesWeb do
         layout: {PenguinMemoriesWeb.LayoutView, "live.html"}
 
       unquote(view_helpers())
-
-      import MyAppWeb.LiveHelpers
     end
   end
 
@@ -92,6 +90,7 @@ defmodule PenguinMemoriesWeb do
       import PenguinMemoriesWeb.ErrorHelpers
       import PenguinMemoriesWeb.FormHelpers
       import PenguinMemoriesWeb.Gettext
+      import PenguinMemoriesWeb.ViewHelpers
       alias PenguinMemoriesWeb.Router.Helpers, as: Routes
     end
   end

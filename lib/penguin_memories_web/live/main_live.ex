@@ -244,7 +244,7 @@ defmodule PenguinMemoriesWeb.MainLive do
     %PenguinMemoriesWeb.LiveRequest{
       url: socket.assigns.url,
       host_url: socket.host_uri,
-      user: socket.assigns.user,
+      current_user: socket.assigns.current_user,
       big_id: socket.assigns.big_id,
       force_reload: force_reload
     }

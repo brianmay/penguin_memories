@@ -1,4 +1,4 @@
-<%= if @type != Photos.Photo and Auth.can_edit(@common.user) do %>
+<%= if @type != Photos.Photo and Auth.can_edit(@common.current_user) do %>
   <div class="details">
     <%= if @error do %>
       <div class="alert alert-danger">
@@ -7,8 +7,8 @@
     <% end %>
 
     <%= if is_editing(assigns) do %>
-      <% fields = Fields.get_fields(@type, @common.user) %>
-      <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save"] %>
+      <% fields = Fields.get_fields(@type, @common.current_user) %>
+      <.form let={f} for={@changeset} phx-change="validate" phx-submit="save">
         <%= for %Fields.Field{} = field <- fields do %>
           <%= if field.read_only == false do %>
             <%= FieldHelpers.input_field f, field %>
@@ -26,11 +26,11 @@
               value="Cancel"
           /></span>
         </div>
-      </form>
+      </.form>
     <% end %>
 
     <div class="buttons">
-      <%= if is_nil(@changeset) and Auth.can_edit(@common.user) and @type != Photos.Photo do %>
+      <%= if is_nil(@changeset) and Auth.can_edit(@common.current_user) and @type != Photos.Photo do %>
         <div class="btn btn-secondary" phx-click="create">Create</div>
       <% end %>
     </div>

@@ -93,7 +93,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       common: %LiveRequest{
         url: nil,
         host_url: nil,
-        user: nil,
+        current_user: nil,
         big_id: nil,
         force_reload: nil
       }

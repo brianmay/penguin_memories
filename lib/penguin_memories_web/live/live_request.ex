@@ -9,7 +9,7 @@ defmodule PenguinMemoriesWeb.LiveRequest do
   @type t :: %__MODULE__{
           url: URI.t(),
           host_url: URI.t(),
-          user: Accounts.User.t(),
+          current_user: Accounts.User.t(),
           big_id: String.t() | nil,
           force_reload: boolean()
         }
@@ -17,14 +17,14 @@ defmodule PenguinMemoriesWeb.LiveRequest do
   @enforce_keys [
     :url,
     :host_url,
-    :user,
+    :current_user,
     :big_id,
     :force_reload
   ]
 
   defstruct url: nil,
             host_url: nil,
-            user: nil,
+            current_user: nil,
             big_id: nil,
             force_reload: false
 

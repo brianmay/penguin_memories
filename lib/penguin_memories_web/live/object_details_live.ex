@@ -15,7 +15,6 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   alias PenguinMemories.Photos
   alias PenguinMemories.Urls
   alias PenguinMemoriesWeb.FieldHelpers
-  alias PenguinMemoriesWeb.IconHelpers
   alias PenguinMemoriesWeb.LiveRequest
   alias PenguinMemoriesWeb.Router.Helpers, as: Routes
 
@@ -46,7 +45,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       common: %LiveRequest{
         url: nil,
         host_url: nil,
-        user: nil,
+        current_user: nil,
         big_id: nil,
         force_reload: nil
       },
@@ -111,7 +110,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   def handle_event("create", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) and socket.assigns.request.type != Photos.Photo do
+    if Auth.can_edit(socket.assigns.common.current_user) and
+         socket.assigns.request.type != Photos.Photo do
       handle_create(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -120,7 +120,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("edit", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) do
+    if Auth.can_edit(socket.assigns.common.current_user) do
       handle_edit(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -129,7 +129,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @impl true
   def handle_event("delete", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) do
+    if Auth.can_edit(socket.assigns.common.current_user) do
       handle_delete(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -139,7 +139,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @impl true
   def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
     cond do
-      not Auth.can_edit(socket.assigns.common.user) ->
+      not Auth.can_edit(socket.assigns.common.current_user) ->
         {:noreply, assign(socket, :error, "Permission denied")}
 
       not is_editing(socket.assigns) ->
@@ -153,7 +153,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @impl true
   def handle_event("save", %{"object" => params}, %Socket{} = socket) do
     cond do
-      not Auth.can_edit(socket.assigns.common.user) ->
+      not Auth.can_edit(socket.assigns.common.current_user) ->
         {:noreply, assign(socket, :error, "Permission denied")}
 
       not is_editing(socket.assigns) ->
@@ -187,7 +187,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     old = socket.assigns
     big_changed = old.big != new_big
     filter_changed = old.filter != filter
-    user_changed = old.common.user != common.user
+    user_changed = old.common.current_user != common.current_user
     request_changed = old.request != request
 
     assigns = [
@@ -230,7 +230,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     socket = assign(socket, assoc: assoc)
 
     cond do
-      not Auth.can_edit(socket.assigns.common.user) ->
+      not Auth.can_edit(socket.assigns.common.current_user) ->
         {:noreply, assign(socket, :error, "Permission denied")}
 
       not is_editing(socket.assigns) ->

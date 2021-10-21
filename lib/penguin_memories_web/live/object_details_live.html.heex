@@ -1,14 +1,20 @@
+<%
+  classes =
+    ["details"]
+    |> prepend_if(@big, "big")
+    |> lazy_prepend_list_if(
+        @details != nil,
+        fn -> icon_classes(@details.icon) end
+        )
+    |> Enum.join(" ")
+  keydown = if @big, do: "key", else: nil
+  throttle = if @big, do: 550, else: nil
+%>
+<div class={classes} phx-window-keydown={keydown} phx-throttle={throttle}>
 <%= if @details do %>
   <% type_name = PenguinMemories.Database.Types.get_name!(@request.type) %>
-  <% fields = Fields.get_fields(@request.type, @common.user) %>
+  <% fields = Fields.get_fields(@request.type, @common.current_user) %>
 
-  <div
-    class="details <%= if @big do %>big<% end %> <%= IconHelpers.icon_classes(@details.icon) %>"
-    <%= if @big do %>
-      phx-window-keydown="key"
-      phx-throttle="500"
-    <% end %>
-  >
     <h2>
       <%= @title %>
     </h2>
@@ -40,25 +46,25 @@
             <video
               phx-update="ignore"
               controls="controls"
-              width="<%= first.width %>"
-              height="<%= first.height %>"
+              width={first.width}
+              height={first.height}
             ></video>
             <div
               phx-hook="video"
               controls="controls"
-              id="<%= @socket.id %>_video_hook"
+              id={"#{@socket.id}_video_hook"}
             >
               <%= for video <- @details.videos do %>
-                <source src="<%= video.url %>" type="<%= video.mime_type %>" />
+                <source src={video.url} type={video.mime_type} />
               <% end %>
             </div>
           <% else %>
             <%= if @details.icon.url do %>
               <img
-                src="<%= @details.icon.url %>"
-                alt="<%= @details.icon.name %>"
-                width="<%= @details.icon.width %>"
-                height="<%= @details.icon.height %>"
+                src={@details.icon.url}
+                alt={@details.icon.name}
+                width={@details.icon.width}
+                height={@details.icon.height}
               />
             <% else %>
               No image
@@ -85,7 +91,7 @@
         <% end %>
 
         <%= if @mode == :edit do %>
-          <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save"] %>
+          <.form let={f} for={@changeset} as="object" phx-change="validate" phx-submit="save">
             <%= for %Fields.Field{} = field <- fields do %>
               <%= if field.read_only == false do %>
                 <%= FieldHelpers.input_field f, field %>
@@ -103,7 +109,7 @@
                   value="Cancel"
               /></span>
             </div>
-          </form>
+          </.form>
         <% end %>
       </div>
     </div>
@@ -119,7 +125,7 @@
             <div
               class="btn btn-secondary"
               phx-click="select-object"
-              phx-value-id="<%= @prev_icon.id %>"
+              phx-value-id={@prev_icon.id}
             >
               &lt;
             </div>
@@ -140,7 +146,7 @@
             <div
               class="btn btn-secondary"
               phx-click="select-object"
-              phx-value-id="<%= @next_icon.id %>"
+              phx-value-id={@next_icon.id}
             >
               &gt;
             </div>
@@ -166,7 +172,7 @@
           <% end %>
         <% end %>
 
-        <%= if @details.orig != nil and Auth.can_see_orig(@common.user) do %>
+        <%= if @details.orig != nil and Auth.can_see_orig(@common.current_user) do %>
           <%= live_redirect to: @details.orig.url, class: "btn btn-secondary" do %>
             Orig
           <% end %>
@@ -179,7 +185,7 @@
           <% end %>
         <% end %>
 
-        <%= if Auth.can_edit(@common.user) do %>
+        <%= if Auth.can_edit(@common.current_user) do %>
           <%= if @request.type != Photos.Photo do %>
             <div class="btn btn-secondary" phx-click="create">Create</div>
           <% end %>
@@ -190,12 +196,11 @@
     </div>
   </div>
 <% else %>
-  <div class="details <%= if @big do %>big<% end %> ">
     <h2>LOADING</h2>
     <%= if @error do %>
       <div class="alert alert-danger">
         <%= @error %>
       </div>
     <% end %>
-  </div>
 <% end %>
+</div>

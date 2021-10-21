@@ -44,7 +44,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
       common: %LiveRequest{
         url: nil,
         host_url: nil,
-        user: nil,
+        current_user: nil,
         big_id: nil,
         force_reload: nil
       }
@@ -60,7 +60,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
   end
 
   def handle_event("create", _params, %Socket{} = socket) do
-    if Auth.can_edit(socket.assigns.common.user) and socket.assigns.type != Photos.Photo do
+    if Auth.can_edit(socket.assigns.common.current_user) and socket.assigns.type != Photos.Photo do
       handle_create(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -70,7 +70,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
   @impl true
   def handle_event("validate", %{"object" => params}, %Socket{} = socket) do
     cond do
-      not Auth.can_edit(socket.assigns.common.user) ->
+      not Auth.can_edit(socket.assigns.common.current_user) ->
         {:noreply, assign(socket, :error, "Permission denied")}
 
       not is_editing(socket.assigns) ->
@@ -84,7 +84,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
   @impl true
   def handle_event("save", %{"object" => params}, %Socket{} = socket) do
     cond do
-      not Auth.can_edit(socket.assigns.common.user) ->
+      not Auth.can_edit(socket.assigns.common.current_user) ->
         {:noreply, assign(socket, :error, "Permission denied")}
 
       not is_editing(socket.assigns) ->
@@ -138,7 +138,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
     socket = assign(socket, assoc: assoc)
 
     cond do
-      not Auth.can_edit(socket.assigns.common.user) ->
+      not Auth.can_edit(socket.assigns.common.current_user) ->
         {:noreply, assign(socket, :error, "Permission denied")}
 
       not is_editing(socket.assigns) ->

@@ -4,9 +4,9 @@
   <% field_class = field_class(@form, field_id, "") %>
   <% feedback_for = get_feedback_for(@form, dummy_field_id) %>
 
-  <div class="form-group" phx_feedback_for="<%= feedback_for %>">
+  <div class="form-group" phx_feedback_for={feedback_for}>
     <%= label(@form, dummy_field_id, @field.name, class: "control-label") %>
-    <div class="autoselect form-control <%= field_class %>">
+    <div class={"autoselect form-control #{field_class}"}>
       <% selected = get_sorted(@selected) %>
       <%= for pp <- selected do %>
         <div>
@@ -17,8 +17,8 @@
             <span
               class="selected"
               phx-click="delete"
-              phx-value-person-id="<%= person_id %>"
-              phx-target="<%= @myself %>"
+              phx-value-person-id={person_id}
+              phx-target={@myself}
             ><%= icon.name %></span>
             <%= text_input(@form, :position, phx_keyup: "position", phx_target: @myself, phx_value_person_id: person_id, value: position, disabled: @disabled) %>
           <% end %>
@@ -26,20 +26,20 @@
       <% end %>
     </div>
 
-    <div class="autoselect form-control <%= field_class %>">
+    <div class={"autoselect form-control #{field_class}"}>
       Add person:
       <div>
         <input
           type="text"
           phx-keyup="new_search"
-          phx-target="<%= @myself %>"
-          value="<%= @text %>"
+          phx-target={@myself}
+          value={@text}
         />
         <input
           type="text"
           phx-keyup="new_position"
-          phx-target="<%= @myself %>"
-          value="<%= @new_position %>"
+          phx-target={@myself}
+          value={@new_position}
         />
       </div>
     </div>
