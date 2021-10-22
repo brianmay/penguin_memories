@@ -49,8 +49,8 @@
           </div>
         </li>
       <% else %>
-        <li class="{item_class(@active, "login")}>
-          <%= link("Login", to: Routes.session_path(@socket, :login, next: URI.to_string(@url)), class: link_class(@active, "login")) %>
+        <li class="{item_class(@active, "session")}>
+          <%= link("Login", to: Routes.session_path(@socket, :login, next: URI.to_string(@url)), class: link_class(@active, "session")) %>
         </li>
       <% end %>
     </ul>
