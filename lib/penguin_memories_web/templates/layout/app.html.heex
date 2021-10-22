@@ -14,13 +14,13 @@
 
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
-      <li class={item_class(@active, "album")}>
+      <li class="nav-item">
         <%= live_redirect("Albums", to: Routes.main_path(@conn, :index, "album", 1), class: link_class(@active, "album")) %>
       </li>
-      <li class={item_class(@active, "category")}>
+      <li class="nav-item"}>
         <%= live_redirect("Categories", to: Routes.main_path(@conn, :index, "category", 1), class: link_class(@active, "category")) %>
       </li>
-      <li class={item_class(@active, "person")}>
+      <li class="nav-item"}>
         <%= live_redirect("People", to: Routes.main_path(@conn, :index, "person"), class: link_class(@active, "person")) %>
       </li>
       <li class="{item_class(@active, "place")}>
@@ -32,7 +32,7 @@
       <% current_user = PenguinMemories.Auth.current_user(@conn) %>
       <%= if current_user do %>
         <%= if PenguinMemories.Auth.user_is_admin?(current_user) do %>
-          <li class={item_class(@active, "users")}>
+          <li class="nav-item">
             <%= live_redirect("Users", to: Routes.user_path(@conn, :index), class: link_class(@active, "users")) %>
           </li>
         <% end %>

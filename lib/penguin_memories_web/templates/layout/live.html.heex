@@ -14,24 +14,24 @@
 
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
-      <li class={item_class(@active, "album")}>
+      <li class="nav-item">
         <%= live_redirect("Albums", to: Routes.main_path(@socket, :index, "album", 1), class: link_class(@active, "album")) %>
       </li>
-      <li class={item_class(@active, "category")}>
+      <li class="nav-item">
         <%= live_redirect("Categories", to: Routes.main_path(@socket, :index, "category", 1), class: link_class(@active, "category")) %>
       </li>
-      <li class={item_class(@active, "person")}>
+      <li class="nav-item">
         <%= live_redirect("People", to: Routes.main_path(@socket, :index, "person"), class: link_class(@active, "person")) %>
       </li>
-      <li class="{item_class(@active, "place")}>
+      <li class="nav-item">
         <%= live_redirect("Places", to: Routes.main_path(@socket, :index, "place", 1), class: link_class(@active, "place")) %>
       </li>
-      <li class="{item__class(@active, "photo")}>
+      <li class="nav-item">
         <%= live_redirect("Photos", to: Routes.main_path(@socket, :index, "photo"), class: link_class(@active, "photo")) %>
       </li>
       <%= if @current_user do %>
         <%= if PenguinMemories.Auth.user_is_admin?(@current_user) do %>
-          <li class={item_class(@active, "users")}>
+          <li class="nav-item">
             <%= live_redirect("Users", to: Routes.user_path(@socket, :index), class: link_class(@active, "users")) %>
           </li>
         <% end %>
