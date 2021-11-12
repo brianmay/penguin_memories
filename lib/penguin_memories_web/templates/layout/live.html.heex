@@ -29,10 +29,10 @@
       <li class="nav-item">
         <%= live_redirect("Photos", to: Routes.main_path(@socket, :index, "photo"), class: link_class(@active, "photo")) %>
       </li>
-      <%= if @current_user do %>
+      <%= if @current_user != nil do %>
         <%= if PenguinMemories.Auth.user_is_admin?(@current_user) do %>
           <li class="nav-item">
-            <%= live_redirect("Users", to: Routes.user_path(@socket, :index), class: link_class(@active, "users")) %>
+            <%= live_redirect("Dashboard", to: Routes.live_dashboard_path(@socket, :home), class: link_class(@active, "dashboard")) %>
           </li>
         <% end %>
         <li class="nav-item dropdown">
@@ -42,15 +42,15 @@
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            <%= @current_user.name %>
+            <%= @current_user["name"] %>
           </a>
           <div class="dropdown-menu">
-            <%= link "Logout", to: Routes.session_path(@socket, :logout, next: URI.to_string(@url)), method: :post, class: "dropdown-item" %>
+            <%= link "Logout", to: Routes.page_path(@socket, :logout, next: URI.to_string(@url)), method: :post, class: "dropdown-item" %>
           </div>
         </li>
       <% else %>
         <li class="{item_class(@active, "session")}>
-          <%= link("Login", to: Routes.session_path(@socket, :login, next: URI.to_string(@url)), class: link_class(@active, "session")) %>
+          <%= live_redirect("Login", to: Routes.page_path(@socket, :login, next: URI.to_string(@url)), class: link_class(@active, "session")) %>
         </li>
       <% end %>
     </ul>

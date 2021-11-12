@@ -7,7 +7,13 @@ config :penguin_memories,
     "mid" => %{max_width: 480, max_height: 360},
     "large" => %{max_width: 1920, max_height: 1440}
   },
-  formats: ["image/jpeg", "image/gif", "video/mp4", "video/ogg", "video/webm"]
+  formats: ["image/jpeg", "image/gif", "video/mp4", "video/ogg", "video/webm"],
+  oidc: %{
+    discovery_document_uri: "",
+    client_id: "",
+    client_secret: "",
+    scope: ""
+  }
 
 # Configure your database
 #
@@ -35,4 +41,12 @@ config :penguin_memories, PenguinMemoriesWeb.Endpoint,
   secret_key_base: "oOWDT+7p6JENufDeyMQFLqDMsj1bkVfQT4Navmr5qYem9crHED4jAMr0Stf4aRNt",
   live_view: [
     signing_salt: "6JsXtIwI2Wo64YdWdWIl1UY8fb1i1ggw"
+  ]
+
+config :plugoid,
+  auth_cookie_store_opts: [
+    signing_salt: "/EeCfa85oE1mkAPMo2kPsT5zkCFPveHk"
+  ],
+  state_cookie_store_opts: [
+    signing_salt: "/EeCfa85oE1mkAPMo2kPsT5zkCFPveHk"
   ]

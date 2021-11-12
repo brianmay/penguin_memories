@@ -7,14 +7,14 @@ defmodule PenguinMemoriesWeb.Plug.CheckAdmin do
   end
 
   def call(conn, _params) do
-    user = Guardian.Plug.current_resource(conn)
+    user = PenguinMemoriesWeb.Auth.current_user(conn)
 
-    if user != nil and user.is_admin do
+    if PenguinMemories.Auth.user_is_admin?(user) do
       conn
     else
       conn
-      |> put_flash(:danger, "Permission denied: Not authorized")
-      |> redirect(to: Routes.session_path(conn, :login, next: conn.request_path))
+      |> put_flash(:danger, "You must be admin to access this.")
+      |> redirect(to: Routes.page_path(conn, :index))
       |> halt()
     end
   end

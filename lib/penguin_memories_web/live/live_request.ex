@@ -4,12 +4,12 @@ defmodule PenguinMemoriesWeb.LiveRequest do
   """
   alias Elixir.Phoenix.LiveView
 
-  alias PenguinMemories.Accounts
+  alias PenguinMemories.Auth.User
 
   @type t :: %__MODULE__{
           url: URI.t(),
           host_url: URI.t(),
-          current_user: Accounts.User.t(),
+          current_user: User.t(),
           big_id: String.t() | nil,
           force_reload: boolean()
         }

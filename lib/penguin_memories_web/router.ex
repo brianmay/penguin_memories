@@ -2,6 +2,9 @@ defmodule PenguinMemoriesWeb.Router do
   use PenguinMemoriesWeb, :router
   import Phoenix.LiveDashboard.Router
 
+  use Plugoid.RedirectURI,
+    token_callback: &PenguinMemoriesWeb.TokenCallback.callback/5
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -9,10 +12,6 @@ defmodule PenguinMemoriesWeb.Router do
     plug :put_root_layout, {PenguinMemoriesWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-  end
-
-  pipeline :auth do
-    plug PenguinMemoriesWeb.Plug.Auth
   end
 
   pipeline :static do
@@ -23,55 +22,64 @@ defmodule PenguinMemoriesWeb.Router do
       gzip: false
   end
 
+  defmodule PlugoidConfig do
+    def common do
+      config = Application.get_env(:penguin_memories, :oidc)
+
+      [
+        issuer: config.discovery_document_uri,
+        client_id: config.client_id,
+        scope: String.split(config.scope, " "),
+        client_config: PenguinMemoriesWeb.ClientCallback
+      ]
+    end
+  end
+
   # We use ensure_auth to fail if there is no one logged in
+  pipeline :auth do
+    plug Replug,
+      plug: {Plugoid, on_unauthenticated: :pass},
+      opts: {PlugoidConfig, :common}
+  end
+
   pipeline :ensure_auth do
-    plug Guardian.Plug.EnsureAuthenticated
+    plug Replug,
+      plug: {Plugoid, on_unauthenticated: :auth},
+      opts: {PlugoidConfig, :common}
   end
 
   pipeline :ensure_admin do
-    plug Guardian.Plug.EnsureAuthenticated
     plug PenguinMemoriesWeb.Plug.CheckAdmin
   end
 
-  pipeline :api do
-    plug :accepts, ["json"]
-  end
-
-  scope "/", PenguinMemoriesWeb do
-    pipe_through [:browser, :auth, :ensure_auth]
-  end
-
-  scope "/images", PenguinMemoriesWeb do
-    pipe_through [:browser, :auth, :static]
-    get "/*path", FileNotFoundController, :index
-  end
-
-  scope "/", PenguinMemoriesWeb do
+  scope "/", PhoneDbWeb do
     pipe_through [:browser, :auth, :ensure_admin]
 
-    resources "/users", UserController
-    get "/users/:id/password", UserController, :password_edit
-    put "/users/:id/password", UserController, :password_update
-
     live_dashboard "/dashboard",
-      metrics: PenguinMemoriesWeb.Telemetry,
+      metrics: PhoneDbWeb.Telemetry,
       ecto_repos: [PenguinMemories.Repo]
   end
 
-  scope "/", PenguinMemoriesWeb do
-    pipe_through [:browser, :auth]
+  live_session :default, on_mount: PenguinMemoriesWeb.InitAssigns do
+    scope "/images", PenguinMemoriesWeb do
+      pipe_through [:browser, :auth, :static]
+      get "/*path", FileNotFoundController, :index
+    end
 
-    live "/", PageLive, :index
-    live "/login", SessionLive, :login
-    post "/login", SessionController, :login
-    post "/logout", SessionController, :logout
-    get "/file/:id/size/:size/", RedirectController, :photo
-    live "/:type/", MainLive, :index
-    live "/:type/:id/", MainLive, :index
+    scope "/", PenguinMemoriesWeb do
+      pipe_through [:browser, :ensure_auth]
+
+      get "/login", PageController, :login
+    end
+
+    scope "/", PenguinMemoriesWeb do
+      pipe_through [:browser, :auth]
+      PenguinMemoriesWeb
+      live "/", PageLive, :index
+      post "/logout", PageController, :logout
+      get "/file/:id/size/:size/", RedirectController, :photo
+      live "/:type/", MainLive, :index
+      live "/:type/:id/", MainLive, :index
+    end
   end
-
-  # Other scopes may use custom stacks.
-  # scope "/api", PenguinMemoriesWeb do
-  #   pipe_through :api
-  # end
 end

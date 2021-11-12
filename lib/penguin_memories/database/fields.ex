@@ -2,7 +2,7 @@ defmodule PenguinMemories.Database.Fields do
   @moduledoc """
   Generic database functions
   """
-  alias PenguinMemories.Accounts.User
+  alias PenguinMemories.Auth.User
   alias PenguinMemories.Database
   alias PenguinMemories.Database.Types
 

@@ -11,7 +11,7 @@ defmodule PenguinMemoriesWeb.Plug.CheckStaticAccess do
   end
 
   def call(%Plug.Conn{} = conn, _default) do
-    user = Guardian.Plug.current_resource(conn)
+    user = PenguinMemoriesWeb.Auth.current_user(conn)
 
     orig_dir = "/images/orig"
     relative_dir = Path.relative_to(conn.request_path, orig_dir)
@@ -30,7 +30,7 @@ defmodule PenguinMemoriesWeb.Plug.CheckStaticAccess do
       false ->
         conn
         |> put_flash(:danger, "You are not allowed to see this file.")
-        |> redirect(to: Routes.session_path(conn, :login, next: conn.request_path))
+        |> redirect(to: Routes.page_path(conn, :index, next: conn.request_path))
         |> halt()
     end
   end

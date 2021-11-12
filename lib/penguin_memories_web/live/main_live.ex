@@ -17,9 +17,7 @@ defmodule PenguinMemoriesWeb.MainLive do
 
   @impl true
   @spec mount(map(), map(), Socket.t()) :: {:ok, Socket.t()}
-  def mount(_params, session, socket) do
-    socket = assign_defaults(socket, session)
-
+  def mount(_params, _session, socket) do
     socket =
       assign(socket,
         reference_pid: nil,

@@ -28,16 +28,25 @@ config :penguin_memories,
     "large" => %{max_width: 1920, max_height: 1440}
   },
   formats: ["image/jpeg", "video/mp4", "video/webm"],
-  index_api: PenguinMemories.Database.Impl.Index.Generic
+  index_api: PenguinMemories.Database.Impl.Index.Generic,
+  oidc: %{
+    discovery_document_uri: System.get_env("OIDC_DISCOVERY_URL"),
+    client_id: System.get_env("OIDC_CLIENT_ID"),
+    client_secret: System.get_env("OIDC_CLIENT_SECRET"),
+    scope: System.get_env("OIDC_AUTH_SCOPE")
+  }
 
 config :penguin_memories, PenguinMemories.Repo,
   url: System.get_env("DATABASE_URL"),
   pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
 
+http_url = System.get_env("HTTP_URL") || "http://localhost:4000"
+http_uri = URI.parse(http_url)
+
 # Configures the endpoint
 config :penguin_memories, PenguinMemoriesWeb.Endpoint,
   http: [:inet6, port: String.to_integer(System.get_env("PORT") || "4000")],
-  url: [host: System.get_env("HTTP_HOST")],
+  url: [scheme: http_uri.scheme, host: http_uri.host, port: http_uri.port],
   secret_key_base: System.get_env("SECRET_KEY_BASE"),
   render_errors: [view: PenguinMemoriesWeb.ErrorView, accepts: ~w(html json), layout: false],
   pubsub_server: PenguinMemories.PubSub,
@@ -61,6 +70,15 @@ config :libcluster,
   topologies: []
 
 config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+
+config :plugoid,
+  auth_cookie_store: Plug.Session.COOKIE,
+  auth_cookie_store_opts: [
+    signing_salt: System.get_env("SIGNING_SALT")
+  ],
+  state_cookie_store_opts: [
+    signing_salt: System.get_env("SIGNING_SALT")
+  ]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

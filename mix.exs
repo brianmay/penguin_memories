@@ -50,8 +50,6 @@ defmodule PenguinMemories.MixProject do
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:guardian, "~> 2.1"},
-      {:argon2_elixir, "~> 2.3"},
       {:dogma, "~> 0.1", only: [:dev]},
       {:mox, "~> 1.0.0", only: :test},
       {:paginator, "~> 1.0.1"},
@@ -63,7 +61,9 @@ defmodule PenguinMemories.MixProject do
       {:libcluster, "~> 3.3"},
       {:dialyxir, "~> 1.1.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:assertions, "~> 0.10", only: [:dev, :test], runtime: false}
+      {:assertions, "~> 0.10", only: [:dev, :test], runtime: false},
+      {:plugoid, git: "https://github.com/tanguilp/plugoid.git", branch: "conn_callback"},
+      {:replug, "~> 0.1.0"}
     ]
   end
 

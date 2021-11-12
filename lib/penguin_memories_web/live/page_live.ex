@@ -5,10 +5,9 @@ defmodule PenguinMemoriesWeb.PageLive do
   alias PenguinMemories.Urls
 
   @impl true
-  def mount(_params, session, socket) do
+  def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign_defaults(session)
       |> assign(active: "index", page_title: "Index")
       |> assign(query: "", results: %{})
 
