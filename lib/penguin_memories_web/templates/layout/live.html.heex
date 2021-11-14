@@ -14,25 +14,26 @@
 
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
+      <% active = assigns[:active] %>
       <li class="nav-item">
-        <%= live_redirect("Albums", to: Routes.main_path(@socket, :index, "album", 1), class: link_class(@active, "album")) %>
+        <%= live_redirect("Albums", to: Routes.main_path(@socket, :index, "album", 1), class: link_class(active, "album")) %>
       </li>
       <li class="nav-item">
-        <%= live_redirect("Categories", to: Routes.main_path(@socket, :index, "category", 1), class: link_class(@active, "category")) %>
+        <%= live_redirect("Categories", to: Routes.main_path(@socket, :index, "category", 1), class: link_class(active, "category")) %>
       </li>
       <li class="nav-item">
-        <%= live_redirect("People", to: Routes.main_path(@socket, :index, "person"), class: link_class(@active, "person")) %>
+        <%= live_redirect("People", to: Routes.main_path(@socket, :index, "person"), class: link_class(active, "person")) %>
       </li>
       <li class="nav-item">
-        <%= live_redirect("Places", to: Routes.main_path(@socket, :index, "place", 1), class: link_class(@active, "place")) %>
+        <%= live_redirect("Places", to: Routes.main_path(@socket, :index, "place", 1), class: link_class(active, "place")) %>
       </li>
       <li class="nav-item">
-        <%= live_redirect("Photos", to: Routes.main_path(@socket, :index, "photo"), class: link_class(@active, "photo")) %>
+        <%= live_redirect("Photos", to: Routes.main_path(@socket, :index, "photo"), class: link_class(active, "photo")) %>
       </li>
       <%= if @current_user != nil do %>
         <%= if PenguinMemories.Auth.user_is_admin?(@current_user) do %>
           <li class="nav-item">
-            <%= live_redirect("Dashboard", to: Routes.live_dashboard_path(@socket, :home), class: link_class(@active, "dashboard")) %>
+            <%= live_redirect("Dashboard", to: Routes.live_dashboard_path(@socket, :home), class: link_class(active, "dashboard")) %>
           </li>
         <% end %>
         <li class="nav-item dropdown">
@@ -49,8 +50,8 @@
           </div>
         </li>
       <% else %>
-        <li class="{item_class(@active, "session")}>
-          <%= live_redirect("Login", to: Routes.page_path(@socket, :login, next: URI.to_string(@url)), class: link_class(@active, "session")) %>
+        <li class="{item_class(active, "session")}>
+          <%= live_redirect("Login", to: Routes.page_path(@socket, :login, next: URI.to_string(@url)), class: link_class(active, "session")) %>
         </li>
       <% end %>
     </ul>
