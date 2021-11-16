@@ -12,11 +12,11 @@
   <body>
     <%= @inner_content %>
     <%= csrf_meta_tag() %>
+    <footer class="text-muted small">
+      <div class="container">
+        Version <%= Application.get_env(:penguin_memories, :vcs_ref) %> built on
+        <%= Application.get_env(:penguin_memories, :build_date) %>
+      </div>
+    </footer>
   </body>
-  <footer class="text-muted small">
-    <div class="container">
-      Version <%= Application.get_env(:penguin_memories, :vcs_ref) %> built on
-      <%= Application.get_env(:penguin_memories, :build_date) %>
-    </div>
-  </footer>
 </html>

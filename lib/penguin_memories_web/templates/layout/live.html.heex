@@ -14,6 +14,7 @@
 
   <div class="collapse navbar-collapse" id="navbarsExampleDefault">
     <ul class="navbar-nav mr-auto">
+      <% user = assigns[:current_user] %>
       <% active = assigns[:active] %>
       <li class="nav-item">
         <%= live_redirect("Albums", to: Routes.main_path(@socket, :index, "album", 1), class: link_class(active, "album")) %>
@@ -30,8 +31,8 @@
       <li class="nav-item">
         <%= live_redirect("Photos", to: Routes.main_path(@socket, :index, "photo"), class: link_class(active, "photo")) %>
       </li>
-      <%= if @current_user != nil do %>
-        <%= if PenguinMemories.Auth.user_is_admin?(@current_user) do %>
+      <%= if user != nil do %>
+        <%= if PenguinMemories.Auth.user_is_admin?(user) do %>
           <li class="nav-item">
             <%= live_redirect("Dashboard", to: Routes.live_dashboard_path(@socket, :home), class: link_class(active, "dashboard")) %>
           </li>
@@ -43,7 +44,7 @@
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            <%= @current_user["name"] %>
+            <%= user["name"] %>
           </a>
           <div class="dropdown-menu">
             <%= link "Logout", to: Routes.page_path(@socket, :logout, next: URI.to_string(@url)), method: :post, class: "dropdown-item" %>
