@@ -100,6 +100,10 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     Format.display_datetime(value)
   end
 
+  defp output_field_value(_, value, %Field{type: :date}) do
+    Format.display_date(value)
+  end
+
   defp output_field_value(obj, value, %Field{type: {:datetime_with_offset, utc_offset_field}}) do
     utc_offset = Map.get(obj, utc_offset_field)
     Format.display_datetime_offset(value, utc_offset)

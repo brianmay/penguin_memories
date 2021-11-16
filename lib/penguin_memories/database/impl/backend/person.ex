@@ -163,6 +163,18 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
         searchable: true
       },
       %Field{
+        id: :date_of_birth,
+        name: "Date of Birth",
+        type: :date,
+        access: :private
+      },
+      %Field{
+        id: :date_of_death,
+        name: "Date of Death",
+        type: :date,
+        access: :private
+      },
+      %Field{
         id: :mother,
         name: "Mother",
         type: {:single, Person},

@@ -25,4 +25,11 @@ defmodule PenguinMemories.Format do
     |> DateTime.shift_zone!("Australia/Melbourne")
     |> DateTime.to_string()
   end
+
+  @spec display_date(date :: Date.t() | nil) :: String.t() | nil
+  def display_date(nil), do: nil
+
+  def display_date(%Date{} = date) do
+    Date.to_string(date)
+  end
 end
