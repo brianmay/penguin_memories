@@ -79,11 +79,16 @@ config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
 
 config :plugoid,
   auth_cookie_store: Plug.Session.COOKIE,
+  auth_cookie_opts: [
+    secure: true,
+    extra: "SameSite=Lax"
+  ],
   auth_cookie_store_opts: [
     signing_salt: System.get_env("SIGNING_SALT")
   ],
   state_cookie_opts: [
-    extra: "SameSite=None Secure"
+    secure: true,
+    extra: "SameSite=None"
   ],
   state_cookie_store_opts: [
     signing_salt: System.get_env("SIGNING_SALT")
