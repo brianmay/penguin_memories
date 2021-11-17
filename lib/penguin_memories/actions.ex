@@ -44,8 +44,7 @@ defmodule PenguinMemories.Actions do
   @spec get_existing_entry(File.t(), list(File.t())) :: File.t() | nil
   defp get_existing_entry(%File{} = file, files) do
     files
-    |> Enum.filter(fn f -> f.size_key == file.size_key end)
-    |> Enum.filter(fn f -> f.mime_type == file.mime_type end)
+    |> Enum.filter(fn f -> f.size_key == file.size_key and f.mime_type == file.mime_type end)
     |> List.first()
   end
 
