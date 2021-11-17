@@ -296,9 +296,9 @@ defmodule PenguinMemories.Database.Search do
     field =
       fields
       |> Enum.filter(fn field ->
-        Atom.to_string(field.id) == lc_key or String.downcase(field.name) == lc_key
+        (Atom.to_string(field.id) == lc_key or String.downcase(field.name) == lc_key) and
+          field.searchable == true
       end)
-      |> Enum.filter(fn field -> field.searchable == true end)
       |> List.first()
 
     if field == nil do
@@ -429,11 +429,7 @@ defmodule PenguinMemories.Database.Search do
         filter_by_id(query, id)
 
       {:ok, {:words, words}} ->
-        words =
-          words
-          |> Enum.map(&to_string(&1))
-          |> Enum.join(" ")
-
+        words = Enum.map_join(words, " ", &to_string(&1))
         filter_by_words(query, :name, "~", words)
 
       {:ok, {:ops, list}} ->

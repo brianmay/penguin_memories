@@ -413,8 +413,7 @@ defmodule PenguinMemories.Media do
     datetime =
       ["EXIF:DateTimeOriginal", "EXIF:DateTimeDigitized", "EXIF:CreateDate"]
       |> Enum.map(fn name -> Map.get(exif, name, nil) end)
-      |> Enum.reject(fn value -> is_nil(value) end)
-      |> Enum.reject(fn value -> value == "    :  :     :  :  " end)
+      |> Enum.reject(fn value -> is_nil(value) or value == "    :  :     :  :  " end)
       |> Enum.map(fn value -> Timex.parse!(value, "%Y:%m:%d %H:%M:%S", :strftime) end)
       |> List.first()
 
