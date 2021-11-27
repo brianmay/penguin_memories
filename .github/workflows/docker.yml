@@ -7,13 +7,15 @@ on:
 jobs:
   test:
     name: Setup, Build, Test
-    uses: brianmay/workflows/.github/workflows/elixir.yaml@6694b3f1e1250158f19273539634d867946c94b9
+    uses: brianmay/workflows/.github/workflows/elixir.yaml@70c355700df29dccf131141aa1aa3c4e8b2b9f65
     with:
       apt_packages: "libimage-exiftool-perl ffmpeg exiftran dcraw"
       test_data: "https://www.dropbox.com/s/yg6jdk9lfewn8yf/penguin_memories.tar?dl=0"
 
   push:
     name: Push
-    uses: brianmay/workflows/.github/workflows/docker.yaml@6694b3f1e1250158f19273539634d867946c94b9
+    uses: brianmay/workflows/.github/workflows/docker.yaml@70c355700df29dccf131141aa1aa3c4e8b2b9f65
+    secrets:
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
     needs:
       - test
