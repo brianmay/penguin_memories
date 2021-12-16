@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :penguin_memories,
   image_dir: "/tmp/images",
