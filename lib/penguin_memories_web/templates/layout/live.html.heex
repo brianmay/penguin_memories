@@ -51,7 +51,7 @@
           </div>
         </li>
       <% else %>
-        <li class="{item_class(active, "session")}>
+        <li class={link_class(active, "session")}>
           <%= live_redirect("Login", to: Routes.page_path(@socket, :login, next: URI.to_string(@url)), class: link_class(active, "session")) %>
         </li>
       <% end %>

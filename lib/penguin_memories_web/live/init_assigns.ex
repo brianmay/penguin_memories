@@ -4,7 +4,7 @@ defmodule PenguinMemoriesWeb.InitAssigns do
   """
   import Phoenix.LiveView
 
-  def mount(_params, session, socket) do
+  def on_mount(:default, _params, session, socket) do
     user = session["claims"]
     socket = assign(socket, :current_user, user)
     {:cont, socket}
