@@ -52,7 +52,7 @@ defmodule PenguinMemories.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:dogma, "~> 0.1", only: [:dev]},
       {:mox, "~> 1.0.0", only: :test},
-      {:paginator, "~> 1.0.1"},
+      {:paginator, "~> 1.1.0"},
       {:earmark, "~> 1.4.10"},
       {:mogrify, "~> 0.8.0"},
       {:thumbnex, "~> 0.3.3"},
