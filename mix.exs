@@ -46,7 +46,7 @@ defmodule PenguinMemories.MixProject do
       {:ecto_psql_extras, "~> 0.2"},
       {:postgrex, ">= 0.0.0"},
       {:floki, ">= 0.0.0", only: :test},
-      {:phoenix_live_reload, "~> 1.3.1", only: :dev},
+      {:phoenix_live_reload, "~> 1.4.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
