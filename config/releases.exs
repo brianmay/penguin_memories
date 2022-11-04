@@ -38,17 +38,3 @@ config :plugoid,
   state_cookie_store_opts: [
     signing_salt: System.get_env("SIGNING_SALT")
   ]
-
-config :libcluster,
-  topologies: [
-    k8s: [
-      strategy: Elixir.Cluster.Strategy.Kubernetes,
-      config: [
-        mode: :dns,
-        kubernetes_node_basename: "penguin_memories",
-        kubernetes_selector: System.get_env("KUBERNETES_SELECTOR"),
-        kubernetes_namespace: System.get_env("NAMESPACE"),
-        polling_interval: 10_000
-      ]
-    ]
-  ]
