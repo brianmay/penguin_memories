@@ -2,8 +2,7 @@ defmodule PenguinMemories.Upload do
   @moduledoc """
   Upload new media objects
   """
-  use Bitwise
-
+  import Bitwise
   import Ecto.Query
   import File
 
