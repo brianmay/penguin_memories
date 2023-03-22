@@ -37,4 +37,5 @@ npm-debug.log
 /priv/plts/
 /priv/tests/
 /.envrc
+/.direnv
 /local/
