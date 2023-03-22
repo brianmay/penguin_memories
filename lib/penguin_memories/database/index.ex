@@ -246,10 +246,11 @@ defmodule PenguinMemories.Database.Index do
   defp internal_process_pending(type, start_id, parents, children) do
     obj =
       Repo.one(
-        from o in type,
+        from(o in type,
           where: o.reindex and o.id >= ^start_id,
           limit: 1,
           order_by: :id
+        )
       )
 
     api = get_index_api()
