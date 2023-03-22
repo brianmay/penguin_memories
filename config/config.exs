@@ -94,6 +94,9 @@ config :plugoid,
     signing_salt: System.get_env("SIGNING_SALT")
   ]
 
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
+config :tzdata, :autoupdate, :disabled
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"

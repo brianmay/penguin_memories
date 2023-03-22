@@ -63,7 +63,8 @@ defmodule PenguinMemories.MixProject do
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:assertions, "~> 0.10", only: [:dev, :test], runtime: false},
       {:plugoid, "~> 0.6.0"},
-      {:replug, "~> 0.1.0"}
+      {:replug, "~> 0.1.0"},
+      {:tz, "~> 0.26.2"}
     ]
   end
 

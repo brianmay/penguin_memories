@@ -1,0 +1,15 @@
+{
+  "files.autoSave": "onFocusChange",
+  "prettier.prettierPath": "./assets/node_modules/prettier",
+  "files.associations": {
+    "*.eex": "html-eex",
+    "*.leex": "html-eex"
+  },
+  "[html-eex]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "cSpell.words": [
+    "mapset",
+    "reindex"
+  ]
+}
