@@ -19,7 +19,7 @@
     "webpack": "5.76.3",
     "webpack-cli": "^5.0.1",
     "node-sass": "^8.0.0",
-    "sass-loader": "^13.2.1",
+    "sass-loader": "^13.2.2",
     "bootstrap": "^5.2.3",
     "nprogress": "^0.2.0",
     "@popperjs/core": "^2.11.7"
