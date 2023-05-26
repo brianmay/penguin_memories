@@ -22,7 +22,7 @@
     "sass-loader": "^13.3.0",
     "bootstrap": "^5.2.3",
     "nprogress": "^0.2.0",
-    "@popperjs/core": "^2.11.7"
+    "@popperjs/core": "^2.11.8"
   },
   "engines": {
     "node": ">=14.x"
