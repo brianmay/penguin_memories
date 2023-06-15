@@ -35,7 +35,7 @@ defmodule PenguinMemories.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.6.0"},
+      {:phoenix, "~> 1.7.5"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_view, "~> 0.17.5"},
       {:phoenix_live_dashboard, "~> 0.5"},
