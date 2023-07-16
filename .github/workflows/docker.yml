@@ -3,6 +3,7 @@ name: Build and Deploy to Docker Hub
 on:
   - push
   - pull_request
+  - merge_group
 
 jobs:
   test:
