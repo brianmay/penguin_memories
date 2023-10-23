@@ -16,9 +16,5 @@ jobs:
   push:
     name: Push
     uses: brianmay/workflows/.github/workflows/docker.yaml@main
-    secrets:
-      DEPLOY_SECRET: ${{ secrets.DEPLOY_SECRET }}
-    with:
-      deploy_servers: true
     needs:
       - test
