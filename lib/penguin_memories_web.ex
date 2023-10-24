@@ -16,6 +16,7 @@ defmodule PenguinMemoriesWeb do
   below. Instead, define any helper function in modules
   and import those modules here.
   """
+  def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
 
   def controller do
     quote do
@@ -24,6 +25,8 @@ defmodule PenguinMemoriesWeb do
       import Plug.Conn
       import PenguinMemoriesWeb.Gettext
       alias PenguinMemoriesWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
     end
   end
 
@@ -93,6 +96,17 @@ defmodule PenguinMemoriesWeb do
       import PenguinMemoriesWeb.Gettext
       import PenguinMemoriesWeb.ViewHelpers
       alias PenguinMemoriesWeb.Router.Helpers, as: Routes
+
+      unquote(verified_routes())
+    end
+  end
+
+  def verified_routes do
+    quote do
+      use Phoenix.VerifiedRoutes,
+        endpoint: PenguinMemoriesWeb.Endpoint,
+        router: PenguinMemoriesWeb.Router,
+        statics: PenguinMemoriesWeb.static_paths()
     end
   end
 
