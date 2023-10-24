@@ -213,7 +213,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
           disabled: disabled,
           single_choice: false,
           updates: self()
-          })
+        })
 
       :persons ->
         live_component(%{
