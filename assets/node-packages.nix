@@ -2713,13 +2713,13 @@ let
         sha512 = "gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==";
       };
     };
-    "phoenix-1.6.16" = {
+    "phoenix-1.7.9" = {
       name = "phoenix";
       packageName = "phoenix";
-      version = "1.6.16";
+      version = "1.7.9";
       src = fetchurl {
-        url = "https://registry.npmjs.org/phoenix/-/phoenix-1.6.16.tgz";
-        sha512 = "3vOfu5olbFg6eBNkF4pnwMzNm7unl/4vy24MW+zxKklVgjq1zLnO2EWq9wz6i6r4PbQ0CGxHGtqKJH2VSsnhaA==";
+        url = "https://registry.npmjs.org/phoenix/-/phoenix-1.7.9.tgz";
+        sha512 = "oHBka/WCKVtFHNCCqnVDxiSHQZ0vvV0pU1I4oBmm68rNvGH3lVjdNGLRhK0+c3zcfsrqgpRS2p+Et6N4QAd2LQ==";
       };
     };
     "phoenix_html-3.3.3" = {
@@ -2731,13 +2731,13 @@ let
         sha512 = "x0ZFCfe+jbYFjPRHQHa191C1thrhNYVZiRbdthxrH+DtMwtfPJSJnQLEKBeswlR08QWFioHO02bShP7XEIZOzw==";
       };
     };
-    "phoenix_live_view-0.17.14" = {
+    "phoenix_live_view-0.20.1" = {
       name = "phoenix_live_view";
       packageName = "phoenix_live_view";
-      version = "0.17.14";
+      version = "0.20.1";
       src = fetchurl {
-        url = "https://registry.npmjs.org/phoenix_live_view/-/phoenix_live_view-0.17.14.tgz";
-        sha512 = "AQQ/1EpYteOeNeX1oqsdoCBcOn/BRLHJ9mCz9T9Xf0Xq/+aGLJ2gOvv67pNtWaXveYMuMuo0/nfch11b9geHkQ==";
+        url = "https://registry.npmjs.org/phoenix_live_view/-/phoenix_live_view-0.20.1.tgz";
+        sha512 = "bEFec53iySU9MvSIgGA/T7F8Ikqvu5qlFzBn+nY88T36ZsIp/8SJJZqF8foWMOb7+Pb721tt04cz6T7dq0ZdrA==";
       };
     };
     "picocolors-1.0.0" = {
@@ -4453,9 +4453,9 @@ let
         ];
       })
       sources."path-type-4.0.0"
-      sources."phoenix-1.6.16"
+      sources."phoenix-1.7.9"
       sources."phoenix_html-3.3.3"
-      sources."phoenix_live_view-0.17.14"
+      sources."phoenix_live_view-0.20.1"
       sources."picocolors-1.0.0"
       sources."picomatch-2.3.1"
       sources."pkg-dir-4.2.0"

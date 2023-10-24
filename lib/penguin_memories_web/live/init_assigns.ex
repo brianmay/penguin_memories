@@ -2,7 +2,7 @@ defmodule PenguinMemoriesWeb.InitAssigns do
   @moduledoc """
   Hook to intercept liveview mount requests
   """
-  import Phoenix.LiveView
+  import Phoenix.Component
 
   def on_mount(:default, _params, session, socket) do
     user = session["claims"]

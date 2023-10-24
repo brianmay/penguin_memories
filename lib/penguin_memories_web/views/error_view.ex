@@ -1,5 +1,5 @@
 defmodule PenguinMemoriesWeb.ErrorView do
-  use PenguinMemoriesWeb, :view
+  use PenguinMemoriesWeb, :html
 
   # If you want to customize a particular status code
   # for a certain format, you may uncomment below.

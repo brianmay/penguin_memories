@@ -8,7 +8,7 @@
 
     <%= if is_editing(assigns) do %>
       <% fields = Fields.get_fields(@type, @common.current_user) %>
-      <.form let={f} for={@changeset} phx-change="validate" phx-submit="save">
+      <.form :let={f} for={@changeset} phx-change="validate" phx-submit="save">
         <%= for %Fields.Field{} = field <- fields do %>
           <%= if field.read_only == false do %>
             <%= FieldHelpers.input_field f, field %>

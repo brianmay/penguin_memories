@@ -92,7 +92,7 @@
         <% end %>
 
         <%= if @mode == :edit do %>
-          <.form let={f} for={@changeset} as="object" phx-change="validate" phx-submit="save">
+          <.form :let={f} for={@changeset} as={:object} phx-change="validate" phx-submit="save">
             <%= for %Fields.Field{} = field <- fields do %>
               <%= if field.read_only == false do %>
                 <%= FieldHelpers.input_field f, field %>
@@ -117,12 +117,12 @@
 
     <div class="buttons">
       <%= if @mode == :display do %>
-        <%= live_redirect to: Routes.main_path(@socket, :index, type_name, @details.icon.id), class: "btn btn-secondary" do %>
+        <.link navigate={Routes.main_path(@socket, :index, type_name, @details.icon.id)} class="btn btn-secondary">
           Goto
-        <% end %>
+        </.link>
 
         <%= if @prev_icon do %>
-          <div class="hoverable btn-prev">
+         <div class="hoverable btn-prev">
             <div
               class="btn btn-secondary"
               phx-click="select-object"
@@ -164,26 +164,26 @@
         <% end %>
 
         <%= if @big do %>
-          <%= live_redirect to: get_unbig_url(@socket, assigns), class: "btn btn-secondary" do %>
+          <.link navigate={get_unbig_url(@socket, assigns)} class="btn btn-secondary">
             Unbig
-          <% end %>
+          </.link>
         <% else %>
-          <%= live_redirect to: get_big_url(@socket, assigns), class: "btn btn-secondary" do %>
+          <.link navigate={get_big_url(@socket, assigns)} class="btn btn-secondary">
             Big
-          <% end %>
+          </.link>
         <% end %>
 
         <%= if @details.orig != nil and Auth.can_see_orig(@common.current_user) do %>
-          <%= live_redirect to: @details.orig.url, class: "btn btn-secondary" do %>
+          <.link navigate={@details.orig.url} class="btn btn-secondary">
             Orig
-          <% end %>
+          </.link>
         <% end %>
 
         <% url = get_photo_url(@socket, @details.obj) %>
         <%= if url do %>
-          <%= live_redirect to: url, class: "btn btn-secondary" do %>
+          <.link navigate={url} class="btn btn-secondary">
             Photos
-          <% end %>
+          </.link>
         <% end %>
 
         <%= if Auth.can_edit(@common.current_user) do %>

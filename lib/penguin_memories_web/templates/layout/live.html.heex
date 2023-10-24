@@ -1,5 +1,7 @@
 <nav class="navbar navbar-expand-md navbar-dark bg-dark">
-  <%= live_redirect("Penguin Memories", to: Routes.page_path(@socket, :index), class: "navbar-brand") %>
+  <.link navigate={Routes.page_path(@socket, :index)} class="navbar-brand">
+    Penguin Memories
+  </.link>
   <button
     class="navbar-toggler"
     type="button"
@@ -17,24 +19,36 @@
       <% user = assigns[:current_user] %>
       <% active = assigns[:active] %>
       <li class="nav-item">
-        <%= live_redirect("Albums", to: Routes.main_path(@socket, :index, "album", 1), class: link_class(active, "album")) %>
+        <.link navigate={Routes.main_path(@socket, :index, "album", 1)} class={link_class(active, "album")}>
+        Albums
+        </.link>
       </li>
       <li class="nav-item">
-        <%= live_redirect("Categories", to: Routes.main_path(@socket, :index, "category", 1), class: link_class(active, "category")) %>
+        <.link navigate={Routes.main_path(@socket, :index, "category", 1)} class={link_class(active, "category")}>
+        Categories
+        </.link>
       </li>
       <li class="nav-item">
-        <%= live_redirect("People", to: Routes.main_path(@socket, :index, "person"), class: link_class(active, "person")) %>
+        <.link navigate={Routes.main_path(@socket, :index, "person", 1)} class={link_class(active, "person")}>
+        People
+        </.link>
       </li>
       <li class="nav-item">
-        <%= live_redirect("Places", to: Routes.main_path(@socket, :index, "place", 1), class: link_class(active, "place")) %>
+        <.link navigate={Routes.main_path(@socket, :index, "place", 1)} class={link_class(active, "place")}>
+        Places
+        </.link>
       </li>
       <li class="nav-item">
-        <%= live_redirect("Photos", to: Routes.main_path(@socket, :index, "photo"), class: link_class(active, "photo")) %>
+        <.link navigate={Routes.main_path(@socket, :index, "photo")} class={link_class(active, "photo")}>
+        Photos
+        </.link>
       </li>
       <%= if user != nil do %>
         <%= if PenguinMemories.Auth.user_is_admin?(user) do %>
           <li class="nav-item">
-            <%= live_redirect("Dashboard", to: Routes.live_dashboard_path(@socket, :home), class: link_class(active, "dashboard")) %>
+            <.link navigate={Routes.live_dashboard_path(@socket, :home)} class={link_class(active, "dashboard")}>
+            Dashboard
+            </.link>
           </li>
         <% end %>
         <li class="nav-item dropdown">
@@ -52,7 +66,9 @@
         </li>
       <% else %>
         <li class={link_class(active, "session")}>
-          <%= live_redirect("Login", to: Routes.page_path(@socket, :login, next: URI.to_string(@url)), class: link_class(active, "session")) %>
+          <.link navigate={Routes.page_path(@socket, :login, next: URI.to_string(@url))} class={link_class(active, "session")}>
+            Login
+          </.link>
         </li>
       <% end %>
     </ul>

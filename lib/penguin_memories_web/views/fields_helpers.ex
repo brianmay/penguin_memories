@@ -3,7 +3,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   Helpers to display Fields and UpdateFields
   """
 
-  use PenguinMemoriesWeb, :view
+  use PenguinMemoriesWeb, :html
 
   alias Phoenix.HTML.Link
 
@@ -22,7 +22,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   @spec display_icons(icons :: list(Query.Icon.t())) :: any()
   defp display_icons(icons) do
-    Phoenix.View.render_to_string(PenguinMemoriesWeb.IncludeView, "list.html",
+    render_to_string(PenguinMemoriesWeb.IncludeView, "list.html",
       icons: icons,
       classes: [],
       event: "goto"
@@ -192,7 +192,8 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
         textarea_input_field(form, field.id, opts)
 
       {:single, type} ->
-        live_component(PenguinMemoriesWeb.ObjectSelectComponent,
+        live_component(%{
+          module: PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
           form: form,
           field: field,
@@ -200,10 +201,11 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
           disabled: disabled,
           single_choice: true,
           updates: self()
-        )
+        })
 
       {:multiple, type} ->
-        live_component(PenguinMemoriesWeb.ObjectSelectComponent,
+        live_component(%{
+          module: PenguinMemoriesWeb.ObjectSelectComponent,
           type: type,
           form: form,
           field: field,
@@ -211,16 +213,17 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
           disabled: disabled,
           single_choice: false,
           updates: self()
-        )
+          })
 
       :persons ->
-        live_component(PenguinMemoriesWeb.PersonsSelectComponent,
+        live_component(%{
+          module: PenguinMemoriesWeb.PersonsSelectComponent,
           form: form,
           field: field,
           id: field.id,
           disabled: disabled,
           updates: self()
-        )
+        })
 
       {:static, _} ->
         nil

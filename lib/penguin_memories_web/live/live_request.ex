@@ -3,6 +3,7 @@ defmodule PenguinMemoriesWeb.LiveRequest do
   Shared stuff for all live views.
   """
   alias Elixir.Phoenix.LiveView
+  import Phoenix.Component
 
   alias PenguinMemories.Auth.User
 
@@ -31,6 +32,6 @@ defmodule PenguinMemoriesWeb.LiveRequest do
   @spec apply_common(LiveView.Socket.t(), t()) :: LiveView.Socket.t()
   def apply_common(%LiveView.Socket{} = socket, %__MODULE__{} = request) do
     %LiveView.Socket{socket | host_uri: request.host_url}
-    |> LiveView.assign(common: request)
+    |> assign(common: request)
   end
 end

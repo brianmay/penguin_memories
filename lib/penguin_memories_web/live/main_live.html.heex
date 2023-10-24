@@ -3,7 +3,7 @@
     <%= @error %>
   </div>
 <% else %>
-  <div class="root <%= if @big_id != nil, do: "big" %>">
+  <div class={"root #{if @big_id != nil, do: "big" }"}>
     <%
       has_reference = @reference != nil
       is_photos = @objects.type == Photos.Photo
@@ -32,7 +32,7 @@
               name="query"
               placeholder="Search"
               type="text"
-              value="<%= @query %>"
+              value={@query}
             />
           </div>
           <input type="submit" class="btn btn-primary" value="Search" />

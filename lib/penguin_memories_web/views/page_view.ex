@@ -1,3 +1,3 @@
 defmodule PenguinMemoriesWeb.PageView do
-  use PenguinMemoriesWeb, :view
+  use PenguinMemoriesWeb, :html
 end

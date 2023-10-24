@@ -20,14 +20,14 @@
       <% end %>
       <div class="btn btn-secondary" phx-click="select-none">Unselect All</div>
       <%= if @response.before_url do %>
-        <%= live_patch to: @response.before_url, class: "btn btn-secondary btn-prev" do %>
+        <.link patch={@response.before_url} class="btn btn-secondary btn-prev">
           &lt
-        <% end %>
+        </.link>
       <% end %>
       <%= if @response.after_url do %>
-        <%= live_patch to: @response.after_url, class: "btn btn-secondary btn-next" do %>
+        <.link patch={@response.after_url} class="btn btn-secondary btn-next">
           &gt
-        <% end %>
+        </.link>
       <% end %>
     </div>
 

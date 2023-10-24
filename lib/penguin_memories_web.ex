@@ -27,7 +27,7 @@ defmodule PenguinMemoriesWeb do
     end
   end
 
-  def view do
+  def html do
     quote do
       use Phoenix.View,
         root: "lib/penguin_memories_web/templates",
@@ -45,7 +45,7 @@ defmodule PenguinMemoriesWeb do
   def live_view do
     quote do
       use Phoenix.LiveView,
-        layout: {PenguinMemoriesWeb.LayoutView, "live.html"}
+        layout: {PenguinMemoriesWeb.LayoutView, :live}
 
       unquote(view_helpers())
     end
@@ -86,6 +86,7 @@ defmodule PenguinMemoriesWeb do
 
       # Import basic rendering functionality (render, render_layout, etc)
       import Phoenix.View
+      import Phoenix.Component
 
       import PenguinMemoriesWeb.ErrorHelpers
       import PenguinMemoriesWeb.FormHelpers

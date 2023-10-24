@@ -1,3 +1,3 @@
 defmodule PenguinMemoriesWeb.IncludeView do
-  use PenguinMemoriesWeb, :view
+  use PenguinMemoriesWeb, :html
 end

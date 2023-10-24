@@ -1,5 +1,5 @@
 defmodule PenguinMemoriesWeb.LayoutView do
-  use PenguinMemoriesWeb, :view
+  use PenguinMemoriesWeb, :html
 
   def link_class(active, item) do
     ["nav-link"]
