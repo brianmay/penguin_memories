@@ -16,7 +16,7 @@ defmodule PenguinMemoriesWeb do
   below. Instead, define any helper function in modules
   and import those modules here.
   """
-  def static_paths, do: ~w(css fonts images favicon.ico robots.txt)
+  def static_paths, do: ~w(css js fonts images favicon.ico robots.txt)
 
   def controller do
     quote do
