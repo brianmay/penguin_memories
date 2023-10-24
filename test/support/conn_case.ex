@@ -30,7 +30,7 @@ defmodule PenguinMemoriesWeb.ConnCase do
       # The default endpoint for testing
       @endpoint PenguinMemoriesWeb.Endpoint
 
-      use AppWeb, :verified_routes
+      use PenguinMemoriesWeb, :verified_routes
     end
   end
 
