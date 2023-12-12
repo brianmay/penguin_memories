@@ -2,7 +2,7 @@
   description = "Photo Database";
 
   inputs = {
-    nixpkgs = { url = "github:NixOS/nixpkgs/nixos-unstable"; };
+    nixpkgs = { url = "github:NixOS/nixpkgs/nixos-23.11"; };
     flake-utils = { url = "github:numtide/flake-utils"; };
   };
 
@@ -23,7 +23,7 @@
           TOP_SRC = src;
           pname = "${pname}-mix-deps";
           inherit src version;
-          hash = "sha256-7c9JMN6vqMzLylGZefUynOVB4qxtnAgQS8AjA3Z+mNY=";
+          hash = "sha256-Qmo35Al2TqOqumuiWV3ZobwjogjS40lvKLHSnUkeKtk=";
           # hash = pkgs.lib.fakeHash;
         };
 

@@ -2713,13 +2713,13 @@ let
         sha512 = "gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==";
       };
     };
-    "phoenix-1.7.9" = {
+    "phoenix-1.7.10" = {
       name = "phoenix";
       packageName = "phoenix";
-      version = "1.7.9";
+      version = "1.7.10";
       src = fetchurl {
-        url = "https://registry.npmjs.org/phoenix/-/phoenix-1.7.9.tgz";
-        sha512 = "oHBka/WCKVtFHNCCqnVDxiSHQZ0vvV0pU1I4oBmm68rNvGH3lVjdNGLRhK0+c3zcfsrqgpRS2p+Et6N4QAd2LQ==";
+        url = "https://registry.npmjs.org/phoenix/-/phoenix-1.7.10.tgz";
+        sha512 = "akfr/QvLPFRB8sORyc8FQFY/YoGwjWhka/YRcu45sKlBOZHvA80EkLYBUsYlW63UicxgrXABZdrjDkv54LTE+g==";
       };
     };
     "phoenix_html-3.3.3" = {
@@ -4453,7 +4453,7 @@ let
         ];
       })
       sources."path-type-4.0.0"
-      sources."phoenix-1.7.9"
+      sources."phoenix-1.7.10"
       sources."phoenix_html-3.3.3"
       sources."phoenix_live_view-0.20.1"
       sources."picocolors-1.0.0"
