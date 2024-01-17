@@ -14,7 +14,7 @@
   "devDependencies": {
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.8.1",
-    "css-minimizer-webpack-plugin": "^5.0.1",
+    "css-minimizer-webpack-plugin": "^6.0.0",
     "glob": "10.3.10",
     "mini-css-extract-plugin": "^2.7.6",
     "webpack": "5.89.0",
