@@ -17,7 +17,7 @@
     "css-minimizer-webpack-plugin": "^5.0.1",
     "glob": "10.3.10",
     "mini-css-extract-plugin": "^2.7.6",
-    "webpack": "5.89.0",
+    "webpack": "5.90.3",
     "webpack-cli": "^5.1.4",
     "node-sass": "^9.0.0",
     "sass-loader": "^13.3.2",
