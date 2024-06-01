@@ -55,7 +55,7 @@ defmodule PenguinMemories.Upload do
     cond do
       is_nil(mode) -> nil
       (mode &&& 1) != 0 -> true
-      True -> false
+      true -> false
     end
   end
 
