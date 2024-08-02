@@ -4,9 +4,10 @@
   inputs = {
     nixpkgs = { url = "github:NixOS/nixpkgs/nixos-24.05"; };
     flake-utils = { url = "github:numtide/flake-utils"; };
+    devenv = { url = "github:cachix/devenv"; };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = inputs@{ self, nixpkgs, flake-utils, devenv }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         inherit (pkgs.lib) optional optionals;
@@ -49,25 +50,59 @@
 
         };
 
-      in with pkgs; {
-        packages.default = pkg;
-        devShell = pkgs.mkShell {
-          shellHook = ''
-            export HTTP_URL="http://localhost:4000" RELEASE_TMP=/tmp
-          '';
-          buildInputs = [
-            elixir
-            elixir_ls
-            glibcLocales
-            node2nix
-            nodejs
-            exiftool
-            imagemagick
-            ffmpeg-headless
-          ] ++ optional stdenv.isLinux inotify-tools
-            ++ optional stdenv.isDarwin terminal-notifier
-            ++ optionals stdenv.isDarwin
-            (with darwin.apple_sdk.frameworks; [ CoreFoundation CoreServices ]);
+        psql = pkgs.writeShellScriptBin "pm_psql" ''
+          exec "${pkgs.postgresql}/bin/psql" "$DATABASE_URL" "$@"
+        '';
+
+        devShell = devenv.lib.mkShell {
+          inherit inputs pkgs;
+          modules = [{
+            enterShell = ''
+              export HTTP_URL="http://localhost:4000"
+              export RELEASE_TMP=/tmp
+
+              export DATABASE_URL_TEST="postgres:////penguin_memories:your_secure_password_here@localhost:6000/penguin_memories_test"
+              export DATABASE_URL="postgres://penguin_memories:your_secure_password_here@localhost:6000/penguin_memories"
+              export IMAGE_DIR="/tmp/images"
+            '';
+            packages = with pkgs;
+              [
+                psql
+                elixir
+                elixir_ls
+                glibcLocales
+                node2nix
+                nodejs
+                exiftool
+                imagemagick
+                ffmpeg-headless
+              ] ++ optional stdenv.isLinux inotify-tools
+              ++ optional stdenv.isDarwin terminal-notifier
+              ++ optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [
+                CoreFoundation
+                CoreServices
+              ]);
+            services.postgres = {
+              enable = true;
+              package = pkgs.postgresql_15.withPackages (ps: [ ps.postgis ]);
+              listen_addresses = "127.0.0.1";
+              port = 6000;
+              initialDatabases = [{ name = "penguin_memories"; }];
+              initialScript = ''
+                \c penguin_memories;
+                CREATE USER penguin_memories with encrypted password 'your_secure_password_here';
+                GRANT ALL PRIVILEGES ON DATABASE penguin_memories TO penguin_memories;
+                ALTER USER penguin_memories WITH SUPERUSER;
+              '';
+            };
+          }];
         };
+
+      in {
+        packages = {
+          devenv-up = devShell.config.procfileScript;
+          default = pkg;
+        };
+        inherit devShell;
       });
 }
