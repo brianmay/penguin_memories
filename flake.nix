@@ -55,7 +55,8 @@
           shellHook = ''
             export HTTP_URL="http://localhost:4000" RELEASE_TMP=/tmp
           '';
-          buildInputs = [ elixir elixir_ls glibcLocales node2nix nodejs ]
+          buildInputs =
+            [ elixir elixir_ls glibcLocales node2nix nodejs exiftool ]
             ++ optional stdenv.isLinux inotify-tools
             ++ optional stdenv.isDarwin terminal-notifier
             ++ optionals stdenv.isDarwin
