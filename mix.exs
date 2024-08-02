@@ -39,7 +39,7 @@ defmodule PenguinMemories.MixProject do
       {:phoenix_live_view, "~> 0.20.1"},
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:phoenix_view, "~> 2.0"},
-      {:telemetry_metrics, "~> 0.6"},
+      {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0.0"},
       {:phoenix_ecto, "~> 4.1"},
       {:ecto_sql, "~> 3.4"},
