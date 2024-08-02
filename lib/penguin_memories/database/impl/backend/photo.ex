@@ -347,6 +347,13 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
         type: :string,
         read_only: true,
         searchable: true
+      },
+      %Field{
+        id: :point,
+        name: "Point",
+        type: :geo_point,
+        read_only: true,
+        searchable: false
       }
     ]
   end

@@ -158,6 +158,19 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     link("link", to: value)
   end
 
+  defp output_field_value(_, value, %Field{type: :geo_point}) do
+    {lat, lng} = value.coordinates
+
+    [
+      "Latitude: ",
+      Float.to_string(lat),
+      raw("</br>"),
+      "Longitude: ",
+      Float.to_string(lng),
+      raw("</br>")
+    ]
+  end
+
   defp output_field_value(_, value, _field) when is_integer(value) do
     Integer.to_string(value)
   end
