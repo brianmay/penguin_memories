@@ -2,7 +2,7 @@
   description = "Photo Database";
 
   inputs = {
-    nixpkgs = { url = "github:NixOS/nixpkgs/nixos-23.11"; };
+    nixpkgs = { url = "github:NixOS/nixpkgs/nixos-24.05"; };
     flake-utils = { url = "github:numtide/flake-utils"; };
   };
 
@@ -52,6 +52,9 @@
       in with pkgs; {
         packages.default = pkg;
         devShell = pkgs.mkShell {
+          shellHook = ''
+            export HTTP_URL="http://localhost:4000" RELEASE_TMP=/tmp
+          '';
           buildInputs = [ elixir elixir_ls glibcLocales node2nix nodejs ]
             ++ optional stdenv.isLinux inotify-tools
             ++ optional stdenv.isDarwin terminal-notifier
