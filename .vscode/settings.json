@@ -9,7 +9,11 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "cSpell.words": [
+    "extname",
+    "Hyperfocal",
     "mapset",
-    "reindex"
+    "reindex",
+    "srid",
+    "timezone"
   ]
 }

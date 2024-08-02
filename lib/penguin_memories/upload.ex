@@ -274,7 +274,7 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  def get_parent_album() do
+  def get_parent_album do
     case Repo.one(from a in Album, where: a.name == "Uploads") do
       nil ->
         %Album{name: "Uploads", sort_name: "Uploads"}
