@@ -55,9 +55,16 @@
           shellHook = ''
             export HTTP_URL="http://localhost:4000" RELEASE_TMP=/tmp
           '';
-          buildInputs =
-            [ elixir elixir_ls glibcLocales node2nix nodejs exiftool ]
-            ++ optional stdenv.isLinux inotify-tools
+          buildInputs = [
+            elixir
+            elixir_ls
+            glibcLocales
+            node2nix
+            nodejs
+            exiftool
+            imagemagick
+            ffmpeg-headless
+          ] ++ optional stdenv.isLinux inotify-tools
             ++ optional stdenv.isDarwin terminal-notifier
             ++ optionals stdenv.isDarwin
             (with darwin.apple_sdk.frameworks; [ CoreFoundation CoreServices ]);
