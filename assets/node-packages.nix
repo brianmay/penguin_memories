@@ -220,6 +220,15 @@ let
         sha512 = "+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==";
       };
     };
+    "@sindresorhus/merge-streams-2.3.0" = {
+      name = "_at_sindresorhus_slash_merge-streams";
+      packageName = "@sindresorhus/merge-streams";
+      version = "2.3.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/@sindresorhus/merge-streams/-/merge-streams-2.3.0.tgz";
+        sha512 = "LtoMMhxAlorcGhmFYI+LhPgbPZCkgP6ra1YL604EeF6U98pLlQ3iWIGMdWSC+vWmPBWBNgmDBAhnAobLROJmwg==";
+      };
+    };
     "@tootallnate/once-1.1.2" = {
       name = "_at_tootallnate_slash_once";
       packageName = "@tootallnate/once";
@@ -1021,13 +1030,13 @@ let
         sha512 = "ty/fTekppD2fIwRvnZAVdeOiGd1c7YXEixbgJTNzqcxJWKQnjJ/V1bNEEE6hygpM3WjwHFUVK6HTjWSzV4a8sQ==";
       };
     };
-    "copy-webpack-plugin-11.0.0" = {
+    "copy-webpack-plugin-12.0.2" = {
       name = "copy-webpack-plugin";
       packageName = "copy-webpack-plugin";
-      version = "11.0.0";
+      version = "12.0.2";
       src = fetchurl {
-        url = "https://registry.npmjs.org/copy-webpack-plugin/-/copy-webpack-plugin-11.0.0.tgz";
-        sha512 = "fX2MWpamkW0hZxMEg0+mYnA40LTosOSa5TqZ9GYIBzyJa9C3QUaMPSE2xAi/buNr8u89SfD9wHSQVBzrRa/SOQ==";
+        url = "https://registry.npmjs.org/copy-webpack-plugin/-/copy-webpack-plugin-12.0.2.tgz";
+        sha512 = "SNwdBeHyII+rWvee/bTnAYyO8vfVdcSTud4EIb6jcZ8inLeWucJE0DnxXQBjlQ5zlteuuvooGQy3LIyGxhvlOA==";
       };
     };
     "core-util-is-1.0.3" = {
@@ -1190,15 +1199,6 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/delegates/-/delegates-1.0.0.tgz";
         sha512 = "bd2L678uiWATM6m5Z1VzNCErI3jiGzt6HGY8OVICs40JQq/HALfbyNJmp0UDakEY4pMMaN0Ly5om/B1VI/+xfQ==";
-      };
-    };
-    "dir-glob-3.0.1" = {
-      name = "dir-glob";
-      packageName = "dir-glob";
-      version = "3.0.1";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/dir-glob/-/dir-glob-3.0.1.tgz";
-        sha512 = "WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==";
       };
     };
     "dom-serializer-2.0.0" = {
@@ -1624,13 +1624,13 @@ let
         sha512 = "lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==";
       };
     };
-    "globby-13.2.2" = {
+    "globby-14.0.2" = {
       name = "globby";
       packageName = "globby";
-      version = "13.2.2";
+      version = "14.0.2";
       src = fetchurl {
-        url = "https://registry.npmjs.org/globby/-/globby-13.2.2.tgz";
-        sha512 = "Y1zNGV+pzQdh7H39l9zgB4PJqjRNqydvdYCDG4HFXM4XuvSaQQlEc91IU1yALL8gUTDomgBAfz3XJdmUS+oo0w==";
+        url = "https://registry.npmjs.org/globby/-/globby-14.0.2.tgz";
+        sha512 = "s3Fq41ZVh7vbbe2PN3nrW7yC7U7MFVc5c98/iTl9c2GawNMKx/J648KQRW6WKkuU8GIbbh2IXfIRQjOZnXcTnw==";
       };
     };
     "globule-1.3.4" = {
@@ -2659,13 +2659,13 @@ let
         sha512 = "Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA==";
       };
     };
-    "path-type-4.0.0" = {
+    "path-type-5.0.0" = {
       name = "path-type";
       packageName = "path-type";
-      version = "4.0.0";
+      version = "5.0.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/path-type/-/path-type-4.0.0.tgz";
-        sha512 = "gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==";
+        url = "https://registry.npmjs.org/path-type/-/path-type-5.0.0.tgz";
+        sha512 = "5HviZNaZcfqP95rwpv+1HDgUamezbqdSYTyzjTvwtJSnIH+3vnbmWsItli8OFEndS984VT55M3jduxZbX351gg==";
       };
     };
     "phoenix-1.7.10" = {
@@ -3379,13 +3379,13 @@ let
         sha512 = "bzyZ1e88w9O1iNJbKnOlvYTrWPDl46O1bG0D3XInv+9tkPrxrN8jUUTiFlDkkmKWgn1M6CfIA13SuGqOa9Korw==";
       };
     };
-    "slash-4.0.0" = {
+    "slash-5.1.0" = {
       name = "slash";
       packageName = "slash";
-      version = "4.0.0";
+      version = "5.1.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/slash/-/slash-4.0.0.tgz";
-        sha512 = "3dOsAHXXUkQTpOYcoAxLIorMTp4gIQr5IW3iVb7A7lFIp0VHhnynm9izx6TssdrIcVIESAlVjtnO2K8bg+Coew==";
+        url = "https://registry.npmjs.org/slash/-/slash-5.1.0.tgz";
+        sha512 = "ZA6oR3T/pEyuqwMgAKT0/hAv8oAXckzbkmR0UkUosQ+Mc4RxGoJkRmwHgHufaenlyAgE1Mxgpdcrf75y6XcnDg==";
       };
     };
     "smart-buffer-4.2.0" = {
@@ -3775,6 +3775,15 @@ let
         sha512 = "mIDEX2ek50x0OlRgxryxsenE5XaQD4on5U2inY7RApK3SOJpofyw7uW2AyfMKkhAxXIceo2DeWGVGwyvng1GNQ==";
       };
     };
+    "unicorn-magic-0.1.0" = {
+      name = "unicorn-magic";
+      packageName = "unicorn-magic";
+      version = "0.1.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/unicorn-magic/-/unicorn-magic-0.1.0.tgz";
+        sha512 = "lRfVq8fE8gz6QMBuDM6a+LO3IAzTi05H6gCVaUpir2E1Rwpo4ZUog45KpNXKC/Mn3Yb9UDuHumeFTo9iV/D9FQ==";
+      };
+    };
     "unique-filename-1.1.1" = {
       name = "unique-filename";
       packageName = "unique-filename";
@@ -4037,6 +4046,7 @@ let
       sources."@pkgjs/parseargs-0.11.0"
       sources."@popperjs/core-2.11.8"
       sources."@sinclair/typebox-0.27.8"
+      sources."@sindresorhus/merge-streams-2.3.0"
       sources."@tootallnate/once-2.0.0"
       sources."@trysound/sax-0.2.0"
       sources."@types/eslint-9.6.0"
@@ -4131,7 +4141,7 @@ let
       sources."commander-7.2.0"
       sources."concat-map-0.0.1"
       sources."console-control-strings-1.1.0"
-      sources."copy-webpack-plugin-11.0.0"
+      sources."copy-webpack-plugin-12.0.2"
       sources."core-util-is-1.0.3"
       sources."cross-spawn-7.0.3"
       sources."css-declaration-sorter-7.2.0"
@@ -4158,7 +4168,6 @@ let
         ];
       })
       sources."delegates-1.0.0"
-      sources."dir-glob-3.0.1"
       sources."dom-serializer-2.0.0"
       sources."domelementtype-2.3.0"
       sources."domhandler-5.0.3"
@@ -4220,7 +4229,7 @@ let
       sources."glob-10.3.10"
       sources."glob-parent-6.0.2"
       sources."glob-to-regexp-0.4.1"
-      sources."globby-13.2.2"
+      sources."globby-14.0.2"
       (sources."globule-1.3.4" // {
         dependencies = [
           sources."brace-expansion-1.1.11"
@@ -4385,7 +4394,7 @@ let
           sources."lru-cache-10.4.3"
         ];
       })
-      sources."path-type-4.0.0"
+      sources."path-type-5.0.0"
       sources."phoenix-1.7.10"
       sources."phoenix_html-3.3.3"
       sources."phoenix_live_view-0.20.1"
@@ -4483,7 +4492,7 @@ let
       sources."shebang-command-2.0.0"
       sources."shebang-regex-3.0.0"
       sources."signal-exit-4.1.0"
-      sources."slash-4.0.0"
+      sources."slash-5.1.0"
       sources."smart-buffer-4.2.0"
       sources."socks-2.8.3"
       sources."socks-proxy-agent-7.0.0"
@@ -4557,6 +4566,7 @@ let
       sources."true-case-path-2.2.1"
       sources."type-fest-0.18.1"
       sources."undici-types-6.11.1"
+      sources."unicorn-magic-0.1.0"
       sources."unique-filename-2.0.1"
       sources."unique-slug-3.0.0"
       sources."update-browserslist-db-1.1.0"
