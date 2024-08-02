@@ -85,6 +85,16 @@ defmodule PenguinMemories.Upload do
   def add_exif_to_photo(%Photo{} = photo, %Media{} = media) do
     exif = Media.get_exif(media)
 
+    latitude = get(exif, "EXIF:GPSLatitude")
+    longitude = get(exif, "EXIF:GPSLongitude")
+
+    point =
+      if latitude != nil and longitude != nil do
+        %Geo.Point{coordinates: {latitude, longitude}, srid: 4326}
+      else
+        nil
+      end
+
     %Photo{
       photo
       | camera_make: get(exif, "EXIF:Make"),
@@ -96,7 +106,8 @@ defmodule PenguinMemories.Upload do
         iso_equiv: get(exif, "EXIF:ISO"),
         metering_mode: get(exif, "EXIF:MeteringMode") |> metering_mode(),
         focus_dist: get(exif, "Composite:HyperfocalDistance") |> float(),
-        ccd_width: nil
+        ccd_width: nil,
+        point: point
     }
   end
 

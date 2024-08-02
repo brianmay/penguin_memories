@@ -38,7 +38,8 @@ config :penguin_memories,
 
 config :penguin_memories, PenguinMemories.Repo,
   url: System.get_env("DATABASE_URL"),
-  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+  types: PenguinMemories.PostgresTypes
 
 # Configures the endpoint
 default_port = if Mix.env() == :test, do: "4002", else: "4000"

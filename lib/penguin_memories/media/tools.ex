@@ -24,6 +24,8 @@ defmodule PenguinMemories.Media.Tools do
       "json",
       "-show_format",
       "-show_streams",
+      "-c",
+      "%-.6f",
       path
     ]
 

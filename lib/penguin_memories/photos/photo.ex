@@ -47,7 +47,8 @@ defmodule PenguinMemories.Photos.Photo do
           photo_persons: list(PhotoPerson.t()) | Ecto.Association.NotLoaded.t() | nil,
           photo_relations: list(PhotoRelation.t()) | Ecto.Association.NotLoaded.t() | nil,
           persons: list(Person.t()) | Ecto.Association.NotLoaded.t() | nil,
-          related: list(%{r: Relation.t(), pr: PhotoRelation.t()}) | nil
+          related: list(%{r: Relation.t(), pr: PhotoRelation.t()}) | nil,
+          point: Geo.PostGIS.Geometry
         }
 
   schema "pm_photo" do
@@ -72,6 +73,7 @@ defmodule PenguinMemories.Photos.Photo do
     field :view, :string
     field :utc_offset, :integer
     field :related, :any, virtual: true
+    field :point, Geo.PostGIS.Geometry
     has_many :files, File, on_replace: :delete
 
     many_to_many :albums, Album, join_through: PhotoAlbum, on_replace: :delete
