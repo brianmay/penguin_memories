@@ -38,5 +38,7 @@ npm-debug.log
 /priv/tests/
 /.envrc
 /.direnv
+/.devenv
 /local/
 /result
+/prod.sh
