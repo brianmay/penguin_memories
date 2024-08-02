@@ -58,7 +58,8 @@
           inherit inputs pkgs;
           modules = [{
             enterShell = ''
-              export HTTP_URL="http://localhost:4000"
+              export HTTP_URL="http://localhost:6001"
+              export PORT="6001"
               export RELEASE_TMP=/tmp
 
               export DATABASE_URL_TEST="postgres:////penguin_memories:your_secure_password_here@localhost:6000/penguin_memories_test"

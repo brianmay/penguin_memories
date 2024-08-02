@@ -274,9 +274,21 @@ defmodule PenguinMemories.Upload do
     end
   end
 
+  def get_parent_album() do
+    case Repo.one(from a in Album, where: a.name == "Uploads") do
+      nil ->
+        %Album{name: "Uploads", sort_name: "Uploads"}
+        |> Ecto.Changeset.change()
+        |> Repo.insert!()
+
+      album ->
+        album
+    end
+  end
+
   @spec get_upload_album(String.t()) :: Album.t()
   def get_upload_album(name) do
-    parent = Repo.one!(from a in Album, where: a.name == "Uploads")
+    parent = get_parent_album()
 
     case Repo.one(from a in Album, where: a.parent_id == ^parent.id and a.name == ^name) do
       nil ->
