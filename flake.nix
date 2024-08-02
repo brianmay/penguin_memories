@@ -62,7 +62,7 @@
               export PORT="6001"
               export RELEASE_TMP=/tmp
 
-              export DATABASE_URL_TEST="postgres:////penguin_memories:your_secure_password_here@localhost:6000/penguin_memories_test"
+              export DATABASE_URL_TEST="postgres://penguin_memories:your_secure_password_here@localhost:6000/penguin_memories_test"
               export DATABASE_URL="postgres://penguin_memories:your_secure_password_here@localhost:6000/penguin_memories"
               export IMAGE_DIR="/tmp/images"
             '';
@@ -75,6 +75,7 @@
                 node2nix
                 nodejs
                 exiftool
+                fbida
                 imagemagick
                 ffmpeg-headless
               ] ++ optional stdenv.isLinux inotify-tools
