@@ -6,8 +6,6 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
 
   use PenguinMemoriesWeb, :live_component
 
-  import Phoenix.HTML.Form
-  alias Phoenix.HTML.Form
   alias Phoenix.LiveView.Socket
 
   alias PenguinMemories.Database.Fields.Field

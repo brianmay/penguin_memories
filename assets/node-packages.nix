@@ -2677,13 +2677,13 @@ let
         sha512 = "3tZ76PiH/2g+Kyzhz8+GIFYrnx3lRnwi/Qt3ZUH04xpMxXL7Guerd5aaxtpWal73X+H8iLAjo2c+AgRy2KYQcQ==";
       };
     };
-    "phoenix_html-3.3.4" = {
+    "phoenix_html-4.1.1" = {
       name = "phoenix_html";
       packageName = "phoenix_html";
-      version = "3.3.4";
+      version = "4.1.1";
       src = fetchurl {
-        url = "https://registry.npmjs.org/phoenix_html/-/phoenix_html-3.3.4.tgz";
-        sha512 = "IkKAeP4sAuFzwtSSUbSNP/nL0H6WHcHfpe+/F7wOzyjYtijkAO2wTH8maA7vpTRhUBU5Dck5V8SEEhDuUy1mMA==";
+        url = "https://registry.npmjs.org/phoenix_html/-/phoenix_html-4.1.1.tgz";
+        sha512 = "RpvlxDkP13MTQkfbZGFD7XrLgE28mqlwU+rSQxhNyj9U0KzPgeeh4ctn+Mz7jlpsKFAhLe47PXQsff3EXJ4mbg==";
       };
     };
     "phoenix_live_view-0.20.17" = {
@@ -4396,7 +4396,7 @@ let
       })
       sources."path-type-5.0.0"
       sources."phoenix-1.7.14"
-      sources."phoenix_html-3.3.4"
+      sources."phoenix_html-4.1.1"
       sources."phoenix_live_view-0.20.17"
       sources."picocolors-1.0.1"
       sources."picomatch-2.3.1"

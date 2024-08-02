@@ -6,7 +6,6 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
 
   use PenguinMemoriesWeb, :live_component
 
-  import Phoenix.HTML.Form
   alias Phoenix.HTML.Form
 
   alias PenguinMemories.Database.Fields.Field
