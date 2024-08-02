@@ -81,7 +81,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:ok, type} = Types.get_type_for_name(type)
     type_name = Types.get_name!(type)
     url = Routes.main_path(socket, :index, type_name, id)
-    socket = push_redirect(socket, to: url)
+    socket = push_navigate(socket, to: url)
     {:noreply, socket}
   end
 
@@ -369,7 +369,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
               :insert ->
                 type_name = Types.get_name!(socket.assigns.request.type)
                 url = Routes.main_path(socket, :index, type_name, object.id)
-                push_redirect(socket, to: url)
+                push_navigate(socket, to: url)
 
               _ ->
                 socket

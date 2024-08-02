@@ -199,7 +199,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
 
           type_name = Types.get_name!(socket.assigns.type)
           url = Routes.main_path(socket, :index, type_name, object.id)
-          socket = push_redirect(socket, to: url)
+          socket = push_navigate(socket, to: url)
 
           assigns = [
             mode: :display,
