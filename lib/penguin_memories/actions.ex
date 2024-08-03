@@ -13,13 +13,16 @@ defmodule PenguinMemories.Actions do
   alias PenguinMemories.Repo
   alias PenguinMemories.Storage
 
-  @spec get_original_file(Photo.t()) :: File.t()
+  @spec get_original_file(Photo.t()) :: File.t() | nil
   defp get_original_file(%Photo{} = photo) do
-    [original] =
-      photo.files
-      |> Enum.filter(fn file -> file.size_key == "orig" end)
+    photo.files
+    |> Enum.find(fn file -> file.size_key == "orig" end)
+  end
 
-    original
+  @spec get_raw_file(Photo.t()) :: File.t() | nil
+  defp get_raw_file(%Photo{} = photo) do
+    photo.files
+    |> Enum.find(fn file -> file.size_key == "raw" end)
   end
 
   @spec create_file(Photo.t(), Media.t(), Media.SizeRequirement.t(), String.t()) :: File.t() | nil
@@ -77,6 +80,7 @@ defmodule PenguinMemories.Actions do
   @spec regenerate_photo(Photo.t(), keyword()) :: Photo.t()
   def regenerate_photo(%Photo{} = photo, opts) do
     original_file = get_original_file(photo)
+    raw_file = get_raw_file(photo)
     {:ok, original_media} = Storage.get_photo_file_media(original_file)
 
     sizes = Storage.get_sizes()
@@ -91,8 +95,21 @@ defmodule PenguinMemories.Actions do
       |> List.flatten()
       |> Enum.reject(fn file -> is_nil(file) end)
 
-    original_file = update_entry(original_file, photo.files)
-    files = [original_file | files]
+    files =
+      if original_file != nil do
+        original_file = update_entry(original_file, photo.files)
+        [original_file | files]
+      else
+        files
+      end
+
+    files =
+      if raw_file != nil do
+        raw_file = update_entry(raw_file, photo.files)
+        [raw_file | files]
+      else
+        files
+      end
 
     old_filenames =
       photo.files
