@@ -71,7 +71,10 @@ config :penguin_memories, PenguinMemories.Accounts.Guardian,
   issuer: "penguin_memories",
   secret_key: System.get_env("GUARDIAN_SECRET")
 
-config :mime, :types, %{"image/cr2" => ["cr2"]}
+config :mime, :types, %{
+  "image/cr2" => ["cr2"],
+  "image/cr3" => ["cr3"]
+}
 
 config :libcluster,
   topologies: []

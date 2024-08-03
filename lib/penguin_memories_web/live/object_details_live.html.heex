@@ -179,6 +179,12 @@
           </.link>
         <% end %>
 
+        <%= if @details.raw != nil and Auth.can_see_orig(@common.current_user) do %>
+          <.link navigate={@details.raw.url} class="btn btn-secondary">
+            Raw
+          </.link>
+        <% end %>
+
         <% url = get_photo_url(@socket, @details.obj) %>
         <%= if url do %>
           <.link navigate={url} class="btn btn-secondary">

@@ -13,12 +13,15 @@ defmodule PenguinMemoriesWeb.Plug.CheckStaticAccess do
   def call(%Plug.Conn{} = conn, _default) do
     user = PenguinMemoriesWeb.Auth.current_user(conn)
 
-    orig_dir = "/images/orig"
-    relative_dir = Path.relative_to(conn.request_path, orig_dir)
-    is_orig_dir = not String.starts_with?(relative_dir, "/")
+    is_protected_dir =
+      ["/images/orig", "/images/raw"]
+      |> Enum.any?(fn orig_dir ->
+        relative_dir = Path.relative_to(conn.request_path, orig_dir)
+        not String.starts_with?(relative_dir, "/")
+      end)
 
     can_see =
-      case is_orig_dir do
+      case is_protected_dir do
         true -> PenguinMemories.Auth.can_see_orig(user)
         false -> true
       end

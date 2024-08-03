@@ -59,13 +59,14 @@ defmodule PenguinMemories.Database.Query do
             obj: struct(),
             icon: Icon.t() | nil,
             orig: Icon.t() | nil,
+            raw: Icon.t() | nil,
             videos: list(Video.t()),
             cursor: String.t(),
             type: Database.object_type(),
             parents: list(Icon.t()) | nil
           }
-    @enforce_keys [:obj, :icon, :orig, :videos, :cursor, :type]
-    defstruct [:obj, :icon, :orig, :videos, :cursor, :type, :parents]
+    @enforce_keys [:obj, :icon, :orig, :raw, :videos, :cursor, :type]
+    defstruct [:obj, :icon, :orig, :raw, :videos, :cursor, :type, :parents]
   end
 
   defmodule Filter do
@@ -260,6 +261,39 @@ defmodule PenguinMemories.Database.Query do
     end
   end
 
+  @spec get_raw(query :: Ecto.Query.t()) :: Ecto.Query.t()
+  def get_raw(%Ecto.Query{} = query) do
+    case get_query_type(query) do
+      Photo ->
+        from [object: o] in query,
+          left_join: f in File,
+          on: f.photo_id == o.id and f.size_key == "raw",
+          select_merge: %{
+            raw: %{
+              dir: f.dir,
+              filename: f.filename,
+              height: f.height,
+              width: f.width
+            }
+          }
+
+      _ ->
+        from [object: o] in query,
+          left_join: p in Photo,
+          on: p.id == o.cover_photo_id,
+          left_join: f in File,
+          on: f.photo_id == p.id and f.size_key == "raw",
+          select_merge: %{
+            raw: %{
+              dir: f.dir,
+              filename: f.filename,
+              height: f.height,
+              width: f.width
+            }
+          }
+    end
+  end
+
   @spec get_icon_from_result(result :: map(), type :: object_type()) :: Icon.t()
   def get_icon_from_result(%{} = result, type) do
     backend = Types.get_backend!(type)
@@ -285,29 +319,62 @@ defmodule PenguinMemories.Database.Query do
     }
   end
 
-  @spec get_orig_from_result(result :: map(), type :: object_type()) :: Icon.t()
+  @spec get_orig_from_result(result :: map(), type :: object_type()) :: Icon.t() | nil
   def get_orig_from_result(%{} = result, type) do
     backend = Types.get_backend!(type)
 
-    url =
-      if result.orig.dir do
-        "#{get_image_url()}/#{result.orig.dir}/#{result.orig.filename}"
-      end
+    if result.orig.dir == nil or result.orig.filename == nil do
+      nil
+    else
+      url =
+        if result.orig.dir do
+          "#{get_image_url()}/#{result.orig.dir}/#{result.orig.filename}"
+        end
 
-    name = backend.get_title_from_result(result)
-    subtitle = backend.get_subtitle_from_result(result)
-    action = if type == Photo, do: result.o.action
+      name = backend.get_title_from_result(result)
+      subtitle = backend.get_subtitle_from_result(result)
+      action = if type == Photo, do: result.o.action
 
-    %Icon{
-      id: result.id,
-      action: action,
-      url: url,
-      name: name,
-      subtitle: subtitle,
-      height: result.orig.height,
-      width: result.orig.width,
-      type: type
-    }
+      %Icon{
+        id: result.id,
+        action: action,
+        url: url,
+        name: name,
+        subtitle: subtitle,
+        height: result.orig.height,
+        width: result.orig.width,
+        type: type
+      }
+    end
+  end
+
+  @spec get_raw_from_result(result :: map(), type :: object_type()) :: Icon.t() | nil
+  def get_raw_from_result(%{} = result, type) do
+    backend = Types.get_backend!(type)
+
+    if result.raw.dir == nil or result.raw.filename == nil do
+      nil
+    else
+      url =
+        if result.raw.dir do
+          "#{get_image_url()}/#{result.raw.dir}/#{result.raw.filename}"
+        end
+
+      name = backend.get_title_from_result(result)
+      subtitle = backend.get_subtitle_from_result(result)
+      action = if type == Photo, do: result.o.action
+
+      %Icon{
+        id: result.id,
+        action: action,
+        url: url,
+        name: name,
+        subtitle: subtitle,
+        height: result.orig.height,
+        width: result.orig.width,
+        type: type
+      }
+    end
   end
 
   @spec get_videos_for_photo(photo_id :: integer(), size_key :: String.t()) ::
@@ -483,6 +550,7 @@ defmodule PenguinMemories.Database.Query do
       |> filter_by_id(id)
       |> get_icons(icon_size)
       |> get_orig()
+      |> get_raw()
       |> backend.preload_details()
       |> select_merge([object: o], %{o: o})
 
@@ -491,6 +559,8 @@ defmodule PenguinMemories.Database.Query do
         nil
 
       result ->
+        IO.inspect(result)
+
         parents =
           id
           |> query_parents(type)

@@ -121,12 +121,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Person do
   def get_details_from_result(%{} = result, _icon_size, _video_size) do
     icon = Query.get_icon_from_result(result, Person)
     orig = Query.get_orig_from_result(result, Person)
+    raw = Query.get_raw_from_result(result, Person)
     cursor = Paginator.cursor_for_record(result, get_cursor_fields())
 
     %Query.Details{
       obj: result.o,
       icon: icon,
       orig: orig,
+      raw: raw,
       videos: [],
       cursor: cursor,
       type: Person

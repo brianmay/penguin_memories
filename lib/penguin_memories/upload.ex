@@ -139,6 +139,7 @@ defmodule PenguinMemories.Upload do
 
   @spec save_photo(rc(), Album.t()) :: rc()
   # defp save_photo({:error, _} = rc), do: rc
+
   defp save_photo({:skipped, _} = rc, %Album{}), do: rc
 
   defp save_photo({:ok, %Photo{} = photo}, %Album{} = album) do
@@ -153,6 +154,41 @@ defmodule PenguinMemories.Upload do
     case rc do
       {:ok, %Photo{}} = rc -> rc
       {:error, %Ecto.Changeset{} = cs} -> {:error, changeset_error_to_string(cs)}
+    end
+  end
+
+  defp add_raw_files({:error, %Photo{}} = err, _path) do
+    err
+  end
+
+  defp add_raw_files({:skipped, %Photo{id: nil}} = err, _path) do
+    err
+  end
+
+  # FIXME: Delete this clause
+  defp add_raw_files({:skipped, %Photo{} = photo}, path) do
+    add_raw_files({:ok, photo}, path)
+  end
+
+  defp add_raw_files({:ok, %Photo{} = photo}, path) do
+    try_extensions = [
+      ".CR3",
+      ".cr3",
+      ".DNG",
+      ".dng"
+    ]
+
+    raw_file =
+      Enum.map(try_extensions, fn ext ->
+        Path.join(Path.dirname(path), "#{Path.basename(path, Path.extname(path))}#{ext}")
+      end)
+      |> Enum.find(fn path -> exists?(path) end)
+
+    if raw_file == nil do
+      {:ok, photo}
+    else
+      {:ok, media} = Media.get_media(raw_file)
+      create_file({:ok, photo}, media, "raw")
     end
   end
 
@@ -182,7 +218,7 @@ defmodule PenguinMemories.Upload do
         photo =
           photo
           |> Ecto.Changeset.change()
-          |> Ecto.Changeset.put_assoc(:files, [file])
+          |> Ecto.Changeset.put_assoc(:files, photo.files ++ [file])
           |> Repo.update!()
 
         {:ok, photo}
@@ -260,6 +296,7 @@ defmodule PenguinMemories.Upload do
       |> check_file_conflicts(media, size_key)
       |> save_photo(album)
       |> create_file(media, size_key)
+      |> add_raw_files(path)
       |> print_status(opts[:verbose], path)
 
     case rc do

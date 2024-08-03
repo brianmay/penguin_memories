@@ -7,6 +7,7 @@ defmodule PenguinMemories.Media.Tools do
       "-G",
       "-j",
       "-n",
+      # "-c", "%-.6f",
       path
     ]
 
