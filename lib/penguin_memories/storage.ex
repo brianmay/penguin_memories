@@ -45,7 +45,7 @@ defmodule PenguinMemories.Storage do
   def build_file_dir(photo_dir, size_key, _is_video) do
     cond do
       size_key == "orig" -> ["orig", photo_dir]
-      size_key == "raw" -> ["raw", photo_dir]
+      size_key == "raw" -> ["orig", photo_dir]
       Map.has_key?(get_sizes(), size_key) -> ["scaled", size_key, photo_dir]
     end
     |> Path.join()
