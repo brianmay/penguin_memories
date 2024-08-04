@@ -9,13 +9,32 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "cSpell.words": [
+    "ascendants",
+    "binwrite",
     "categorys",
+    "cmdline",
+    "conn",
+    "dcraw",
+    "exiftran",
     "extname",
+    "ffprobe",
     "Hyperfocal",
+    "libopus",
+    "libvorbis",
+    "libvpx",
     "mapset",
+    "muxing",
     "noreply",
+    "passlogfile",
+    "priv",
     "reindex",
+    "setval",
     "srid",
-    "timezone"
+    "strftime",
+    "Thumbnex",
+    "timezone",
+    "trunc",
+    "Uploadtest",
+    "webm"
   ]
 }
