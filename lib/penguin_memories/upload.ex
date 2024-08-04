@@ -161,13 +161,8 @@ defmodule PenguinMemories.Upload do
     err
   end
 
-  defp add_raw_files({:skipped, %Photo{id: nil}} = err, _path) do
+  defp add_raw_files({:skipped, %Photo{}} = err, _path) do
     err
-  end
-
-  # FIXME: Delete this clause
-  defp add_raw_files({:skipped, %Photo{} = photo}, path) do
-    add_raw_files({:ok, photo}, path)
   end
 
   defp add_raw_files({:ok, %Photo{} = photo}, path) do

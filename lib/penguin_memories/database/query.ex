@@ -559,8 +559,6 @@ defmodule PenguinMemories.Database.Query do
         nil
 
       result ->
-        IO.inspect(result)
-
         parents =
           id
           |> query_parents(type)
