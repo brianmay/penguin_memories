@@ -48,7 +48,7 @@ defmodule PenguinMemories.Photos.Photo do
           photo_relations: list(PhotoRelation.t()) | Ecto.Association.NotLoaded.t() | nil,
           persons: list(Person.t()) | Ecto.Association.NotLoaded.t() | nil,
           related: list(%{r: Relation.t(), pr: PhotoRelation.t()}) | nil,
-          point: Geo.PostGIS.Geometry
+          point: Geo.Point.t() | nil
         }
 
   schema "pm_photo" do

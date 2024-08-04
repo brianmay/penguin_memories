@@ -1,4 +1,8 @@
 defmodule PenguinMemories.Uploadtest do
+  @moduledoc """
+  Tests for the upload module.
+  """
+
   use ExUnit.Case, async: false
   use PenguinMemories.DataCase
 
