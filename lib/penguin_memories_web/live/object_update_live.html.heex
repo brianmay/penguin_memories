@@ -10,7 +10,7 @@
 
     <%= if is_editing(assigns) do %>
       <% fields = Fields.get_update_fields(@request.type, @common.current_user) %>
-      <%= f = form_for @changeset, "save", [as: :object, phx_change: :validate, phx_submit: "save"] %>
+      <.form :let={f} for={@changeset} action={"save"} as={:object} phx-change={:validate} phx-submit={"save"}>
         <%= for %Fields.UpdateField{} = field <- fields do %>
           <% enabled = MapSet.member?(@enabled, field.id) %>
           <%= checkbox_field f, field_to_enable_field_id(field), value: enabled %>
@@ -26,6 +26,7 @@
               value="Cancel"
           /></span>
         </div>
+      </.form>
     <% end %>
 
     <div class="buttons">
