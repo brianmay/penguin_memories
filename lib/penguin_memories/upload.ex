@@ -157,7 +157,7 @@ defmodule PenguinMemories.Upload do
     end
   end
 
-  defp add_raw_files({:error, %Photo{}} = err, _path) do
+  defp add_raw_files({:error, _} = err, _path) do
     err
   end
 
