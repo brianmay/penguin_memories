@@ -1,4 +1,7 @@
 defmodule PenguinMemories.MediaTest do
+  @moduledoc """
+  Tests for PenguinMemories.Media
+  """
   use ExUnit.Case, async: true
 
   alias PenguinMemories.Media

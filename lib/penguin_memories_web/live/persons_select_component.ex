@@ -79,7 +79,7 @@ defmodule PenguinMemoriesWeb.PersonsSelectComponent do
           %{
             disabled: boolean(),
             field: Field.t(),
-            form: Form.t(),
+            form: Phoenix.HTML.Form.t(),
             updates: {module(), String.t()},
             error: nil
           },
