@@ -20,7 +20,8 @@ config :penguin_memories,
     "GT-I9305T" => {"Australia/Victoria", "00:00:00"},
     "SM-N976B" => {"Australia/Victoria", "00:00:00"},
     "SM-N986B" => {"Australia/Victoria", "00:00:00"},
-    "Pixel XL" => {"Australia/Victoria", "00:00:00"}
+    "Pixel XL" => {"Australia/Victoria", "00:00:00"},
+    "Pixel 6 Pro" => {"Australia/Victoria", "00:00:00"}
   },
   sizes: %{
     "thumb" => %{max_width: 120, max_height: 90},
