@@ -9,7 +9,7 @@ defmodule PenguinMemoriesWeb.ViewHelpers do
     if condition, do: [item | list], else: list
   end
 
-  @spec lazy_prepend_list_if(list :: list(), condition :: bool(), item :: (() -> list())) ::
+  @spec lazy_prepend_list_if(list :: list(), condition :: bool(), item :: (-> list())) ::
           list()
   def lazy_prepend_list_if(list, false, _list_func) do
     list
