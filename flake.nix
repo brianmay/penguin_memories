@@ -78,6 +78,7 @@
                 fbida
                 imagemagick
                 ffmpeg-headless
+                libraw
               ] ++ optional stdenv.isLinux inotify-tools
               ++ optional stdenv.isDarwin terminal-notifier
               ++ optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; [

@@ -100,7 +100,7 @@ defmodule PenguinMemories.Media do
   @spec dcraw_image(t()) :: t()
   defp dcraw_image(%__MODULE__{path: path, type: type, subtype: subtype})
        when guard_is_raw(type, subtype) do
-    {output, 0} = System.cmd("dcraw", ["-c", path])
+    {output, 0} = System.cmd("dcraw_emu", ["-Z", "-", path])
 
     {:ok, fd, file_path} = Temp.open()
     IO.binwrite(fd, output)

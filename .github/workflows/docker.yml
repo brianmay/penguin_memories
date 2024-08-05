@@ -10,7 +10,7 @@ jobs:
     name: Setup, Build, Test
     uses: brianmay/workflows/.github/workflows/elixir.yaml@main
     with:
-      apt_packages: "libimage-exiftool-perl ffmpeg exiftran dcraw"
+      apt_packages: "libimage-exiftool-perl ffmpeg exiftran libraw-bin"
       test_data: "https://www.dropbox.com/s/yg6jdk9lfewn8yf/penguin_memories.tar?dl=0"
 
   push:
