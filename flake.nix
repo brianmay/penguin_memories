@@ -107,5 +107,7 @@
           default = pkg;
         };
         inherit devShell;
-      });
+      }) // {
+        nixosModules.default = import ./module.nix { inherit self; };
+      };
 }
