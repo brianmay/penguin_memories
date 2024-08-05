@@ -1561,13 +1561,13 @@ let
         sha512 = "F5aQMywwJ2n85s4hJPTT9RPxGmubonuB10MNYo17/xph174n2MIR33HRguhzVag10O/npM7SPk73LMZNP+FaWw==";
       };
     };
-    "glob-10.3.10" = {
+    "glob-11.0.0" = {
       name = "glob";
       packageName = "glob";
-      version = "10.3.10";
+      version = "11.0.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/glob/-/glob-10.3.10.tgz";
-        sha512 = "fa46+tv1Ak0UPK1TOy/pZrIybNNt4HCv7SDzwyfiOZkvZLEbjsZkJBPtDHVshZjbecAoAGSC20MjLDG/qr679g==";
+        url = "https://registry.npmjs.org/glob/-/glob-11.0.0.tgz";
+        sha512 = "9UiX/Bl6J2yaBbxKoEBRm4Cipxgok8kQYcOPEhScPwebu2I0HoQOuYdIO6S3hLuWoZgpDpwQZMzTFxgpkyT76g==";
       };
     };
     "glob-7.1.7" = {
@@ -1966,13 +1966,13 @@ let
         sha512 = "WhB9zCku7EGTj/HQQRz5aUQEUeoQZH2bWcltRErOpymJ4boYE6wL9Tbr23krRPSZ+C5zqNSrSw+Cc7sZZ4b7vg==";
       };
     };
-    "jackspeak-2.3.6" = {
+    "jackspeak-4.0.1" = {
       name = "jackspeak";
       packageName = "jackspeak";
-      version = "2.3.6";
+      version = "4.0.1";
       src = fetchurl {
-        url = "https://registry.npmjs.org/jackspeak/-/jackspeak-2.3.6.tgz";
-        sha512 = "N3yCS/NegsOBokc8GAdM8UcmfsKiSS8cipheD/nivzr700H+nsMOxJjQnvwOcRYVuFkdH0wGUvW2WbXGmrZGbQ==";
+        url = "https://registry.npmjs.org/jackspeak/-/jackspeak-4.0.1.tgz";
+        sha512 = "cub8rahkh0Q/bw1+GxP7aeSe29hHHn2V4m29nnDlvCdlgU+3UGxkZp7Z53jLUdpX3jdTO0nJZUDl3xvbWc2Xog==";
       };
     };
     "jest-util-29.7.0" = {
@@ -2128,13 +2128,13 @@ let
         sha512 = "xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ==";
       };
     };
-    "lru-cache-10.4.3" = {
+    "lru-cache-11.0.0" = {
       name = "lru-cache";
       packageName = "lru-cache";
-      version = "10.4.3";
+      version = "11.0.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/lru-cache/-/lru-cache-10.4.3.tgz";
-        sha512 = "JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==";
+        url = "https://registry.npmjs.org/lru-cache/-/lru-cache-11.0.0.tgz";
+        sha512 = "Qv32eSV1RSCfhY3fpPE2GNZ8jgM9X7rdAfemLWqTUxwiyIC4jJ6Sy0fZ8H+oLWevO6i4/bizg7c8d8i6bxrzbA==";
       };
     };
     "lru-cache-6.0.0" = {
@@ -2281,6 +2281,15 @@ let
         sha512 = "Zs1YsZVfemekSZG+44vBsYTLQORkPMwnlv+aehcxK/NLKC+EGhDB39/YePYYqx/sTk6NnYpuqikhSn7+JIevTA==";
       };
     };
+    "minimatch-10.0.1" = {
+      name = "minimatch";
+      packageName = "minimatch";
+      version = "10.0.1";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/minimatch/-/minimatch-10.0.1.tgz";
+        sha512 = "ethXTt3SGGR+95gudmqJ1eNhRO7eGEGIgYA9vnPatK4/etz2MEVDno5GMCibdMTuBMyElzIlgxMna3K94XDIDQ==";
+      };
+    };
     "minimatch-3.0.8" = {
       name = "minimatch";
       packageName = "minimatch";
@@ -2306,15 +2315,6 @@ let
       src = fetchurl {
         url = "https://registry.npmjs.org/minimatch/-/minimatch-5.1.6.tgz";
         sha512 = "lKwV/1brpG6mBUFHtb7NUmtABCb2WZZmm2wNiOA5hAb8VdCS4B3dtMWyvcoViccwAW/COERjXLt0zP1zXUN26g==";
-      };
-    };
-    "minimatch-9.0.5" = {
-      name = "minimatch";
-      packageName = "minimatch";
-      version = "9.0.5";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/minimatch/-/minimatch-9.0.5.tgz";
-        sha512 = "G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==";
       };
     };
     "minimist-options-4.1.0" = {
@@ -2605,6 +2605,15 @@ let
         sha512 = "R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==";
       };
     };
+    "package-json-from-dist-1.0.0" = {
+      name = "package-json-from-dist";
+      packageName = "package-json-from-dist";
+      version = "1.0.0";
+      src = fetchurl {
+        url = "https://registry.npmjs.org/package-json-from-dist/-/package-json-from-dist-1.0.0.tgz";
+        sha512 = "dATvCeZN/8wQsGywez1mzHtTlP22H8OEfPrVMLNr4/eGa+ijtLn/6M5f0dY8UKNrC2O9UCU6SSoG3qRKnt7STw==";
+      };
+    };
     "parse-json-5.2.0" = {
       name = "parse-json";
       packageName = "parse-json";
@@ -2650,13 +2659,13 @@ let
         sha512 = "LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==";
       };
     };
-    "path-scurry-1.11.1" = {
+    "path-scurry-2.0.0" = {
       name = "path-scurry";
       packageName = "path-scurry";
-      version = "1.11.1";
+      version = "2.0.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/path-scurry/-/path-scurry-1.11.1.tgz";
-        sha512 = "Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA==";
+        url = "https://registry.npmjs.org/path-scurry/-/path-scurry-2.0.0.tgz";
+        sha512 = "ypGJsmGtdXUOeM5u93TyeIEfEhM6s+ljAhrk5vAvSx8uyY/02OvrZnA0YNGUrPXfpJMgI1ODd3nwz8Npx4O4cg==";
       };
     };
     "path-type-5.0.0" = {
@@ -4226,7 +4235,7 @@ let
       sources."gaze-1.1.3"
       sources."get-caller-file-2.0.5"
       sources."get-stdin-4.0.1"
-      sources."glob-10.3.10"
+      sources."glob-11.0.0"
       sources."glob-parent-6.0.2"
       sources."glob-to-regexp-0.4.1"
       sources."globby-14.0.2"
@@ -4274,7 +4283,7 @@ let
       sources."isarray-1.0.0"
       sources."isexe-2.0.0"
       sources."isobject-3.0.1"
-      sources."jackspeak-2.3.6"
+      sources."jackspeak-4.0.1"
       sources."jest-util-29.7.0"
       sources."jest-worker-29.7.0"
       sources."js-base64-2.6.4"
@@ -4306,7 +4315,7 @@ let
       sources."mime-types-2.1.35"
       sources."min-indent-1.0.1"
       sources."mini-css-extract-plugin-2.9.0"
-      sources."minimatch-9.0.5"
+      sources."minimatch-10.0.1"
       sources."minimist-options-4.1.0"
       sources."minipass-7.1.2"
       (sources."minipass-collect-1.0.2" // {
@@ -4384,14 +4393,15 @@ let
       sources."p-locate-4.1.0"
       sources."p-map-4.0.0"
       sources."p-try-2.2.0"
+      sources."package-json-from-dist-1.0.0"
       sources."parse-json-5.2.0"
       sources."path-exists-4.0.0"
       sources."path-is-absolute-1.0.1"
       sources."path-key-3.1.1"
       sources."path-parse-1.0.7"
-      (sources."path-scurry-1.11.1" // {
+      (sources."path-scurry-2.0.0" // {
         dependencies = [
-          sources."lru-cache-10.4.3"
+          sources."lru-cache-11.0.0"
         ];
       })
       sources."path-type-5.0.0"
