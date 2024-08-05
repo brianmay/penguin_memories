@@ -410,6 +410,12 @@ defmodule PenguinMemories.Media do
   def get_datetime(%__MODULE__{} = media) do
     exif = get_exif(media)
 
+    invalid_times = [
+      nil,
+      "    :  :     :  :  ",
+      "0000:00:00 00:00:00"
+    ]
+
     datetime =
       [
         "EXIF:DateTimeOriginal",
@@ -419,7 +425,7 @@ defmodule PenguinMemories.Media do
         "EXIF:CreateDate"
       ]
       |> Enum.map(fn name -> Map.get(exif, name, nil) end)
-      |> Enum.reject(fn value -> is_nil(value) or value == "    :  :     :  :  " end)
+      |> Enum.reject(fn value -> Enum.member?(invalid_times, value) end)
       |> Enum.map(fn value -> Timex.parse!(value, "%Y:%m:%d %H:%M:%S", :strftime) end)
       |> List.first()
 
