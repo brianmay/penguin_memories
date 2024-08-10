@@ -358,7 +358,7 @@ defmodule PenguinMemories.Upload do
       Path.join(directory, filename)
     end)
     |> Enum.reject(fn path ->
-      dir?(path) or Path.extname(path) in [".CR3", ".dng", ".pp3"]
+      dir?(path) or Path.extname(path) in [".CR3", ".dng", ".pp3", ".xmp"]
     end)
     |> Enum.map(fn path ->
       case upload_file(path, album, opts) do
