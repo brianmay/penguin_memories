@@ -168,9 +168,7 @@ defmodule PenguinMemories.Upload do
   defp add_raw_files({:ok, %Photo{} = photo}, path) do
     try_extensions = [
       ".CR3",
-      ".cr3",
-      ".DNG",
-      ".dng"
+      ".cr3"
     ]
 
     raw_file =
