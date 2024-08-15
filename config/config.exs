@@ -14,14 +14,15 @@ config :penguin_memories,
   image_dir: System.get_env("IMAGE_DIR"),
   image_url: "/images",
   cameras: %{
-    "Canon EOS R5" => {"Etc/UTC", "10:59:36"},
+    "Canon EOS R5" => {"Australia/Victoria", "00:00:00"},
     "Canon EOS 350D DIGITAL" => {"Etc/UTC", "11:00:00"},
     "Canon EOS 5D Mark III" => {"Etc/UTC", "09:59:28"},
     "GT-I9305T" => {"Australia/Victoria", "00:00:00"},
     "SM-N976B" => {"Australia/Victoria", "00:00:00"},
     "SM-N986B" => {"Australia/Victoria", "00:00:00"},
     "Pixel XL" => {"Australia/Victoria", "00:00:00"},
-    "Pixel 6 Pro" => {"Australia/Victoria", "00:00:00"}
+    "Pixel 6 Pro" => {"Australia/Victoria", "00:00:00"},
+    "COOLPIX P950" => {"Australia/Victoria", "00:00:00"}
   },
   sizes: %{
     "thumb" => %{max_width: 120, max_height: 90},
