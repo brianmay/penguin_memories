@@ -85,8 +85,8 @@ defmodule PenguinMemories.Upload do
   def add_exif_to_photo(%Photo{} = photo, %Media{} = media) do
     exif = Media.get_exif(media)
 
-    latitude = get(exif, "EXIF:GPSLatitude")
-    longitude = get(exif, "EXIF:GPSLongitude")
+    latitude = get(exif, "Composite:GPSLatitude")
+    longitude = get(exif, "Composite:GPSLongitude")
 
     point =
       if latitude != nil and longitude != nil do
