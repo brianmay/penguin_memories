@@ -20,5 +20,5 @@ defmodule PenguinMemoriesWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :penguin_memories
+  use Gettext.Backend, otp_app: :penguin_memories
 end

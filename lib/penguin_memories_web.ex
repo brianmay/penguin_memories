@@ -23,7 +23,7 @@ defmodule PenguinMemoriesWeb do
       use Phoenix.Controller, namespace: PenguinMemoriesWeb
 
       import Plug.Conn
-      import PenguinMemoriesWeb.Gettext
+      use Gettext, backend: PenguinMemoriesWeb.Gettext
       alias PenguinMemoriesWeb.Router.Helpers, as: Routes
 
       unquote(verified_routes())
@@ -75,7 +75,7 @@ defmodule PenguinMemoriesWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import PenguinMemoriesWeb.Gettext
+      use Gettext, backend: PenguinMemoriesWeb.Gettext
     end
   end
 
@@ -95,7 +95,7 @@ defmodule PenguinMemoriesWeb do
 
       import PenguinMemoriesWeb.ErrorHelpers
       import PenguinMemoriesWeb.FormHelpers
-      import PenguinMemoriesWeb.Gettext
+      use Gettext, backend: PenguinMemoriesWeb.Gettext
       import PenguinMemoriesWeb.ViewHelpers
       alias PenguinMemoriesWeb.Router.Helpers, as: Routes
 
