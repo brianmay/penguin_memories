@@ -256,24 +256,6 @@ let
         sha512 = "L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==";
       };
     };
-    "@types/eslint-9.6.0" = {
-      name = "_at_types_slash_eslint";
-      packageName = "@types/eslint";
-      version = "9.6.0";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/@types/eslint/-/eslint-9.6.0.tgz";
-        sha512 = "gi6WQJ7cHRgZxtkQEoyHMppPjq9Kxo5Tjn2prSKDSmZrCz8TZ3jSRCeTJm+WoM+oB0WG37bRqLzaaU3q7JypGg==";
-      };
-    };
-    "@types/eslint-scope-3.7.7" = {
-      name = "_at_types_slash_eslint-scope";
-      packageName = "@types/eslint-scope";
-      version = "3.7.7";
-      src = fetchurl {
-        url = "https://registry.npmjs.org/@types/eslint-scope/-/eslint-scope-3.7.7.tgz";
-        sha512 = "MzMFlSLBqNF2gcHWO0G1vP/YQyfvrxZ0bF+u7mzUdZ1/xK4A4sru+nraZz5i3iEIk1l1uyicaDVTB4QbbEkAYg==";
-      };
-    };
     "@types/estree-1.0.5" = {
       name = "_at_types_slash_estree";
       packageName = "@types/estree";
@@ -2272,13 +2254,13 @@ let
         sha512 = "I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==";
       };
     };
-    "mini-css-extract-plugin-2.9.0" = {
+    "mini-css-extract-plugin-2.9.1" = {
       name = "mini-css-extract-plugin";
       packageName = "mini-css-extract-plugin";
-      version = "2.9.0";
+      version = "2.9.1";
       src = fetchurl {
-        url = "https://registry.npmjs.org/mini-css-extract-plugin/-/mini-css-extract-plugin-2.9.0.tgz";
-        sha512 = "Zs1YsZVfemekSZG+44vBsYTLQORkPMwnlv+aehcxK/NLKC+EGhDB39/YePYYqx/sTk6NnYpuqikhSn7+JIevTA==";
+        url = "https://registry.npmjs.org/mini-css-extract-plugin/-/mini-css-extract-plugin-2.9.1.tgz";
+        sha512 = "+Vyi+GCCOHnrJ2VPS+6aPoXN2k2jgUzDRhTFLjjTBn23qyXJXkjUWQgTL+mXpF5/A8ixLdCc6kWsoeOjKGejKQ==";
       };
     };
     "minimatch-10.0.1" = {
@@ -3271,13 +3253,13 @@ let
         sha512 = "5YCfmGBmxoIRYHnKK2AKzrAkCoQ8ozO+iumT8K4tXJXRVCPf+7s1/9KxTSW3Rbvf+7Y7b4FR3mWyLnQr3PHocA==";
       };
     };
-    "sass-loader-16.0.0" = {
+    "sass-loader-16.0.1" = {
       name = "sass-loader";
       packageName = "sass-loader";
-      version = "16.0.0";
+      version = "16.0.1";
       src = fetchurl {
-        url = "https://registry.npmjs.org/sass-loader/-/sass-loader-16.0.0.tgz";
-        sha512 = "n13Z+3rU9A177dk4888czcVFiC8CL9dii4qpXWUg3YIIgZEvi9TCFKjOQcbK0kJM7DJu9VucrZFddvNfYCPwtw==";
+        url = "https://registry.npmjs.org/sass-loader/-/sass-loader-16.0.1.tgz";
+        sha512 = "xACl1ToTsKnL9Ce5yYpRxrLj9QUDCnwZNhzpC7tKiFyA8zXsd3Ap+HGVnbCgkdQcm43E+i6oKAWBsvGA6ZoiMw==";
       };
     };
     "schema-utils-3.3.0" = {
@@ -3874,13 +3856,13 @@ let
         sha512 = "8wrBCMtVhqcXP2Sup1ctSkga6uc2Bx0IIvKyT7yTFier5AXHooSI+QyQQAtTb7+E0IUCCKyTFmXqdqgum2XWGg==";
       };
     };
-    "webpack-5.93.0" = {
+    "webpack-5.94.0" = {
       name = "webpack";
       packageName = "webpack";
-      version = "5.93.0";
+      version = "5.94.0";
       src = fetchurl {
-        url = "https://registry.npmjs.org/webpack/-/webpack-5.93.0.tgz";
-        sha512 = "Y0m5oEY1LRuwly578VqluorkXbvXKh7U3rLoQCEO04M97ScRr44afGVkI0FQFsXzysk5OgFAxjZAb9rsGQVihA==";
+        url = "https://registry.npmjs.org/webpack/-/webpack-5.94.0.tgz";
+        sha512 = "KcsGn50VT+06JH/iunZJedYGUJS5FGjow8wb9c0v5n1Om8O1g4L6LjtfxwlXIATopoQu+vOXXa7gYisWxCoPyg==";
       };
     };
     "webpack-cli-5.1.4" = {
@@ -4058,8 +4040,6 @@ let
       sources."@sindresorhus/merge-streams-2.3.0"
       sources."@tootallnate/once-2.0.0"
       sources."@trysound/sax-0.2.0"
-      sources."@types/eslint-9.6.0"
-      sources."@types/eslint-scope-3.7.7"
       sources."@types/estree-1.0.5"
       sources."@types/istanbul-lib-coverage-2.0.6"
       sources."@types/istanbul-lib-report-3.0.3"
@@ -4314,7 +4294,7 @@ let
       sources."mime-db-1.52.0"
       sources."mime-types-2.1.35"
       sources."min-indent-1.0.1"
-      sources."mini-css-extract-plugin-2.9.0"
+      sources."mini-css-extract-plugin-2.9.1"
       sources."minimatch-10.0.1"
       sources."minimist-options-4.1.0"
       sources."minipass-7.1.2"
@@ -4492,7 +4472,7 @@ let
           sources."minimatch-3.1.2"
         ];
       })
-      sources."sass-loader-16.0.0"
+      sources."sass-loader-16.0.1"
       sources."schema-utils-4.2.0"
       sources."scss-tokenizer-0.4.3"
       sources."semver-7.6.3"
@@ -4584,7 +4564,7 @@ let
       sources."util-deprecate-1.0.2"
       sources."validate-npm-package-license-3.0.4"
       sources."watchpack-2.4.1"
-      (sources."webpack-5.93.0" // {
+      (sources."webpack-5.94.0" // {
         dependencies = [
           sources."ajv-6.12.6"
           sources."ajv-keywords-3.5.2"
