@@ -20,6 +20,9 @@ defmodule PenguinMemories.Database.Fields do
           | :float
           | :boolean
           | :url
+          | :date
+          | :related
+          | :geo_point
   @type change_type :: :set | :add | :delete | nil
 
   defmodule Field do
