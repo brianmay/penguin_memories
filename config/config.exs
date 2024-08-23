@@ -8,6 +8,8 @@
 import Config
 
 config :penguin_memories,
+  build_date: System.get_env("BUILD_DATE"),
+  vcs_ref: System.get_env("VCS_REF"),
   ecto_repos: [PenguinMemories.Repo],
   image_url: "/images",
   cameras: %{
