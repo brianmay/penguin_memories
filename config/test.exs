@@ -7,13 +7,7 @@ config :penguin_memories,
     "mid" => %{max_width: 480, max_height: 360},
     "large" => %{max_width: 1920, max_height: 1440}
   },
-  formats: ["image/jpeg", "image/gif", "video/mp4", "video/ogg", "video/webm"],
-  oidc: %{
-    discovery_document_uri: "",
-    client_id: "",
-    client_secret: "",
-    scope: ""
-  }
+  formats: ["image/jpeg", "image/gif", "video/mp4", "video/ogg", "video/webm"]
 
 # Configure your database
 #
