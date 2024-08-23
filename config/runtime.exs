@@ -2,17 +2,12 @@ import Config
 
 config :penguin_memories,
   image_dir: System.get_env("IMAGE_DIR"),
-  oidc:
-    (if config_env() == :test do
-       %{discovery_document_uri: "", client_id: "", client_secret: "", scope: ""}
-     else
-       %{
-         discovery_document_uri: System.get_env("OIDC_DISCOVERY_URL"),
-         client_id: System.get_env("OIDC_CLIENT_ID"),
-         client_secret: System.get_env("OIDC_CLIENT_SECRET"),
-         scope: System.get_env("OIDC_AUTH_SCOPE")
-       }
-     end),
+  oidc: %{
+    discovery_document_uri: System.get_env("OIDC_DISCOVERY_URL"),
+    client_id: System.get_env("OIDC_CLIENT_ID"),
+    client_secret: System.get_env("OIDC_CLIENT_SECRET"),
+    scope: System.get_env("OIDC_AUTH_SCOPE")
+  },
   private_locations:
     System.get_env("PRIVATE_LOCATIONS", "")
     |> String.split(";", trim: true)
