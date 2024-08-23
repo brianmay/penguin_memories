@@ -7,7 +7,17 @@ config :penguin_memories,
     client_id: System.get_env("OIDC_CLIENT_ID"),
     client_secret: System.get_env("OIDC_CLIENT_SECRET"),
     scope: System.get_env("OIDC_AUTH_SCOPE")
-  }
+  },
+  private_locations:
+    System.get_env("PRIVATE_LOCATIONS", "")
+    |> String.split(";", trim: true)
+    |> Enum.map(fn x ->
+      [lng, lat, distance] = String.split(x, ",")
+      {lng, ""} = Float.parse(lng)
+      {lat, ""} = Float.parse(lat)
+      {distance, ""} = Integer.parse(distance)
+      %Geocalc.Shape.Circle{latitude: lat, longitude: lng, radius: distance}
+    end)
 
 config :penguin_memories, PenguinMemories.Repo,
   url: System.get_env("DATABASE_URL"),

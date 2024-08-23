@@ -10,6 +10,8 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Format
   alias PenguinMemories.Photos
+  alias PenguinMemories.Auth
+  alias PenguinMemories.Auth.User
 
   @spec display_icon(icon :: Query.Icon.t() | nil) :: any()
   defp display_icon(nil), do: ""
@@ -49,8 +51,8 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     end
   end
 
-  @spec output_field(obj :: struct(), field :: Field.t()) :: any()
-  def output_field(obj, field) do
+  @spec output_field(user :: User.t(), obj :: struct(), field :: Field.t()) :: any()
+  def output_field(user, obj, field) do
     value = Map.get(obj, field.id)
 
     case value do
@@ -60,19 +62,39 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
       [] ->
         nil
 
+        nil
+
       value ->
-        [
-          raw("<tr>"),
-          raw("<th>"),
-          field.name,
-          raw("</th>"),
-          raw("<td>"),
-          output_field_value(obj, value, field),
-          raw("</td>"),
-          raw("</tr>")
-        ]
+        if can_show_field_value(obj, value, field) or Auth.can_see_latlng(user) do
+          [
+            raw("<tr>"),
+            raw("<th>"),
+            field.name,
+            raw("</th>"),
+            raw("<td>"),
+            output_field_value(obj, value, field),
+            raw("</td>"),
+            raw("</tr>")
+          ]
+        else
+          nil
+        end
     end
   end
+
+  @spec can_show_field_value(obj :: struct(), value :: any(), field :: Field.t()) :: bool()
+  defp can_show_field_value(_, value, %Field{type: :geo_point}) do
+    {lat, lng} = value.coordinates
+    point = %{latitude: lat, longitude: lng}
+
+    private =
+      Application.fetch_env!(:penguin_memories, :private_locations)
+      |> Enum.any?(fn x -> Geocalc.in_area?(x, point) end)
+
+    not private
+  end
+
+  defp can_show_field_value(_, _, _field), do: true
 
   @spec output_field_value(obj :: struct(), value :: any(), field :: Field.t()) :: any()
   defp output_field_value(_, nil, _field), do: "N/A"
@@ -160,6 +182,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   defp output_field_value(_, value, %Field{type: :geo_point}) do
     {lat, lng} = value.coordinates
+    link = "https://maps.google.com/?q=#{lat},#{lng}"
 
     [
       "Latitude: ",
@@ -167,7 +190,8 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
       raw("</br>"),
       "Longitude: ",
       Float.to_string(lng),
-      raw("</br>")
+      raw("</br>"),
+      link("link", to: link)
     ]
   end
 

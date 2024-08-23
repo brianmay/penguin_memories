@@ -1,19 +1,18 @@
-<%
-  classes =
-    ["details"]
-    |> prepend_if(@big, "big")
-    |> lazy_prepend_list_if(
-        @details != nil,
-        fn -> icon_classes(@details.icon) end
-        )
-    |> Enum.join(" ")
-  keydown = if @big, do: "key", else: nil
-  throttle = if @big, do: 550, else: nil
-%>
+<% classes =
+  ["details"]
+  |> prepend_if(@big, "big")
+  |> lazy_prepend_list_if(
+    @details != nil,
+    fn -> icon_classes(@details.icon) end
+  )
+  |> Enum.join(" ")
+
+keydown = if @big, do: "key", else: nil
+throttle = if @big, do: 550, else: nil %>
 <div class={classes} phx-window-keydown={keydown} phx-throttle={throttle}>
-<%= if @details do %>
-  <% type_name = PenguinMemories.Database.Types.get_name!(@request.type) %>
-  <% fields = Fields.get_fields(@request.type, @common.current_user) %>
+  <%= if @details do %>
+    <% type_name = PenguinMemories.Database.Types.get_name!(@request.type) %>
+    <% fields = Fields.get_fields(@request.type, @common.current_user) %>
 
     <h2>
       <%= @title %>
@@ -27,13 +26,11 @@
       <%= if length(@details.parents) > 0 do %>
         <div class="parents">
           <%= for {_position, icons} <- @details.parents do %>
-            <%=
-              Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
-                icons: icons,
-                classes: [],
-                event: "goto"
-              )
-            %>
+            <%= Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
+              icons: icons,
+              classes: [],
+              event: "goto"
+            ) %>
             <div class="arrow">🠆</div>
           <% end %>
         </div>
@@ -49,12 +46,9 @@
               width={first.width}
               height={first.height}
               id={"#{@socket.id}_video_container"}
-            ></video>
-            <div
-              phx-hook="video"
-              controls="controls"
-              id={"#{@socket.id}_video_hook"}
             >
+            </video>
+            <div phx-hook="video" controls="controls" id={"#{@socket.id}_video_hook"}>
               <%= for video <- @details.videos do %>
                 <source src={video.url} type={video.mime_type} />
               <% end %>
@@ -85,7 +79,7 @@
           <table class="photo_table table table-hover">
             <tbody>
               <%= for field <- fields do %>
-                <%= FieldHelpers.output_field(@details.obj, field) %>
+                <%= FieldHelpers.output_field(@common.current_user, @details.obj, field) %>
               <% end %>
             </tbody>
           </table>
@@ -95,20 +89,14 @@
           <.form :let={f} for={@changeset} as={:object} phx-change="validate" phx-submit="save">
             <%= for %Fields.Field{} = field <- fields do %>
               <%= if field.read_only == false do %>
-                <%= FieldHelpers.input_field f, field %>
+                <%= FieldHelpers.input_field(f, field) %>
               <% end %>
             <% end %>
             <div>
-              <span
-                ><input type="submit" class="btn btn-primary" value="Save"
-              /></span>
-              <span
-                ><input
-                  type="button"
-                  class="btn btn-danger"
-                  phx-click="cancel"
-                  value="Cancel"
-              /></span>
+              <span><input type="submit" class="btn btn-primary" value="Save" /></span>
+              <span>
+                <input type="button" class="btn btn-danger" phx-click="cancel" value="Cancel" />
+              </span>
             </div>
           </.form>
         <% end %>
@@ -117,48 +105,39 @@
 
     <div class="buttons">
       <%= if @mode == :display do %>
-        <.link navigate={Routes.main_path(@socket, :index, type_name, @details.icon.id)} class="btn btn-secondary">
+        <.link
+          navigate={Routes.main_path(@socket, :index, type_name, @details.icon.id)}
+          class="btn btn-secondary"
+        >
           Goto
         </.link>
 
         <%= if @prev_icon do %>
-         <div class="hoverable btn-prev">
-            <div
-              class="btn btn-secondary"
-              phx-click="select-object"
-              phx-value-id={@prev_icon.id}
-            >
+          <div class="hoverable btn-prev">
+            <div class="btn btn-secondary" phx-click="select-object" phx-value-id={@prev_icon.id}>
               &lt;
             </div>
             <div class="hover">
-              <%=
-                Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
-                  icon: @prev_icon,
-                  classes: [],
-                  event: "select-object"
-                )
-              %>
+              <%= Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+                icon: @prev_icon,
+                classes: [],
+                event: "select-object"
+              ) %>
             </div>
           </div>
         <% end %>
 
         <%= if @next_icon do %>
           <div class="hoverable btn-next">
-            <div
-              class="btn btn-secondary"
-              phx-click="select-object"
-              phx-value-id={@next_icon.id}
-            >
+            <div class="btn btn-secondary" phx-click="select-object" phx-value-id={@next_icon.id}>
               &gt;
             </div>
             <div class="hover">
-              <%=
-                Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
-                  icon: @next_icon,
-                  classes: [],
-                  event: "select-object"
-                )
-              %>
+              <%= Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+                icon: @next_icon,
+                classes: [],
+                event: "select-object"
+              ) %>
             </div>
           </div>
         <% end %>
@@ -201,13 +180,12 @@
         <% end %>
       <% end %>
     </div>
-
-<% else %>
+  <% else %>
     <h2>LOADING</h2>
     <%= if @error do %>
       <div class="alert alert-danger">
         <%= @error %>
       </div>
     <% end %>
-<% end %>
+  <% end %>
 </div>

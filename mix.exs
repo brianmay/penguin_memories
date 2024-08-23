@@ -48,6 +48,7 @@ defmodule PenguinMemories.MixProject do
       {:ecto_psql_extras, "~> 0.2"},
       {:postgrex, ">= 0.0.0"},
       {:geo_postgis, "~> 3.7"},
+      {:geocalc, "~> 0.8"},
       {:floki, ">= 0.0.0", only: :test},
       {:phoenix_live_reload, "~> 1.5.3", only: :dev},
       {:gettext, "~> 0.11"},

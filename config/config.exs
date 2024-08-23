@@ -8,10 +8,7 @@
 import Config
 
 config :penguin_memories,
-  build_date: System.get_env("BUILD_DATE"),
-  vcs_ref: System.get_env("VCS_REF"),
   ecto_repos: [PenguinMemories.Repo],
-  image_dir: System.get_env("IMAGE_DIR"),
   image_url: "/images",
   cameras: %{
     "Canon EOS R5" => {"Australia/Victoria", "00:00:00"},
@@ -30,36 +27,14 @@ config :penguin_memories,
     "large" => %{max_width: 1920, max_height: 1440}
   },
   formats: ["image/jpeg", "video/mp4", "video/webm"],
-  index_api: PenguinMemories.Database.Impl.Index.Generic,
-  oidc: %{
-    discovery_document_uri: System.get_env("OIDC_DISCOVERY_URL"),
-    client_id: System.get_env("OIDC_CLIENT_ID"),
-    client_secret: System.get_env("OIDC_CLIENT_SECRET"),
-    scope: System.get_env("OIDC_AUTH_SCOPE")
-  }
+  index_api: PenguinMemories.Database.Impl.Index.Generic
 
 config :penguin_memories, PenguinMemories.Repo,
-  url: System.get_env("DATABASE_URL"),
-  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
   types: PenguinMemories.PostgresTypes
 
-# Configures the endpoint
-default_port = if Mix.env() == :test, do: "4002", else: "4000"
-port = String.to_integer(System.get_env("PORT") || default_port)
-http_url = System.get_env("HTTP_URL") || "http://localhost:#{port}"
-http_uri = URI.parse(http_url)
-
 config :penguin_memories, PenguinMemoriesWeb.Endpoint,
-  http: [
-    :inet6,
-    port: port,
-    protocol_options: [max_header_value_length: 8096]
-  ],
-  url: [scheme: http_uri.scheme, host: http_uri.host, port: http_uri.port],
-  secret_key_base: System.get_env("SECRET_KEY_BASE"),
   render_errors: [view: PenguinMemoriesWeb.ErrorView, accepts: ~w(html json), layout: false],
-  pubsub_server: PenguinMemories.PubSub,
-  live_view: [signing_salt: System.get_env("SIGNING_SALT")]
+  pubsub_server: PenguinMemories.PubSub
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -70,8 +45,7 @@ config :logger, :console,
 config :phoenix, :json_library, Jason
 
 config :penguin_memories, PenguinMemories.Accounts.Guardian,
-  issuer: "penguin_memories",
-  secret_key: System.get_env("GUARDIAN_SECRET")
+  issuer: "penguin_memories"
 
 config :mime, :types, %{
   "image/cr2" => ["cr2"],
@@ -89,15 +63,9 @@ config :plugoid,
     secure: true,
     extra: "SameSite=Lax"
   ],
-  auth_cookie_store_opts: [
-    signing_salt: System.get_env("SIGNING_SALT")
-  ],
   state_cookie_opts: [
     secure: true,
     extra: "SameSite=None"
-  ],
-  state_cookie_store_opts: [
-    signing_salt: System.get_env("SIGNING_SALT")
   ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase

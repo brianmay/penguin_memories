@@ -28,4 +28,8 @@ defmodule PenguinMemories.Auth do
   @spec can_see_orig(User.t() | nil) :: boolean
   def can_see_orig(nil), do: false
   def can_see_orig(_), do: true
+
+  @spec can_see_latlng(User.t() | nil) :: boolean
+  def can_see_latlng(nil), do: false
+  def can_see_latlng(_), do: true
 end
