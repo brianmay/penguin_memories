@@ -5,12 +5,12 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   use PenguinMemoriesWeb, :html
 
+  alias PenguinMemories.Auth
   alias PenguinMemories.Database.Fields.Field
   alias PenguinMemories.Database.Fields.UpdateField
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Format
   alias PenguinMemories.Photos
-  alias PenguinMemories.Auth
   alias PenguinMemories.Auth.User
 
   @spec display_icon(icon :: Query.Icon.t() | nil) :: any()
