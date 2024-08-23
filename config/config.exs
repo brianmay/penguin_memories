@@ -29,8 +29,7 @@ config :penguin_memories,
   formats: ["image/jpeg", "video/mp4", "video/webm"],
   index_api: PenguinMemories.Database.Impl.Index.Generic
 
-config :penguin_memories, PenguinMemories.Repo,
-  types: PenguinMemories.PostgresTypes
+config :penguin_memories, PenguinMemories.Repo, types: PenguinMemories.PostgresTypes
 
 config :penguin_memories, PenguinMemoriesWeb.Endpoint,
   render_errors: [view: PenguinMemoriesWeb.ErrorView, accepts: ~w(html json), layout: false],
@@ -44,8 +43,7 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-config :penguin_memories, PenguinMemories.Accounts.Guardian,
-  issuer: "penguin_memories"
+config :penguin_memories, PenguinMemories.Accounts.Guardian, issuer: "penguin_memories"
 
 config :mime, :types, %{
   "image/cr2" => ["cr2"],
