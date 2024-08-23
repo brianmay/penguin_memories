@@ -20,14 +20,7 @@ config :penguin_memories,
     end)
 
 config :penguin_memories, PenguinMemories.Repo,
-  url:
-    System.get_env(
-      if config_env() == :test do
-        "DATABASE_URL_TEST"
-      else
-        "DATABASE_URL"
-      end
-    ),
+  url: System.get_env("DATABASE_URL"),
   pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
 
 port = String.to_integer(System.get_env("PORT") || "4000")
