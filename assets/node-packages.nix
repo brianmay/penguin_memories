@@ -3253,13 +3253,13 @@ let
         sha512 = "5YCfmGBmxoIRYHnKK2AKzrAkCoQ8ozO+iumT8K4tXJXRVCPf+7s1/9KxTSW3Rbvf+7Y7b4FR3mWyLnQr3PHocA==";
       };
     };
-    "sass-loader-16.0.1" = {
+    "sass-loader-16.0.2" = {
       name = "sass-loader";
       packageName = "sass-loader";
-      version = "16.0.1";
+      version = "16.0.2";
       src = fetchurl {
-        url = "https://registry.npmjs.org/sass-loader/-/sass-loader-16.0.1.tgz";
-        sha512 = "xACl1ToTsKnL9Ce5yYpRxrLj9QUDCnwZNhzpC7tKiFyA8zXsd3Ap+HGVnbCgkdQcm43E+i6oKAWBsvGA6ZoiMw==";
+        url = "https://registry.npmjs.org/sass-loader/-/sass-loader-16.0.2.tgz";
+        sha512 = "Ll6iXZ1EYwYT19SqW4mSBb76vSSi8JgzElmzIerhEGgzB5hRjDQIWsPmuk1UrAXkR16KJHqVY0eH+5/uw9Tmfw==";
       };
     };
     "schema-utils-3.3.0" = {
@@ -4472,7 +4472,7 @@ let
           sources."minimatch-3.1.2"
         ];
       })
-      sources."sass-loader-16.0.1"
+      sources."sass-loader-16.0.2"
       sources."schema-utils-4.2.0"
       sources."scss-tokenizer-0.4.3"
       sources."semver-7.6.3"
