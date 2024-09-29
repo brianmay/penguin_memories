@@ -59,7 +59,8 @@ in {
     users.groups.penguin_memories = { };
 
     systemd.services.penguin_memories = {
-      wantedBy = [ "multi-user.target" ];
+      wantedBy = ["multi-user.target"];
+      after = ["network.target" "postgresql.service"];
       serviceConfig = {
         User = "penguin_memories";
         ExecStart = "${wrapper}/bin/penguin_memories start";
