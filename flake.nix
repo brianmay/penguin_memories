@@ -106,7 +106,51 @@
           }
         ];
       };
+
+      test = pkgs.nixosTest {
+        name = "penguin_memories";
+        nodes.machine = {...}: {
+          imports = [
+            self.nixosModules.default
+          ];
+          services.penguin_memories = {
+            enable = true;
+            http_url = "http://localhost:4000";
+            port = 4000;
+            secrets = pkgs.writeText "secrets.txt" ''
+              export RELEASE_COOKIE="12345678901234567890123456789012345678901234567890123456"
+              export DATABASE_URL="postgres://penguin_memories:your_secure_password_here@localhost/penguin_memories"
+              export GUARDIAN_SECRET="1234567890123456789012345678901234567890123456789012345678901234"
+              export SECRET_KEY_BASE="1234567890123456789012345678901234567890123456789012345678901234"
+              export SIGNING_SALT="12345678901234567890123456789012"
+              export OIDC_DISCOVERY_URL="http://localhost"
+              export OIDC_CLIENT_ID="photos"
+              export OIDC_CLIENT_SECRET="12345678901234567890123456789012"
+              export OIDC_AUTH_SCOPE="openid profile groups"
+            '';
+          };
+          system.stateVersion = "24.05";
+
+          services.postgresql = {
+            enable = true;
+            extraPlugins = ps: [ps.postgis];
+            initialScript = pkgs.writeText "init.psql" ''
+              CREATE DATABASE penguin_memories;
+              CREATE USER penguin_memories with encrypted password 'your_secure_password_here';
+              ALTER DATABASE penguin_memories OWNER TO penguin_memories;
+              ALTER USER penguin_memories WITH SUPERUSER;
+            '';
+          };
+        };
+
+        testScript = ''
+          machine.wait_for_unit("penguin_memories.service")
+          machine.wait_for_open_port(4000)
+          machine.succeed("${pkgs.curl}/bin/curl --fail -v http://localhost:4000/_health")
+        '';
+      };
     in {
+      checks.nixosModules = test;
       packages = {
         devenv-up = devShell.config.procfileScript;
         default = pkg;

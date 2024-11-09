@@ -76,6 +76,7 @@ defmodule PenguinMemoriesWeb.Router do
       pipe_through [:browser, :auth]
       PenguinMemoriesWeb
       live "/", PageLive, :index
+      get "/_health", HealthCheckController, :index
       post "/logout", PageController, :logout
       get "/file/:id/size/:size/", RedirectController, :photo
       live "/:type/", MainLive, :index
