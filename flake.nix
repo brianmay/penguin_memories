@@ -99,7 +99,7 @@
               initialScript = ''
                 \c penguin_memories;
                 CREATE USER penguin_memories with encrypted password 'your_secure_password_here';
-                GRANT ALL PRIVILEGES ON DATABASE penguin_memories TO penguin_memories;
+                ALTER DATABASE penguin_memories OWNER TO penguin_memories;
                 ALTER USER penguin_memories WITH SUPERUSER;
               '';
             };
@@ -133,6 +133,7 @@
 
           services.postgresql = {
             enable = true;
+            package = pkgs.postgresql_15;
             extraPlugins = ps: [ps.postgis];
             initialScript = pkgs.writeText "init.psql" ''
               CREATE DATABASE penguin_memories;

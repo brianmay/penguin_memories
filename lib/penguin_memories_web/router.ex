@@ -52,11 +52,15 @@ defmodule PenguinMemoriesWeb.Router do
     plug PenguinMemoriesWeb.Plug.CheckAdmin
   end
 
-  scope "/", PhoneDbWeb do
+  scope "/", PenguinMemoriesWeb do
+      get "/_health", HealthCheckController, :index
+  end
+
+  scope "/", PenguinMemoriesWeb do
     pipe_through [:browser, :auth, :ensure_admin]
 
     live_dashboard "/dashboard",
-      metrics: PhoneDbWeb.Telemetry,
+      metrics: PenguinMemoriesWeb.Telemetry,
       ecto_repos: [PenguinMemories.Repo]
   end
 
@@ -76,7 +80,6 @@ defmodule PenguinMemoriesWeb.Router do
       pipe_through [:browser, :auth]
       PenguinMemoriesWeb
       live "/", PageLive, :index
-      get "/_health", HealthCheckController, :index
       post "/logout", PageController, :logout
       get "/file/:id/size/:size/", RedirectController, :photo
       live "/:type/", MainLive, :index

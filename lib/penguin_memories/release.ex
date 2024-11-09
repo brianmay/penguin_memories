@@ -4,6 +4,8 @@ defmodule PenguinMemories.Release do
   """
   @app :penguin_memories
 
+  require Logger
+
   alias Ecto.Adapters.SQL
   import Ecto.Query
   alias PenguinMemories.Repo
@@ -44,6 +46,7 @@ defmodule PenguinMemories.Release do
     if Enum.empty?(migrations) do
       :ok
     else
+      Logger.error("Migrations pending: #{inspect(migrations)}")
       {:error, "Migrations pending: #{inspect(migrations)}"}
     end
   end
@@ -57,11 +60,13 @@ defmodule PenguinMemories.Release do
           {:cont, :ok}
 
         {:error, reason} ->
+          Logger.error("Database error: #{inspect(reason)}")
           {:halt, {:error, inspect(reason)}}
       end
     end)
   rescue
     e ->
+      Logger.error("Database error: #{inspect(e)}")
       {:error, inspect(e)}
   end
 
