@@ -1,6 +1,10 @@
 defmodule PenguinMemories.Release do
+  @moduledoc """
+  Functions for managing released code
+  """
   @app :penguin_memories
 
+  alias Ecto.Adapters.SQL
   import Ecto.Query
   alias PenguinMemories.Repo
 
@@ -25,7 +29,7 @@ defmodule PenguinMemories.Release do
     )
   end
 
-  def health_check do
+  def migrations_check do
     repos = Application.fetch_env!(@app, :ecto_repos)
 
     migrations =
@@ -37,29 +41,28 @@ defmodule PenguinMemories.Release do
         {_, _, _} -> true
       end)
 
-    migrations =
-      if Enum.empty?(migrations) do
-        :ok
-      else
-        {:error, "Migrations pending: #{inspect(migrations)}"}
-      end
-
-    database =
-      Enum.reduce_while(repos, :ok, fn item, _acc ->
-        case Ecto.Adapters.SQL.query(item, "SELECT 1") do
-          {:ok, %{num_rows: 1, rows: [[1]]}} ->
-            {:cont, :ok}
-
-          {:error, reason} ->
-            {:halt, {:error, inspect(reason)}}
-        end
-      end)
-
-    case {migrations, database} do
-      {:ok, :ok} -> :ok
-      {{:error, reason}, _} -> {:error, reason}
-      {_, {:error, reason}} -> {:error, reason}
+    if Enum.empty?(migrations) do
+      :ok
+    else
+      {:error, "Migrations pending: #{inspect(migrations)}"}
     end
+  end
+
+  def health_check do
+    repos = Application.fetch_env!(@app, :ecto_repos)
+
+    Enum.reduce_while(repos, :ok, fn item, _acc ->
+      case SQL.query(item, "SELECT 1") do
+        {:ok, %{num_rows: 1, rows: [[1]]}} ->
+          {:cont, :ok}
+
+        {:error, reason} ->
+          {:halt, {:error, inspect(reason)}}
+      end
+    end)
+  rescue
+    e ->
+      {:error, inspect(e)}
   end
 
   defp repos do
