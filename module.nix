@@ -63,7 +63,7 @@ in {
   config = mkIf cfg.enable {
     users.users.penguin_memories = {
       isSystemUser = true;
-      description = "PhoneDB user";
+      description = "Penguin Memories user";
       group = "penguin_memories";
       createHome = true;
       home = "${cfg.data_dir}";
