@@ -53,7 +53,7 @@ defmodule PenguinMemoriesWeb.Router do
   end
 
   scope "/", PenguinMemoriesWeb do
-      get "/_health", HealthCheckController, :index
+    get "/_health", HealthCheckController, :index
   end
 
   scope "/", PenguinMemoriesWeb do
