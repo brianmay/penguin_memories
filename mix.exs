@@ -36,7 +36,7 @@ defmodule PenguinMemories.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.7.9"},
-      {:phoenix_html, "~> 4.1.1"},
+      {:phoenix_html, "~> 4.2.0"},
       {:phoenix_html_helpers, "~> 1.0"},
       {:phoenix_live_view, "~> 1.0.0"},
       {:phoenix_live_dashboard, "~> 0.8.2"},
