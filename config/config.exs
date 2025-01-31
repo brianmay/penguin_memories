@@ -14,6 +14,7 @@ config :penguin_memories,
   image_url: "/images",
   cameras: %{
     "Canon EOS R5" => {"Australia/Victoria", "00:00:00"},
+    "Canon EOS R5m2" => {"Australia/Victoria", "00:00:00"},
     "Canon EOS 350D DIGITAL" => {"Etc/UTC", "11:00:00"},
     "Canon EOS 5D Mark III" => {"Etc/UTC", "09:59:28"},
     "GT-I9305T" => {"Australia/Victoria", "00:00:00"},
