@@ -26,8 +26,8 @@
         inherit (pkgs.lib) optional optionals;
         pkgs = nixpkgs.legacyPackages.${system};
 
-        elixir = pkgs.beam.packages.erlang.elixir;
-        beamPackages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang;
+        elixir = pkgs.beam.packages.erlang_26.elixir_1_17;
+        beamPackages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_26;
 
         src = ./.;
         version = "0.0.0";
