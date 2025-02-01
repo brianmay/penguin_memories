@@ -3,7 +3,7 @@ set -e
 
 if ! git diff-index --quiet HEAD --; then
   echo "ERROR: Something has changed" >&2
-#  exit 1
+  exit 1
 fi
 
 npm --prefix assets --lockfile-version 2 update
