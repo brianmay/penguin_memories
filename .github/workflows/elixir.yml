@@ -13,9 +13,3 @@ jobs:
       apt_packages: "graphicsmagick-imagemagick-compat libimage-exiftool-perl ffmpeg exiftran libraw-bin"
       test_data: "https://www.dropbox.com/s/yg6jdk9lfewn8yf/penguin_memories.tar?dl=0"
       test_sha256: "1be2094961977dc393b7312b8799259b2026b4570c4591bc6759dbfbfb0fe146"
-
-  push:
-    name: Push
-    uses: brianmay/workflows/.github/workflows/docker.yaml@main
-    needs:
-      - test
