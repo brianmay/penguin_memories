@@ -50,7 +50,7 @@ defmodule PenguinMemories.MixProject do
       {:geo_postgis, "~> 3.7"},
       {:geocalc, "~> 0.8"},
       {:floki, ">= 0.0.0", only: :test},
-      {:phoenix_live_reload, "~> 1.5.3", only: :dev},
+      {:phoenix_live_reload, "~> 1.6.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
