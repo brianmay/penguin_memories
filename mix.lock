@@ -1,5 +1,5 @@
 %{
-  "assertions": {:hex, :assertions, "0.20.1", "e6bfcefbf199bc760d273d5a204ad9ef8a4f6c2b4725fc51d10610d73062e57b", [:mix], [], "hexpm", "848284fbde52f752232d73b8f77060ad191e1a98c177873c4b8dc56c4958defd"},
+  "assertions": {:hex, :assertions, "0.21.0", "8399787560b99b70e8a24e6dc57c449120104c1573ff2552859ed29058b2081b", [:mix], [], "hexpm", "6f93cc9f04d0948dde372f8d765c14db2757444c9e9973669391b9680b0762d3"},
   "bunt": {:hex, :bunt, "1.0.0", "081c2c665f086849e6d57900292b3a161727ab40431219529f13c4ddcf3e7a44", [:mix], [], "hexpm", "dc5f86aa08a5f6fa6b8096f0735c4e76d54ae5c9fa2c143e5a1fc7c1cd9bb6b5"},
   "castore": {:hex, :castore, "1.0.12", "053f0e32700cbec356280c0e835df425a3be4bc1e0627b714330ad9d0f05497f", [:mix], [], "hexpm", "3dca286b2186055ba0c9449b4e95b97bf1b57b47c1f2644555879e659960c224"},
   "certifi": {:hex, :certifi, "2.12.0", "2d1cca2ec95f59643862af91f001478c9863c2ac9cb6e2f89780bfd8de987329", [:rebar3], [], "hexpm", "ee68d85df22e554040cdb4be100f33873ac6051387baf6a8f6ce82272340ff1c"},
