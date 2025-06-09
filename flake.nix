@@ -45,7 +45,7 @@
         nodePackages = pkgs.buildNpmPackage {
           name = "penguin_memories_assets";
           src = ./assets;
-          npmDepsHash = "sha256-tXcfVKmWnDgZ+kuAYYuIx6fgdGw/9K40G2hQsTSXC2k=";
+          npmDepsHash = "sha256-FDpeArlprVgJFRYzexGg6ajsKNh070qGt4XMwe8ueuw=";
           dontNpmBuild = true;
           inherit nodejs;
 
