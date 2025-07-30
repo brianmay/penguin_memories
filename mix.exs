@@ -12,7 +12,7 @@ defmodule PenguinMemories.MixProject do
       deps: deps(),
       elixirc_options: [warnings_as_errors: true],
       dialyzer: dialyzer(),
-      compilers: [:yecc, :leex] ++ Mix.compilers()
+      compilers: [:phoenix_live_view, :yecc, :leex] ++ Mix.compilers()
     ]
   end
 
@@ -50,6 +50,7 @@ defmodule PenguinMemories.MixProject do
       {:geo_postgis, "~> 3.7"},
       {:geocalc, "~> 0.8"},
       {:floki, ">= 0.0.0", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_reload, "~> 1.6.0", only: :dev},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
