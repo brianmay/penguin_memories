@@ -20,7 +20,7 @@ defmodule PenguinMemoriesWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: PenguinMemoriesWeb
+      use Phoenix.Controller, formats: [html: "View"]
 
       import Plug.Conn
       use Gettext, backend: PenguinMemoriesWeb.Gettext
