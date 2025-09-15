@@ -34,7 +34,6 @@ defmodule PenguinMemoriesWeb.RedirectController do
 
         icons =
           Query.get_videos_for_photo(id, size)
-          # FIXME: we shouldn't hardcode the mime type
           |> Enum.filter(fn p -> p.mime_type == "video/webm" end)
 
         icon = List.first(icons)
