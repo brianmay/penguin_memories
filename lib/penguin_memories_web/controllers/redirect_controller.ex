@@ -12,7 +12,7 @@ defmodule PenguinMemoriesWeb.RedirectController do
         size = params["size"]
         icon = Query.query_icon_by_id(id, type, size)
 
-        if icon != nil do
+        if icon != nil and icon.url != nil do
           redirect(conn, to: icon.url)
         else
           conn
