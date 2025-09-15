@@ -82,6 +82,7 @@ defmodule PenguinMemoriesWeb.Router do
       live "/", PageLive, :index
       post "/logout", PageController, :logout
       get "/file/:id/size/:size/", RedirectController, :photo
+      get "/video/:id/size/:size/", RedirectController, :video
       live "/:type/", MainLive, :index
       live "/:type/:id/", MainLive, :index
     end
