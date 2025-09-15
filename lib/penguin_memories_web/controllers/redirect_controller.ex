@@ -7,7 +7,6 @@ defmodule PenguinMemoriesWeb.RedirectController do
   def photo(conn, params) do
     case Integer.parse(params["id"]) do
       {id, ""} ->
-        Integer.parse(params["id"])
         type = Photos.Photo
         size = params["size"]
         icon = Query.query_icon_by_id(id, type, size)
