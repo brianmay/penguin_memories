@@ -428,7 +428,7 @@ defmodule PenguinMemories.Database.Query do
       Enum.map(Repo.all(query), fn result ->
         {get_icon_from_result(result, type), result.position}
       end)
-      |> Enum.filter(fn icon -> icon != nil end)
+      |> Enum.filter(fn {icon, _} -> icon != nil end)
 
     icons
   end
