@@ -294,30 +294,29 @@ defmodule PenguinMemories.Database.Query do
     end
   end
 
-  @spec get_icon_from_result(result :: map(), type :: object_type()) :: Icon.t() | nil
+  @spec get_icon_from_result(result :: map(), type :: object_type()) :: Icon.t()
   def get_icon_from_result(%{} = result, type) do
     backend = Types.get_backend!(type)
 
-    if result.icon.dir == nil or result.icon.filename == nil do
-      nil
-    else
-      url = "#{get_image_url()}/#{result.icon.dir}/#{result.icon.filename}"
+    url =
+      if result.icon.dir do
+        "#{get_image_url()}/#{result.icon.dir}/#{result.icon.filename}"
+      end
 
-      name = backend.get_title_from_result(result)
-      subtitle = backend.get_subtitle_from_result(result)
-      action = if type == Photo, do: result.o.action
+    name = backend.get_title_from_result(result)
+    subtitle = backend.get_subtitle_from_result(result)
+    action = if type == Photo, do: result.o.action
 
-      %Icon{
-        id: result.id,
-        action: action,
-        url: url,
-        name: name,
-        subtitle: subtitle,
-        height: result.icon.height,
-        width: result.icon.width,
-        type: type
-      }
-    end
+    %Icon{
+      id: result.id,
+      action: action,
+      url: url,
+      name: name,
+      subtitle: subtitle,
+      height: result.icon.height,
+      width: result.icon.width,
+      type: type
+    }
   end
 
   @spec get_orig_from_result(result :: map(), type :: object_type()) :: Icon.t() | nil
@@ -428,7 +427,6 @@ defmodule PenguinMemories.Database.Query do
       Enum.map(Repo.all(query), fn result ->
         {get_icon_from_result(result, type), result.position}
       end)
-      |> Enum.filter(fn icon -> icon != nil end)
 
     icons
   end
@@ -451,7 +449,6 @@ defmodule PenguinMemories.Database.Query do
     Enum.map(entries, fn result ->
       get_icon_from_result(result, type)
     end)
-    |> Enum.filter(fn icon -> icon != nil end)
   end
 
   @spec count_results(Filter.t(), type :: object_type()) ::
@@ -498,7 +495,6 @@ defmodule PenguinMemories.Database.Query do
           Enum.map(entries, fn result ->
             get_icon_from_result(result, type)
           end)
-          |> Enum.filter(fn icon -> icon != nil end)
 
         {:ok, icons}
 
@@ -516,11 +512,8 @@ defmodule PenguinMemories.Database.Query do
       |> get_icons(size_key)
 
     case Repo.one(query) do
-      nil ->
-        nil
-
-      result ->
-        get_icon_from_result(result, type)
+      nil -> nil
+      result -> get_icon_from_result(result, type)
     end
   end
 
@@ -611,7 +604,6 @@ defmodule PenguinMemories.Database.Query do
           Enum.map(entries, fn result ->
             get_icon_from_result(result, type)
           end)
-          |> Enum.filter(fn icon -> icon != nil end)
 
         {:ok, icons, metadata.before, metadata.after, metadata.total_count}
 
