@@ -1,5 +1,5 @@
 %{
-  "assertions": {:hex, :assertions, "0.21.0", "8399787560b99b70e8a24e6dc57c449120104c1573ff2552859ed29058b2081b", [:mix], [], "hexpm", "6f93cc9f04d0948dde372f8d765c14db2757444c9e9973669391b9680b0762d3"},
+  "assertions": {:hex, :assertions, "0.22.0", "5a40f9be50a77d86a8b309885f587b2cc9340ab35694f1d87a57b4f44ef2b4e5", [:mix], [], "hexpm", "7f90c6ee19067112db4c244889b0981a632c05f846466729b1bc64a8c7209fe3"},
   "bunt": {:hex, :bunt, "1.0.0", "081c2c665f086849e6d57900292b3a161727ab40431219529f13c4ddcf3e7a44", [:mix], [], "hexpm", "dc5f86aa08a5f6fa6b8096f0735c4e76d54ae5c9fa2c143e5a1fc7c1cd9bb6b5"},
   "castore": {:hex, :castore, "1.0.14", "4582dd7d630b48cf5e1ca8d3d42494db51e406b7ba704e81fbd401866366896a", [:mix], [], "hexpm", "7bc1b65249d31701393edaaac18ec8398d8974d52c647b7904d01b964137b9f4"},
   "cc_precompiler": {:hex, :cc_precompiler, "0.1.11", "8c844d0b9fb98a3edea067f94f616b3f6b29b959b6b3bf25fee94ffe34364768", [:mix], [{:elixir_make, "~> 0.7", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm", "3427232caf0835f94680e5bcf082408a70b48ad68a5f5c0b02a3bea9f3a075b9"},
