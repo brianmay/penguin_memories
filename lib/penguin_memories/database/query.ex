@@ -789,7 +789,7 @@ defmodule PenguinMemories.Database.Query do
     child_ids = index.get_child_ids(id, type)
 
     cond do
-      length(child_ids) > 0 ->
+      not Enum.empty?(child_ids) ->
         {:no, "Cannot delete object with child"}
 
       true ->
