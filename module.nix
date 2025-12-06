@@ -15,7 +15,7 @@ let
 
   cfg = config.services.penguin_memories;
 
-  system = pkgs.stdenv.system;
+  system = pkgs.stdenv.hostPlatform.system;
   penguin_memories_pkg = self.packages.${system}.default;
 
   private_locations = lib.concatMapStringsSep ";" (

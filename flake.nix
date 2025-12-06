@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/nixos-25.05";
+      url = "github:NixOS/nixpkgs/nixos-25.11";
     };
     flake-utils = {
       url = "github:numtide/flake-utils";
@@ -45,7 +45,8 @@
         nodePackages = pkgs.buildNpmPackage {
           name = "penguin_memories_assets";
           src = ./assets;
-          npmDepsHash = "sha256-2F6iPO5esmTuI04/NIYsIt0fdAOcn6P4AiNof6Uaxf0=";
+          npmDepsHash = "sha256-/Mz2oZqk2djMhA8Bt0YreDyK7x1Pr/FwTZOxgTS5ZOc=";
+          # npmDepsHash = pkgs.lib.fakeHash;
           dontNpmBuild = true;
           inherit nodejs;
 
@@ -114,7 +115,7 @@
                 [
                   psql
                   elixir
-                  elixir_ls
+                  elixir-ls
                   glibcLocales
                   node2nix
                   nodejs
@@ -151,7 +152,7 @@
           ];
         };
 
-        test = pkgs.nixosTest {
+        test = pkgs.testers.nixosTest {
           name = "penguin_memories";
           nodes.machine =
             { ... }:
@@ -180,7 +181,7 @@
               services.postgresql = {
                 enable = true;
                 package = pkgs.postgresql_15;
-                extraPlugins = ps: [ ps.postgis ];
+                extensions = ps: [ ps.postgis ];
                 initialScript = pkgs.writeText "init.psql" ''
                   CREATE DATABASE penguin_memories;
                   CREATE USER penguin_memories with encrypted password 'your_secure_password_here';
@@ -203,7 +204,7 @@
           devenv-up = devShell.config.procfileScript;
           default = pkg;
         };
-        inherit devShell;
+        devShells.default = devShell;
       }
     )
     // {
