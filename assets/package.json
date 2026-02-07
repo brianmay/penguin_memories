@@ -1,6 +1,6 @@
 {
   "name": "penguin_memories_assets",
-  "license": "GPL-3",
+  "license": "AGPL-3.0",
   "scripts": {
     "deploy": "webpack --mode production",
     "watch": "webpack --mode development --watch"
