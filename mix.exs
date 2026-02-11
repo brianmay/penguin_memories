@@ -12,7 +12,9 @@ defmodule PenguinMemories.MixProject do
       deps: deps(),
       elixirc_options: [warnings_as_errors: true],
       dialyzer: dialyzer(),
-      compilers: [:phoenix_live_view, :yecc, :leex] ++ Mix.compilers()
+      compilers: [:phoenix_live_view, :yecc, :leex] ++ Mix.compilers(),
+      licenses: ["AGPL-3.0-or-later"],
+      links: %{"GitHub" => "https://github.com/brianmay/penguin_memories"}
     ]
   end
 
