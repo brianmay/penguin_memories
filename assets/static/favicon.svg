@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Camera body -->
+  <rect x="3" y="9" width="26" height="18" rx="3" ry="3" fill="#2c3e50"/>
+  <!-- Camera viewfinder bump -->
+  <rect x="11" y="6" width="10" height="5" rx="2" ry="2" fill="#2c3e50"/>
+  <!-- Lens outer ring -->
+  <circle cx="16" cy="18" r="8" fill="#1a252f"/>
+  <!-- Lens inner ring -->
+  <circle cx="16" cy="18" r="6" fill="#3498db"/>
+  <!-- Penguin body -->
+  <ellipse cx="16" cy="19" rx="3.5" ry="4" fill="#1a1a1a"/>
+  <!-- Penguin white belly -->
+  <ellipse cx="16" cy="19.5" rx="2" ry="2.8" fill="white"/>
+  <!-- Penguin head -->
+  <circle cx="16" cy="14.5" r="2.2" fill="#1a1a1a"/>
+  <!-- Penguin eyes -->
+  <circle cx="15.2" cy="14" r="0.45" fill="white"/>
+  <circle cx="16.8" cy="14" r="0.45" fill="white"/>
+  <!-- Penguin beak -->
+  <polygon points="16,15.2 15.3,15.8 16.7,15.8" fill="#e67e22"/>
+  <!-- Flash indicator dot -->
+  <circle cx="6" cy="12" r="1.5" fill="#f1c40f"/>
+</svg>

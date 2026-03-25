@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= if assigns[:page_title], do: @page_title, else: "Penguin Memories" %></title>
     <%= csrf_meta_tag() %>
+    <link rel="icon" type="image/svg+xml" href={Routes.static_path(@conn, "/favicon.svg")}/>
     <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/css/app.css")}/>
     <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/js/app.js")}></script>
   </head>
