@@ -94,7 +94,7 @@
           </div>
         </li>
       <% else %>
-        <li class={link_class(active, "session")}>
+        <li class="nav-item">
           <.link
             navigate={Routes.page_path(@socket, :login, next: URI.to_string(@url))}
             class={link_class(active, "session")}
