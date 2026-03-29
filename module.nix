@@ -22,17 +22,13 @@ let
     l: "${toString l.longitude},${toString l.latitude},${toString l.distance}"
   ) cfg.private_locations;
 
+  # Minimal wrapper: only loads secrets (for RELEASE_COOKIE) so that
+  # commands like "remote", "rpc", and "eval" can authenticate to the
+  # running daemon.  All other configuration lives in the systemd unit.
   wrapper = pkgs.writeShellScriptBin "penguin_memories" ''
-    export PATH="$PATH:${pkgs.gawk}/bin"
-    export RELEASE_TMP="${cfg.data_dir}/tmp"
-    export HTTP_URL="${cfg.http_url}"
-    export IMAGE_DIR="${cfg.image_dir}"
-    export PORT="${toString (cfg.port)}"
-    export PRIVATE_LOCATIONS="${private_locations}"
+    set -a
     . "${cfg.secrets}"
-
-    mkdir -p "${cfg.data_dir}"
-    mkdir -p "${cfg.data_dir}/tmp"
+    set +a
     exec "${penguin_memories_pkg}/bin/penguin_memories" "$@"
   '';
 
@@ -78,6 +74,10 @@ in
 
     users.groups.penguin_memories = { };
 
+    # Expose the wrapper system-wide so any user (including root) can run
+    # "penguin_memories remote / rpc / eval" against the running daemon.
+    environment.systemPackages = [ wrapper ];
+
     systemd.services.penguin_memories = {
       wantedBy = [ "multi-user.target" ];
       wants = [ "postgresql.service" ];
@@ -87,10 +87,26 @@ in
       ];
       serviceConfig = {
         User = "penguin_memories";
-        ExecStartPre = ''${wrapper}/bin/penguin_memories eval "PenguinMemories.Release.migrate"'';
-        ExecStart = "${wrapper}/bin/penguin_memories start";
-        ExecStop = "${wrapper}/bin/penguin_memories stop";
-        ExecReload = "${wrapper}/bin/penguin_memories reload";
+        # Non-secret configuration is declared directly in the unit.
+        Environment = [
+          "PATH=${pkgs.gawk}/bin:${pkgs.coreutils}/bin"
+          "RELEASE_TMP=${cfg.data_dir}/tmp"
+          "HTTP_URL=${cfg.http_url}"
+          "IMAGE_DIR=${cfg.image_dir}"
+          "PORT=${toString cfg.port}"
+          "PRIVATE_LOCATIONS=${private_locations}"
+        ];
+        # Secrets (DATABASE_URL, RELEASE_COOKIE, …) come from a file that is
+        # not world-readable, so they are not baked into the Nix store.
+        EnvironmentFile = cfg.secrets;
+        ExecStartPre = [
+          # Ensure runtime directories exist before starting.
+          "+${pkgs.coreutils}/bin/mkdir -p ${cfg.data_dir}/tmp"
+          "${penguin_memories_pkg}/bin/penguin_memories eval \"PenguinMemories.Release.migrate\""
+        ];
+        ExecStart = "${penguin_memories_pkg}/bin/penguin_memories start";
+        ExecStop = "${penguin_memories_pkg}/bin/penguin_memories stop";
+        ExecReload = "${penguin_memories_pkg}/bin/penguin_memories reload";
       };
     };
   };
