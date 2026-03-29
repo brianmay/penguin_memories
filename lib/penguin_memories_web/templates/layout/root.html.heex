@@ -4,19 +4,27 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= if assigns[:page_title], do: @page_title, else: "Penguin Memories" %></title>
-    <%= csrf_meta_tag() %>
-    <link rel="icon" type="image/svg+xml" href={Routes.static_path(@conn, "/favicon.svg")}/>
-    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/css/app.css")}/>
-    <script defer phx-track-static type="text/javascript" src={Routes.static_path(@conn, "/js/app.js")}></script>
+    <title>{if assigns[:page_title], do: @page_title, else: "Penguin Memories"}</title>
+    {csrf_meta_tag()}
+    <link rel="icon" type="image/svg+xml" href={Routes.static_path(@conn, "/ui/favicon.svg")} />
+    <link phx-track-static rel="stylesheet" href={Routes.static_path(@conn, "/css/app.css")} />
+    <script
+      defer
+      phx-track-static
+      type="text/javascript"
+      src={Routes.static_path(@conn, "/js/app.js")}
+    >
+    </script>
   </head>
   <body>
-    <%= @inner_content %>
-    <%= csrf_meta_tag() %>
+    {@inner_content}
+    {csrf_meta_tag()}
     <footer class="text-muted small">
       <div class="container">
-        Version <%= Application.get_env(:penguin_memories, :vcs_ref) %> built on
-        <%= Application.get_env(:penguin_memories, :build_date) %>
+        Version {Application.get_env(:penguin_memories, :vcs_ref)} built on {Application.get_env(
+          :penguin_memories,
+          :build_date
+        )}
       </div>
     </footer>
   </body>

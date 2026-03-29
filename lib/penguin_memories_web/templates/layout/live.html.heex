@@ -1,7 +1,13 @@
 <nav class="navbar navbar-expand-md navbar-dark bg-dark">
   <.link navigate={Routes.page_path(@socket, :index)} class="navbar-brand">
-    <img src={Routes.static_path(@socket, "/favicon.svg")} alt="" width="24" height="24" style="margin-left: 0.4em; vertical-align: text-bottom;"/>
-    Penguin Memories
+    <img
+      src={Routes.static_path(@socket, "/ui/favicon.svg")}
+      alt=""
+      width="24"
+      height="24"
+      style="margin-right: 0.4em; vertical-align: text-bottom;"
+      aria-hidden="true"
+    /> Penguin Memories
   </.link>
   <button
     class="navbar-toggler"
@@ -20,35 +26,53 @@
       <% user = assigns[:current_user] %>
       <% active = assigns[:active] %>
       <li class="nav-item">
-        <.link navigate={Routes.main_path(@socket, :index, "album", 1)} class={link_class(active, "album")}>
-        Albums
+        <.link
+          navigate={Routes.main_path(@socket, :index, "album", 1)}
+          class={link_class(active, "album")}
+        >
+          Albums
         </.link>
       </li>
       <li class="nav-item">
-        <.link navigate={Routes.main_path(@socket, :index, "category", 1)} class={link_class(active, "category")}>
-        Categories
+        <.link
+          navigate={Routes.main_path(@socket, :index, "category", 1)}
+          class={link_class(active, "category")}
+        >
+          Categories
         </.link>
       </li>
       <li class="nav-item">
-        <.link navigate={Routes.main_path(@socket, :index, "person", 1)} class={link_class(active, "person")}>
-        People
+        <.link
+          navigate={Routes.main_path(@socket, :index, "person", 1)}
+          class={link_class(active, "person")}
+        >
+          People
         </.link>
       </li>
       <li class="nav-item">
-        <.link navigate={Routes.main_path(@socket, :index, "place", 1)} class={link_class(active, "place")}>
-        Places
+        <.link
+          navigate={Routes.main_path(@socket, :index, "place", 1)}
+          class={link_class(active, "place")}
+        >
+          Places
         </.link>
       </li>
       <li class="nav-item">
-        <.link navigate={Routes.main_path(@socket, :index, "photo")} class={link_class(active, "photo")}>
-        Photos
+        <.link
+          navigate={Routes.main_path(@socket, :index, "photo")}
+          class={link_class(active, "photo")}
+        >
+          Photos
         </.link>
       </li>
       <%= if user != nil do %>
         <%= if PenguinMemories.Auth.user_is_admin?(user) do %>
           <li class="nav-item">
-            <.link navigate={Routes.live_dashboard_path(@socket, :home)} class={link_class(active, "dashboard")}>
-            Dashboard
+            <.link
+              navigate={Routes.live_dashboard_path(@socket, :home)}
+              class={link_class(active, "dashboard")}
+            >
+              Dashboard
             </.link>
           </li>
         <% end %>
@@ -59,15 +83,22 @@
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
-            <%= user["name"] %>
+            {user["name"]}
           </a>
           <div class="dropdown-menu">
-            <%= link "Logout", to: Routes.page_path(@socket, :logout, next: URI.to_string(@url)), method: :post, class: "dropdown-item" %>
+            {link("Logout",
+              to: Routes.page_path(@socket, :logout, next: URI.to_string(@url)),
+              method: :post,
+              class: "dropdown-item"
+            )}
           </div>
         </li>
       <% else %>
         <li class={link_class(active, "session")}>
-          <.link navigate={Routes.page_path(@socket, :login, next: URI.to_string(@url))} class={link_class(active, "session")}>
+          <.link
+            navigate={Routes.page_path(@socket, :login, next: URI.to_string(@url))}
+            class={link_class(active, "session")}
+          >
             Login
           </.link>
         </li>
@@ -79,8 +110,8 @@
 <main role="main" class="container">
   <%= for {flash_key, flash_message} <- @flash do %>
     <p class={"alert alert-#{flash_key}"} phx-click="lv:clear-flash">
-      <%= flash_message %>
+      {flash_message}
     </p>
   <% end %>
-  <%= @inner_content %>
+  {@inner_content}
 </main>
