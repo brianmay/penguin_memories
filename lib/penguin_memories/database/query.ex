@@ -693,7 +693,8 @@ defmodule PenguinMemories.Database.Query do
       case Ecto.Changeset.fetch_change(changeset, field) do
         {:ok, new_value} ->
           old_value = Map.fetch!(changeset.data, field)
-          {get_object_id(old_value), new_value.data.id}
+          new_id = if is_nil(new_value), do: nil, else: new_value.data.id
+          {get_object_id(old_value), new_id}
 
         :error ->
           nil
