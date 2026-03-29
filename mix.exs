@@ -14,7 +14,8 @@ defmodule PenguinMemories.MixProject do
       dialyzer: dialyzer(),
       compilers: [:phoenix_live_view, :yecc, :leex] ++ Mix.compilers(),
       licenses: ["AGPL-3.0"],
-      links: %{"GitHub" => "https://github.com/brianmay/penguin_memories"}
+      links: %{"GitHub" => "https://github.com/brianmay/penguin_memories"},
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 
