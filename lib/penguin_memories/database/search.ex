@@ -95,6 +95,11 @@ defmodule PenguinMemories.Database.Search do
 
   - Dates use ISO 8601 format: `YYYY-MM-DD`.  `datetime = 2023-06-15` matches
     the entire day in the **Australia/Melbourne** timezone.
+  - Boolean fields accept `true` or `false` as the value: `reindex = true`,
+    `flash_used = false`.
+  - `utc_offset` is stored as an integer number of **minutes** east of UTC,
+    in the range -720 (UTC-12:00) to +840 (UTC+14:00).
+    Example: `utc_offset = 600` for UTC+10, `utc_offset = -300` for UTC-5.
   - String values containing spaces must be quoted: `name = "Summer Holiday"`.
   - The `==` operator is a synonym for `=`.
   """
@@ -153,6 +158,12 @@ defmodule PenguinMemories.Database.Search do
 
       :string ->
         {"string", false, "#{id_str} ~ word"}
+
+      :boolean ->
+        {"boolean", false, "#{id_str} = true"}
+
+      :utc_offset ->
+        {"utc offset (minutes, -720..840)", false, "#{id_str} = 600"}
 
       :datetime ->
         {"date", false, "#{id_str} >= 2023-01-01"}
@@ -417,6 +428,57 @@ defmodule PenguinMemories.Database.Search do
     end
   end
 
+  @spec filter_by_boolean(
+          query :: Ecto.Query.t(),
+          id :: atom(),
+          op :: String.t(),
+          value :: String.t() | integer() | float()
+        ) :: {:ok, Ecto.Query.t()} | {:error, String.t()}
+  defp filter_by_boolean(%Ecto.Query{} = query, id, op, value) do
+    case {op, value} do
+      {"=", "true"} ->
+        {:ok, where(query, [object: o], field(o, ^id) == true)}
+
+      {"=", "false"} ->
+        {:ok, where(query, [object: o], field(o, ^id) == false)}
+
+      {"!=", "true"} ->
+        {:ok, where(query, [object: o], field(o, ^id) != true)}
+
+      {"!=", "false"} ->
+        {:ok, where(query, [object: o], field(o, ^id) != false)}
+
+      {_, v} when v not in ["true", "false"] ->
+        {:error, "Boolean value must be true or false, got: #{v}"}
+
+      {op, _} ->
+        {:error, "Invalid operation #{op} for boolean — use = or !="}
+    end
+  end
+
+  @utc_offset_min -720
+  @utc_offset_max 840
+
+  @spec filter_by_utc_offset(
+          query :: Ecto.Query.t(),
+          id :: atom(),
+          op :: String.t(),
+          value :: String.t() | integer() | float()
+        ) :: {:ok, Ecto.Query.t()} | {:error, String.t()}
+  defp filter_by_utc_offset(%Ecto.Query{} = query, id, op, value) do
+    cond do
+      not is_integer(value) ->
+        {:error, "UTC offset must be an integer number of minutes, got: #{value}"}
+
+      value < @utc_offset_min or value > @utc_offset_max ->
+        {:error,
+         "UTC offset #{value} out of range (#{@utc_offset_min}..#{@utc_offset_max} minutes)"}
+
+      true ->
+        filter_by_number(query, id, op, value)
+    end
+  end
+
   @spec filter_by_integer_string(
           query :: Ecto.Query.t(),
           id :: atom(),
@@ -542,6 +604,12 @@ defmodule PenguinMemories.Database.Search do
       {:float, nil, "nil"} ->
         filter_by_scalar_nil(query, field.id, op)
 
+      {:boolean, nil, "nil"} ->
+        filter_by_scalar_nil(query, field.id, op)
+
+      {:utc_offset, nil, "nil"} ->
+        filter_by_scalar_nil(query, field.id, op)
+
       {{:single, _type}, nil, "nil"} ->
         filter_by_scalar_nil(query, String.to_existing_atom("#{field.id}_id"), op)
 
@@ -565,6 +633,12 @@ defmodule PenguinMemories.Database.Search do
 
       {:float, nil, _} ->
         filter_by_float_string(query, field.id, op, value)
+
+      {:boolean, nil, _} ->
+        filter_by_boolean(query, field.id, op, value)
+
+      {:utc_offset, nil, _} ->
+        filter_by_utc_offset(query, field.id, op, value)
 
       {{:single, type}, subfield, _} ->
         filter_by_join_string(query, field.id, type, subfield, op, value)
@@ -683,8 +757,14 @@ defmodule PenguinMemories.Database.Search do
       {:ok, {:id, id}} ->
         filter_by_id(query, id)
 
-      {:ok, {:words, [single]}} when is_map_key(@nil_keywords, single) ->
-        filter_by_keyword(query, single)
+      {:ok, {:words, [single]}} ->
+        keyword = to_string(single)
+
+        if is_map_key(@nil_keywords, keyword) do
+          filter_by_keyword(query, keyword)
+        else
+          filter_by_words(query, :name, "~", keyword)
+        end
 
       {:ok, {:words, words}} ->
         words = Enum.map_join(words, " ", &to_string(&1))

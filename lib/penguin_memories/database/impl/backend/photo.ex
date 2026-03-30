@@ -473,6 +473,19 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
     ]
   end
 
+  @utc_offset_min -720
+  @utc_offset_max 840
+
+  @spec validate_utc_offset(Changeset.t()) :: Changeset.t()
+  defp validate_utc_offset(changeset) do
+    validate_number(changeset, :utc_offset,
+      greater_than_or_equal_to: @utc_offset_min,
+      less_than_or_equal_to: @utc_offset_max,
+      message:
+        "must be between #{@utc_offset_min} and #{@utc_offset_max} minutes (UTC-12 to UTC+14)"
+    )
+  end
+
   @spec validate_datetime(Changeset.t()) :: Changeset.t()
   defp validate_datetime(%Changeset{data: %Photo{}} = changeset) do
     Private.validate_pair(changeset, :datetime, :utc_offset)
@@ -514,6 +527,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
     ])
     |> validate_action()
     |> validate_delete()
+    |> validate_utc_offset()
     |> validate_datetime()
     |> Private.put_all_assoc(assoc, [:albums, :categorys, :place, :photographer, :photo_persons])
   end
@@ -543,6 +557,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       :action
     ])
     |> Private.selective_validate_required(enabled, [:name])
+    |> validate_utc_offset()
     |> Private.selective_put_assoc(assoc, enabled, [
       :photographer,
       :place,
