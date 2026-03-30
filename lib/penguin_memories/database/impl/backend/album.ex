@@ -49,7 +49,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
     photo_count_query =
       from pa in PhotoAlbum,
         join: aa in AlbumAscendant,
-        on: aa.descendant_id == pa.album_id,
+        on: aa.descendant_id == pa.album_id and aa.position >= 0,
         group_by: aa.ascendant_id,
         select: %{album_id: aa.ascendant_id, count: count(pa.photo_id, :distinct)}
 

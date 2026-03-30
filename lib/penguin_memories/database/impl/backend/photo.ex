@@ -92,8 +92,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       join: op in PhotoAlbum,
       on: op.photo_id == o.id,
       join: aa in AlbumAscendant,
-      on: aa.descendant_id == op.album_id,
-      where: aa.ascendant_id == ^id,
+      on: aa.descendant_id == op.album_id and aa.ascendant_id == ^id and aa.position >= 0,
       distinct: true
   end
 
