@@ -7,6 +7,7 @@ defmodule PenguinMemoriesWeb.MainLive do
   alias Elixir.Phoenix.LiveView.Socket
   alias PenguinMemories.Database
   alias PenguinMemories.Database.Query
+  alias PenguinMemories.Database.Search
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Photos
   alias PenguinMemories.Urls
@@ -142,7 +143,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       url: url,
       objects: objects,
       photos: photos,
-      big_id: big_id
+      big_id: big_id,
+      search_fields: Search.get_searchable_fields(type)
     ]
 
     socket = assign(socket, assigns)

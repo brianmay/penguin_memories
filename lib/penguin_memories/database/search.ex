@@ -1,6 +1,102 @@
 defmodule PenguinMemories.Database.Search do
   @moduledoc """
   Provide text based filtering for objects.
+
+  ## Search Syntax
+
+  The search box accepts one of three mutually exclusive modes.
+
+  ### 1. ID lookup
+
+  A bare integer finds the object with that exact primary key.
+
+      42
+
+  ### 2. Full-text name search
+
+  One or more bare words (or a quoted phrase) run a PostgreSQL full-text search
+  against the `name` field.
+
+      beach
+      summer holiday
+      "Brian Smith"
+
+  ### 3. Field expressions
+
+  One or more `field op value` terms, whitespace-separated.  All terms must use
+  the operator syntax — you cannot mix word search with field expressions.
+
+  **Operators:** `=`  `!=`  `<`  `<=`  `>`  `>=`  `~`
+
+  - `~` is a full-text / contains search (only valid on string fields).
+  - `=` / `!=` on an association field with value `nil` tests for absence /
+    presence (see *Nil checks* below).
+
+  **Field names** are matched case-insensitively against the field's ID
+  (e.g. `datetime`) or its display name (e.g. `Time`).
+
+  **Association fields** accept a dotted sub-field name; the default sub-field
+  is `id`:
+
+      albums.id = 5          # photos in album 5
+      albums = 5             # same (id is the default sub-field)
+      categorys.id = 3
+      photo_persons.id = 12
+      place.id = 7
+      photographer.id = 2
+
+  #### Examples (Photos)
+
+      datetime >= 2023-01-01
+      datetime >= 2023-01-01 datetime < 2024-01-01
+      rating > 3
+      name ~ holiday
+      action = D
+      iso_equiv >= 1600
+      albums.id = 5 rating >= 4
+
+  #### Searchable fields per type
+
+  **Photos:** `id`, `name`, `filename`, `albums`, `categorys`, `place`,
+  `photographer`, `photo_persons`, `rating`, `datetime`, `utc_offset`,
+  `action`, `camera_make`, `camera_model`, `focal_length`, `exposure_time`,
+  `aperture`, `iso_equiv`, `metering_mode`, `focus_dist`, `ccd_width`
+
+  **Albums / Categories / Places:** `id`, `name`, `sort_name` (albums/people),
+  `parent`, `cover_photo`, `reindex`, `revised`
+
+  **People:** `id`, `name`, `called`, `sort_name`, `mother`, `father`,
+  `spouse`, `home`, `work`, `cover_photo`, `reindex`, `revised`
+
+  ### 4. Nil checks — absence / presence of associations
+
+  Use `= nil` to find photos *without* a given association, or `!= nil` to
+  find photos *with* it.
+
+      albums = nil           # photos not in any album
+      albums != nil          # photos in at least one album
+      categorys = nil        # photos with no category
+      photo_persons = nil    # photos with no tagged people
+      place = nil            # photos with no place
+      place != nil           # photos that have a place
+
+  #### Convenience keywords (bare words, photos only)
+
+  These single-word shortcuts expand to the corresponding `= nil` check:
+
+  | Keyword        | Equivalent to          |
+  |----------------|------------------------|
+  | `no_albums`    | `albums = nil`         |
+  | `no_categories`| `categorys = nil`      |
+  | `no_people`    | `photo_persons = nil`  |
+  | `no_place`     | `place = nil`          |
+
+  ### Notes
+
+  - Dates use ISO 8601 format: `YYYY-MM-DD`.  `datetime = 2023-06-15` matches
+    the entire day in the **Australia/Melbourne** timezone.
+  - String values containing spaces must be quoted: `name = "Summer Holiday"`.
+  - The `==` operator is a synonym for `=`.
   """
   import Ecto.Query
 
@@ -10,6 +106,75 @@ defmodule PenguinMemories.Database.Search do
   alias PenguinMemories.Photos
 
   @type object_type :: Database.object_type()
+
+  @typedoc "A single row in the searchable-fields table shown in the search help UI."
+  @type searchable_field_info :: %{
+          id: String.t(),
+          name: String.t(),
+          type_label: String.t(),
+          nil_check: boolean(),
+          example: String.t() | nil
+        }
+
+  @spec get_searchable_fields(type :: object_type()) :: list(searchable_field_info())
+  def get_searchable_fields(type) do
+    backend = Types.get_backend!(type)
+
+    backend.get_fields()
+    |> Enum.filter(& &1.searchable)
+    |> Enum.map(&field_to_info/1)
+  end
+
+  @spec field_to_info(field :: Fields.Field.t()) :: searchable_field_info()
+  defp field_to_info(%Fields.Field{} = field) do
+    {type_label, nil_check, example} = describe_field_type(field)
+
+    %{
+      id: Atom.to_string(field.id),
+      name: field.name,
+      type_label: type_label,
+      nil_check: nil_check,
+      example: example
+    }
+  end
+
+  @spec describe_field_type(field :: Fields.Field.t()) ::
+          {String.t(), boolean(), String.t() | nil}
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
+  defp describe_field_type(%Fields.Field{id: id, type: type}) do
+    id_str = Atom.to_string(id)
+
+    case type do
+      :integer ->
+        {"integer", false, "#{id_str} = 42"}
+
+      :float ->
+        {"float", false, "#{id_str} >= 3.5"}
+
+      :string ->
+        {"string", false, "#{id_str} ~ word"}
+
+      :datetime ->
+        {"date", false, "#{id_str} >= 2023-01-01"}
+
+      {:datetime_with_offset, _} ->
+        {"date", false, "#{id_str} >= 2023-01-01"}
+
+      {:single, assoc_type} ->
+        assoc_name = Types.get_name!(assoc_type)
+        {"#{assoc_name} (single)", true, "#{id_str} = nil"}
+
+      {:multiple, assoc_type} ->
+        assoc_name = Types.get_name!(assoc_type)
+        {"#{assoc_name} (list)", true, "#{id_str} = nil"}
+
+      :persons ->
+        {"person (list)", true, "#{id_str} = nil"}
+
+      _ ->
+        {inspect(type), false, nil}
+    end
+  end
 
   @spec get_query_type(query :: Ecto.Query.t()) :: object_type()
   defp get_query_type(%Ecto.Query{} = query) do
@@ -144,6 +309,50 @@ defmodule PenguinMemories.Database.Search do
       :ok
     else
       :error
+    end
+  end
+
+  @spec filter_by_join_nil(
+          query :: Ecto.Query.t(),
+          id :: atom(),
+          op :: String.t()
+        ) :: {:ok, Ecto.Query.t()} | {:error, String.t()}
+  defp filter_by_join_nil(%Ecto.Query{} = query, assoc_id, op) do
+    case op do
+      "=" ->
+        query =
+          query
+          |> join(:left, [object: o], x in assoc(o, ^assoc_id))
+          |> where([o, ..., x], is_nil(x.id))
+
+        {:ok, query}
+
+      "!=" ->
+        query = join(query, :inner, [object: o], x in assoc(o, ^assoc_id))
+        {:ok, query}
+
+      op ->
+        {:error, "Invalid operation #{op} for nil — use = or !="}
+    end
+  end
+
+  @spec filter_by_scalar_nil(
+          query :: Ecto.Query.t(),
+          id :: atom(),
+          op :: String.t()
+        ) :: {:ok, Ecto.Query.t()} | {:error, String.t()}
+  defp filter_by_scalar_nil(%Ecto.Query{} = query, id, op) do
+    case op do
+      "=" ->
+        query = where(query, [object: o], is_nil(field(o, ^id)))
+        {:ok, query}
+
+      "!=" ->
+        query = where(query, [object: o], not is_nil(field(o, ^id)))
+        {:ok, query}
+
+      op ->
+        {:error, "Invalid operation #{op} for nil — use = or !="}
     end
   end
 
@@ -317,29 +526,53 @@ defmodule PenguinMemories.Database.Search do
         ) :: {:ok, Ecto.Query.t()} | {:error, String.t()}
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp filter_by_field(%Ecto.Query{} = query, %Fields.Field{} = field, subfield, op, value) do
-    case {field.type, subfield} do
-      {:datetime, nil} ->
+    case {field.type, subfield, value} do
+      {:datetime, nil, "nil"} ->
+        filter_by_scalar_nil(query, field.id, op)
+
+      {{:datetime_with_offset, _}, nil, "nil"} ->
+        filter_by_scalar_nil(query, field.id, op)
+
+      {:string, nil, "nil"} ->
+        filter_by_scalar_nil(query, field.id, op)
+
+      {:integer, nil, "nil"} ->
+        filter_by_scalar_nil(query, field.id, op)
+
+      {:float, nil, "nil"} ->
+        filter_by_scalar_nil(query, field.id, op)
+
+      {{:single, _type}, nil, "nil"} ->
+        filter_by_scalar_nil(query, String.to_existing_atom("#{field.id}_id"), op)
+
+      {{:multiple, _type}, _subfield, "nil"} ->
+        filter_by_join_nil(query, field.id, op)
+
+      {:persons, _subfield, "nil"} ->
+        filter_by_join_nil(query, :persons, op)
+
+      {:datetime, nil, _} ->
         filter_by_date_string(query, field.id, op, value)
 
-      {{:datetime_with_offset, _}, nil} ->
+      {{:datetime_with_offset, _}, nil, _} ->
         filter_by_date_string(query, field.id, op, value)
 
-      {:string, nil} ->
+      {:string, nil, _} ->
         filter_by_words(query, field.id, op, value)
 
-      {:integer, nil} ->
+      {:integer, nil, _} ->
         filter_by_integer_string(query, field.id, op, value)
 
-      {:float, nil} ->
+      {:float, nil, _} ->
         filter_by_float_string(query, field.id, op, value)
 
-      {{:single, type}, subfield} ->
+      {{:single, type}, subfield, _} ->
         filter_by_join_string(query, field.id, type, subfield, op, value)
 
-      {{:multiple, type}, subfield} ->
+      {{:multiple, type}, subfield, _} ->
         filter_by_join_string(query, field.id, type, subfield, op, value)
 
-      {:persons, subfield} ->
+      {:persons, subfield, _} ->
         filter_by_join_string(query, :persons, Photos.Person, subfield, op, value)
 
       _ ->
@@ -417,6 +650,28 @@ defmodule PenguinMemories.Database.Search do
     {:ok, query}
   end
 
+  @nil_keywords %{
+    "no_albums" => {:multiple_nil, :albums},
+    "no_categories" => {:multiple_nil, :categorys},
+    "no_people" => {:multiple_nil, :persons},
+    "no_place" => {:scalar_nil, :place_id}
+  }
+
+  @spec filter_by_keyword(query :: Ecto.Query.t(), keyword :: String.t()) ::
+          {:ok, Ecto.Query.t()} | {:error, String.t()}
+  defp filter_by_keyword(%Ecto.Query{} = query, keyword) do
+    case Map.fetch(@nil_keywords, keyword) do
+      {:ok, {:multiple_nil, assoc_id}} ->
+        filter_by_join_nil(query, assoc_id, "=")
+
+      {:ok, {:scalar_nil, field_id}} ->
+        filter_by_scalar_nil(query, field_id, "=")
+
+      :error ->
+        {:error, "Unknown keyword #{keyword}"}
+    end
+  end
+
   @spec filter_by_query(query :: Ecto.Query.t(), query_string :: String.t()) ::
           {:ok, Ecto.Query.t()} | {:error, String.t()}
   def filter_by_query(%Ecto.Query{} = query, nil) do
@@ -427,6 +682,9 @@ defmodule PenguinMemories.Database.Search do
     case parse(query_string) do
       {:ok, {:id, id}} ->
         filter_by_id(query, id)
+
+      {:ok, {:words, [single]}} when is_map_key(@nil_keywords, single) ->
+        filter_by_keyword(query, single)
 
       {:ok, {:words, words}} ->
         words = Enum.map_join(words, " ", &to_string(&1))
