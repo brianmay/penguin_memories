@@ -33,7 +33,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
             selected_value: selected_type,
             drop_on_select: list(String.t()),
             auto_big: boolean(),
-            navigate_on_select: boolean()
+            navigate_on_select: boolean(),
+            deep: boolean()
           }
     @enforce_keys [
       :type,
@@ -59,7 +60,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
               selected_value: MapSet.new(),
               drop_on_select: [],
               auto_big: false,
-              navigate_on_select: false
+              navigate_on_select: false,
+              deep: false
   end
 
   defmodule Response do
@@ -123,7 +125,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       cond do
         ctrl_key ->
           s = toggle(socket.assigns.request.selected_value, clicked_id)
-          {s, socket, true}
+          {s, socket, false}
 
         shift_key ->
           s =
@@ -134,7 +136,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
               clicked_id
             )
 
-          {s, socket, true}
+          {s, socket, false}
 
         socket.assigns.request.navigate_on_select and not alt_key ->
           type_name = Types.get_name!(socket.assigns.request.type)
@@ -201,6 +203,26 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   @impl true
   def handle_event("select-all", _params, socket) do
     socket = set_selected(socket, :all)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("toggle-deep", _params, socket) do
+    request = socket.assigns.request
+    deep_name = "p_deep"
+
+    url =
+      if request.deep do
+        socket.assigns.common.url
+        |> Urls.url_merge(%{}, [deep_name])
+        |> URI.to_string()
+      else
+        socket.assigns.common.url
+        |> Urls.url_merge(%{deep_name => "1"}, [])
+        |> URI.to_string()
+      end
+
+    socket = push_patch(socket, to: url)
     {:noreply, socket}
   end
 
@@ -543,12 +565,13 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
         ) :: {map(), list(String.t())}
   defp apply_auto_big(socket, request, selected, string, add, drop, auto_big) do
     big_active = socket.assigns.common.big_id != nil
+    single = is_struct(selected, MapSet) and MapSet.size(selected) == 1
 
     cond do
       not request.auto_big ->
         {add, drop}
 
-      string == nil or MapSet.size(selected) != 1 ->
+      string == nil or not single ->
         {add, ["big" | drop]}
 
       auto_big or big_active ->

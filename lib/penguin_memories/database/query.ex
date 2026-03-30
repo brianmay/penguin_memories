@@ -79,9 +79,10 @@ defmodule PenguinMemories.Database.Query do
     @type t :: %__MODULE__{
             ids: MapSet.t() | nil,
             query: String.t() | nil,
-            reference: reference_type | nil
+            reference: reference_type | nil,
+            deep: boolean()
           }
-    defstruct [:ids, :query, :reference]
+    defstruct [:ids, :query, :reference, deep: false]
   end
 
   @spec get_image_url() :: String.t()
@@ -167,7 +168,9 @@ defmodule PenguinMemories.Database.Query do
 
     query
     |> filter_if_set(filter.ids, &filter_by_id_map/2)
-    |> filter_if_set(filter.reference, &backend.filter_by_reference/2)
+    |> filter_if_set(filter.reference, fn q, ref ->
+      backend.filter_by_reference(q, ref, filter.deep)
+    end)
     |> Search.filter_by_query(filter.query)
   end
 
@@ -692,7 +695,7 @@ defmodule PenguinMemories.Database.Query do
           {map(), Ecto.Changeset.t()}
   def get_create_child_changeset(object, attrs, assoc) do
     assoc =
-      if Map.has_key?(object, :parent) do
+      if Map.has_key?(object, :parent) and not is_nil(object.id) do
         Map.put(assoc, :parent, object)
       else
         assoc
@@ -829,10 +832,18 @@ defmodule PenguinMemories.Database.Query do
   def can_delete?(id, type) do
     index = get_index_api()
     child_ids = index.get_child_ids(id, type)
+    photo_filter = %Filter{reference: {type, id}}
 
     cond do
       not Enum.empty?(child_ids) ->
-        {:no, "Cannot delete object with child"}
+        {:no, "Cannot delete object with children"}
+
+      type != Photo ->
+        case count_results(photo_filter, Photo) do
+          {:ok, 0} -> :yes
+          {:ok, _} -> {:no, "Cannot delete object with photos"}
+          {:error, _} -> :yes
+        end
 
       true ->
         :yes

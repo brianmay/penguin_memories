@@ -12,11 +12,15 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   alias PenguinMemories.Database.Impl.Backend.Private
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Format
+  alias PenguinMemories.Photos.AlbumAscendant
   alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Photos.PhotoAlbum
+  alias PenguinMemories.Photos.PhotoCategory
+  alias PenguinMemories.Photos.PhotoPerson
+  alias PenguinMemories.Photos.PhotoRelation
   alias PenguinMemories.Photos.PhotoUpdate
   alias PenguinMemories.Photos.Relation
   alias PenguinMemories.Repo
-
   @behaviour API
 
   @impl API
@@ -70,42 +74,56 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   end
 
   @impl API
-  @spec filter_by_reference(query :: Ecto.Query.t(), reference :: {module(), integer()}) ::
+  @spec filter_by_reference(
+          query :: Ecto.Query.t(),
+          reference :: {module(), integer()},
+          deep :: boolean()
+        ) ::
           Ecto.Query.t()
-  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Album, id}) do
+  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Album, id}, false) do
     from [object: o] in query,
-      join: op in PenguinMemories.Photos.PhotoAlbum,
+      join: op in PhotoAlbum,
       on: op.photo_id == o.id,
       where: op.album_id == ^id
   end
 
-  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Category, id}) do
+  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Album, id}, true) do
     from [object: o] in query,
-      join: op in PenguinMemories.Photos.PhotoCategory,
+      join: op in PhotoAlbum,
+      on: op.photo_id == o.id,
+      join: aa in AlbumAscendant,
+      on: aa.descendant_id == op.album_id,
+      where: aa.ascendant_id == ^id,
+      distinct: true
+  end
+
+  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Category, id}, _deep) do
+    from [object: o] in query,
+      join: op in PhotoCategory,
       on: op.photo_id == o.id,
       where: op.category_id == ^id
   end
 
-  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Person, id}) do
+  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Person, id}, _deep) do
     from [object: o] in query,
-      join: op in PenguinMemories.Photos.PhotoPerson,
+      join: op in PhotoPerson,
       on: op.photo_id == o.id,
       where: op.person_id == ^id
   end
 
-  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Place, id}) do
+  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Place, id}, _deep) do
     from [object: o] in query,
       where: o.place_id == ^id
   end
 
-  def filter_by_reference(%Ecto.Query{} = query, _) do
+  def filter_by_reference(%Ecto.Query{} = query, _, _deep) do
     query
   end
 
   @impl API
   @spec preload_details(query :: Ecto.Query.t()) :: Ecto.Query.t()
   def preload_details(query) do
-    pp_query = from pp in PenguinMemories.Photos.PhotoPerson, order_by: pp.position
+    pp_query = from pp in PhotoPerson, order_by: pp.position
 
     query
     |> preload([:albums, :categorys, :place, :photographer])
@@ -115,7 +133,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   @impl API
   @spec preload_details_from_results(results :: list(struct())) :: list(struct())
   def preload_details_from_results(results) do
-    pp_query = from pp in PenguinMemories.Photos.PhotoPerson, order_by: pp.position
+    pp_query = from pp in PhotoPerson, order_by: pp.position
 
     results
     |> Repo.preload([:albums, :categorys, :place, :photographer])
@@ -155,9 +173,9 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
 
     related =
       from(r in Relation,
-        join: pr1 in PenguinMemories.Photos.PhotoRelation,
+        join: pr1 in PhotoRelation,
         on: pr1.relation_id == r.id,
-        join: pr2 in PenguinMemories.Photos.PhotoRelation,
+        join: pr2 in PhotoRelation,
         on: pr2.relation_id == r.id,
         where: pr1.photo_id == ^result.id,
         select: %{r: r, pr: pr2}

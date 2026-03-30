@@ -2,11 +2,11 @@
   <div class="details">
     <%= if @response.error do %>
       <div class="alert alert-danger">
-        <%= @response.error %>
+        {@response.error}
       </div>
     <% end %>
 
-    <h2><%= Query.get_plural_name(@request.type) |> String.capitalize() %></h2>
+    <h2>{Query.get_plural_name(@request.type) |> String.capitalize()}</h2>
     <div class="buttons">
       <%= if @request.selected_value != :all do %>
         <%= if @request.show_selected_value do %>
@@ -19,6 +19,13 @@
         <div class="btn btn-secondary" phx-click="select-all">Select All</div>
       <% end %>
       <div class="btn btn-secondary" phx-click="select-none">Unselect All</div>
+      <%= if @request.filter.reference != nil and elem(@request.filter.reference, 0) == PenguinMemories.Photos.Album and @request.type == PenguinMemories.Photos.Photo do %>
+        <%= if @request.deep do %>
+          <div class="btn btn-primary" phx-click="toggle-deep">All Descendants</div>
+        <% else %>
+          <div class="btn btn-secondary" phx-click="toggle-deep">Direct Only</div>
+        <% end %>
+      <% end %>
       <%= if @response.before_url do %>
         <.link patch={@response.before_url} class="btn btn-secondary btn-prev">
           &lt
@@ -33,26 +40,23 @@
 
     <div class="photo_list">
       <%= for icon <- @response.icons do %>
-        <%=
-          Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
-            icon: icon,
-            classes: icon_classes(icon, @request.selected_value, @last_clicked_id),
-            event: "select"
-          )
-        %>
+        {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+          icon: icon,
+          classes: icon_classes(icon, @request.selected_value, @last_clicked_id),
+          event: "select"
+        )}
       <% end %>
     </div>
-
-    Total count: '<%= @response.count %>'
+    Total count: '{@response.count}'
   </div>
 
   <% count = count_selections(@request.selected_value) %>
   <%= if count == 1 do %>
-    <%= live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: child_id(@socket, "selected")) %>
+    {live_render(@socket, PenguinMemoriesWeb.ObjectDetailsLive, id: child_id(@socket, "selected"))}
   <% end %>
 
   <%= if count == :infinity or count > 1 do %>
-    <%= live_render(@socket, PenguinMemoriesWeb.ObjectUpdateLive, id: child_id(@socket, "update")) %>
+    {live_render(@socket, PenguinMemoriesWeb.ObjectUpdateLive, id: child_id(@socket, "update"))}
   <% end %>
 <% else %>
   <div class="details">

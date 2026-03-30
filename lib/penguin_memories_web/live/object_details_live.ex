@@ -62,7 +62,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       details: nil,
       assoc: %{},
       url: nil,
-      title: nil
+      title: nil,
+      delete_error: nil
     ]
 
     socket = assign(socket, assigns)
@@ -135,7 +136,16 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       if socket.assigns.request.type == Photos.Photo do
         handle_delete(socket)
       else
-        {:noreply, assign(socket, mode: :confirm_delete)}
+        id = socket.assigns.details.obj.id
+        type = socket.assigns.request.type
+
+        delete_error =
+          case Query.can_delete?(id, type) do
+            :yes -> nil
+            {:no, reason} -> reason
+          end
+
+        {:noreply, assign(socket, mode: :confirm_delete, delete_error: delete_error)}
       end
     else
       {:noreply, assign(socket, :error, "Permission denied")}
@@ -276,7 +286,8 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       mode: :display,
       changeset: nil,
       error: nil,
-      edit_obj: nil
+      edit_obj: nil,
+      delete_error: nil
     ]
 
     assign(socket, assigns)
@@ -317,17 +328,22 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @spec handle_delete(socket :: Socket.t()) :: {:noreply, Socket.t()}
   defp handle_delete(%Socket{} = socket) do
-    error =
-      case Query.delete(socket.assigns.details.obj) do
-        {:error, error} ->
-          error
+    case Query.delete(socket.assigns.details.obj) do
+      {:error, error} ->
+        {:noreply, assign(socket, error: error, mode: :display)}
 
-        :ok ->
-          PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
-          nil
-      end
+      :ok ->
+        PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+        type = socket.assigns.request.type
 
-    {:noreply, assign(socket, error: error, mode: :display)}
+        if type == Photos.Photo do
+          {:noreply, assign(socket, error: nil, mode: :display)}
+        else
+          type_name = Types.get_name!(type)
+          url = Routes.main_path(socket, :index, type_name)
+          {:noreply, push_navigate(socket, to: url)}
+        end
+    end
   end
 
   @spec handle_undelete(socket :: Socket.t()) :: {:noreply, Socket.t()}

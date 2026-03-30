@@ -78,7 +78,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       selected_name: "obj_selected",
       selected_value: parse_selected(params["obj_selected"]),
       drop_on_select: ["p_selected", "p_before", "p_after"],
-      navigate_on_select: type != Photos.Photo
+      navigate_on_select: type != Photos.Photo,
+      auto_big: type == Photos.Photo
     }
 
     num_selected = count_selections(objects.selected_value)
@@ -92,12 +93,14 @@ defmodule PenguinMemoriesWeb.MainLive do
           [selected] = MapSet.to_list(objects.selected_value)
 
           %Query.Filter{
-            reference: {objects.type, selected}
+            reference: {objects.type, selected},
+            deep: Map.has_key?(params, "p_deep")
           }
 
         true ->
           %Query.Filter{
-            reference: reference
+            reference: reference,
+            deep: Map.has_key?(params, "p_deep")
           }
       end
 
@@ -112,7 +115,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       show_selected_value: Map.has_key?(params, "p_show_selected"),
       selected_name: "p_selected",
       selected_value: parse_selected(params["p_selected"]),
-      auto_big: true
+      auto_big: true,
+      deep: Map.has_key?(params, "p_deep")
     }
 
     page_title =

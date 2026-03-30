@@ -25,6 +25,7 @@ defmodule PenguinMemories.Photos.Album do
           photos: list(Photo.t()) | Ecto.Association.NotLoaded.t(),
           reindex: boolean() | nil,
           photo_count: integer() | nil,
+          child_count: integer() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -43,6 +44,7 @@ defmodule PenguinMemories.Photos.Album do
     many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoAlbum
     field :reindex, :boolean
     field :photo_count, :integer, virtual: true
+    field :child_count, :integer, virtual: true
     timestamps()
   end
 end

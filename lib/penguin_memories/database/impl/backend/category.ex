@@ -68,13 +68,17 @@ defmodule PenguinMemories.Database.Impl.Backend.Category do
   end
 
   @impl API
-  @spec filter_by_reference(query :: Ecto.Query.t(), reference :: {module(), integer()}) ::
+  @spec filter_by_reference(
+          query :: Ecto.Query.t(),
+          reference :: {module(), integer()},
+          deep :: boolean()
+        ) ::
           Ecto.Query.t()
-  def filter_by_reference(%Ecto.Query{} = query, {Category, id}) do
+  def filter_by_reference(%Ecto.Query{} = query, {Category, id}, _deep) do
     filter_by_parent_id(query, id)
   end
 
-  def filter_by_reference(%Ecto.Query{} = query, _) do
+  def filter_by_reference(%Ecto.Query{} = query, _, _deep) do
     query
   end
 
