@@ -77,7 +77,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       show_selected_value: Map.has_key?(params, "obj_show_selected"),
       selected_name: "obj_selected",
       selected_value: parse_selected(params["obj_selected"]),
-      drop_on_select: ["p_selected", "p_before", "p_after"]
+      drop_on_select: ["p_selected", "p_before", "p_after"],
+      navigate_on_select: type != Photos.Photo
     }
 
     num_selected = count_selections(objects.selected_value)
@@ -110,7 +111,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       show_selected_name: "p_show_selected",
       show_selected_value: Map.has_key?(params, "p_show_selected"),
       selected_name: "p_selected",
-      selected_value: parse_selected(params["p_selected"])
+      selected_value: parse_selected(params["p_selected"]),
+      auto_big: true
     }
 
     page_title =
@@ -273,7 +275,8 @@ defmodule PenguinMemoriesWeb.MainLive do
       pid = socket.assigns.details_pid
 
       request = %PenguinMemoriesWeb.ListDetailsLive.Request{
-        type: socket.assigns.objects.type
+        type: socket.assigns.objects.type,
+        query: socket.assigns.query
       }
 
       send(pid, {:parameters, common, request})
@@ -289,11 +292,16 @@ defmodule PenguinMemoriesWeb.MainLive do
       pid = socket.assigns.reference_pid
       {type, id} = socket.assigns.reference
 
+      no_selection =
+        count_selections(socket.assigns.objects.selected_value) == 0 and
+          count_selections(socket.assigns.photos.selected_value) == 0
+
       filter = %Query.Filter{}
 
       request = %PenguinMemoriesWeb.ObjectDetailsLive.Request{
         type: type,
-        id: id
+        id: id,
+        keyboard_nav: no_selection
       }
 
       send(

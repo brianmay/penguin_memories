@@ -7,30 +7,30 @@
   )
   |> Enum.join(" ")
 
-keydown = if @big, do: "key", else: nil
-throttle = if @big, do: 550, else: nil %>
+keydown = if @request != nil and (@request.keyboard_nav or @big), do: "key", else: nil
+throttle = if keydown != nil, do: 550, else: nil %>
 <div class={classes} phx-window-keydown={keydown} phx-throttle={throttle}>
   <%= if @details do %>
     <% type_name = PenguinMemories.Database.Types.get_name!(@request.type) %>
     <% fields = Fields.get_fields(@request.type, @common.current_user) %>
 
     <h2>
-      <%= @title %>
+      {@title}
     </h2>
     <div>
       <%= if @error do %>
         <div class="alert alert-danger">
-          <%= @error %>
+          {@error}
         </div>
       <% end %>
       <%= if length(@details.parents) > 0 do %>
         <div class="parents">
           <%= for {_position, icons} <- @details.parents do %>
-            <%= Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
+            {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
               icons: icons,
               classes: [],
               event: "goto"
-            ) %>
+            )}
             <div class="arrow">🠆</div>
           <% end %>
         </div>
@@ -65,21 +65,13 @@ throttle = if @big, do: 550, else: nil %>
               No image
             <% end %>
           <% end %>
-          <div class="title">
-            <div class="name">
-              <%= @details.icon.name %>
-            </div>
-            <div class="subtitle">
-              <%= @details.icon.subtitle %>
-            </div>
-          </div>
         </div>
 
         <%= if @mode == :display do %>
           <table class="photo_table table table-hover">
             <tbody>
               <%= for field <- fields do %>
-                <%= FieldHelpers.output_field(@common.current_user, @details.obj, field) %>
+                {FieldHelpers.output_field(@common.current_user, @details.obj, field)}
               <% end %>
             </tbody>
           </table>
@@ -89,7 +81,7 @@ throttle = if @big, do: 550, else: nil %>
           <.form :let={f} for={@changeset} as={:object} phx-change="validate" phx-submit="save">
             <%= for %Fields.Field{} = field <- fields do %>
               <%= if field.read_only == false do %>
-                <%= FieldHelpers.input_field(f, field) %>
+                {FieldHelpers.input_field(f, field)}
               <% end %>
             <% end %>
             <div>
@@ -118,11 +110,11 @@ throttle = if @big, do: 550, else: nil %>
               &lt;
             </div>
             <div class="hover">
-              <%= Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+              {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
                 icon: @prev_icon,
                 classes: [],
                 event: "select-object"
-              ) %>
+              )}
             </div>
           </div>
         <% end %>
@@ -133,16 +125,19 @@ throttle = if @big, do: 550, else: nil %>
               &gt;
             </div>
             <div class="hover">
-              <%= Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
+              {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "icon.html",
                 icon: @next_icon,
                 classes: [],
                 event: "select-object"
-              ) %>
+              )}
             </div>
           </div>
         <% end %>
 
         <%= if @big do %>
+          <.link patch={get_back_url(@socket, assigns)} class="btn btn-secondary">
+            Back
+          </.link>
           <.link navigate={get_unbig_url(@socket, assigns)} class="btn btn-secondary">
             Unbig
           </.link>
@@ -176,15 +171,23 @@ throttle = if @big, do: 550, else: nil %>
             <div class="btn btn-secondary" phx-click="create">Create</div>
           <% end %>
           <div class="btn btn-secondary" phx-click="edit">Edit</div>
-          <div class="btn btn-secondary" phx-click="delete">Delete</div>
+          <%= if @request.type == Photos.Photo and @details.obj.action == "D" do %>
+            <div class="btn btn-warning" phx-click="undelete">Undelete</div>
+          <% else %>
+            <div class="btn btn-danger" phx-click="delete">Delete</div>
+          <% end %>
         <% end %>
+      <% end %>
+      <%= if @mode == :confirm_delete do %>
+        <div class="btn btn-secondary" phx-click="cancel">Cancel</div>
+        <div class="btn btn-danger" phx-click="delete-confirm">Confirm Delete</div>
       <% end %>
     </div>
   <% else %>
     <h2>LOADING</h2>
     <%= if @error do %>
       <div class="alert alert-danger">
-        <%= @error %>
+        {@error}
       </div>
     <% end %>
   <% end %>

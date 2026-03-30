@@ -1,11 +1,10 @@
-<%
-  target = assigns[:target]
-  classes =
-    ["photo_item"]
-    |> prepend_list_if(true, icon_classes(@icon))
-    |> prepend_list_if(true, @classes)
-    |> Enum.join(" ")
-%>
+<% target = assigns[:target]
+
+classes =
+  ["photo_item"]
+  |> prepend_list_if(true, icon_classes(@icon))
+  |> prepend_list_if(true, @classes)
+  |> Enum.join(" ") %>
 <div
   class={classes}
   phx-click={@event}
@@ -23,8 +22,11 @@
   <% else %>
     No image
   <% end %>
-  <div class="name"><%= @icon.name %></div>
+  <div class="name">{@icon.name}</div>
   <%= if @icon.subtitle do %>
-    <div class="subtitle"><%= @icon.subtitle %></div>
+    <div class="subtitle">{@icon.subtitle}</div>
+  <% end %>
+  <%= if @icon.details do %>
+    <div class="icon_details">{@icon.details}</div>
   <% end %>
 </div>

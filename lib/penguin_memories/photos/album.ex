@@ -24,6 +24,7 @@ defmodule PenguinMemories.Photos.Album do
           descendants: list(AlbumAscendant.t()) | Ecto.Association.NotLoaded.t(),
           photos: list(Photo.t()) | Ecto.Association.NotLoaded.t(),
           reindex: boolean() | nil,
+          photo_count: integer() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -41,6 +42,7 @@ defmodule PenguinMemories.Photos.Album do
     has_many :descendants, PenguinMemories.Photos.AlbumAscendant, foreign_key: :ascendant_id
     many_to_many :photos, PenguinMemories.Photos.Photo, join_through: PhotoAlbum
     field :reindex, :boolean
+    field :photo_count, :integer, virtual: true
     timestamps()
   end
 end

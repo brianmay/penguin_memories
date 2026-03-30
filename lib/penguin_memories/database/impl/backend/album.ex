@@ -46,9 +46,16 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   @impl API
   @spec query :: Ecto.Query.t()
   def query do
+    photo_count_query =
+      from pa in PhotoAlbum,
+        group_by: pa.album_id,
+        select: %{album_id: pa.album_id, count: count(pa.photo_id)}
+
     from o in Album,
       as: :object,
-      select: %{sort_name: o.sort_name, name: o.name, id: o.id},
+      left_join: pc in subquery(photo_count_query),
+      on: pc.album_id == o.id,
+      select: %{sort_name: o.sort_name, name: o.name, id: o.id, photo_count: pc.count},
       order_by: [asc: o.sort_name, asc: o.name, asc: o.id]
   end
 
@@ -103,6 +110,13 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   end
 
   @impl API
+  @spec get_icon_details_from_result(result :: map()) :: String.t() | nil
+  def get_icon_details_from_result(%{} = result) do
+    count = result.photo_count || 0
+    "#{count} photos"
+  end
+
+  @impl API
   @spec get_details_from_result(
           result :: map(),
           icon_size :: String.t(),
@@ -113,9 +127,10 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
     orig = Query.get_orig_from_result(result, Album)
     raw = Query.get_raw_from_result(result, Album)
     cursor = Paginator.cursor_for_record(result, get_cursor_fields())
+    obj = %Album{result.o | photo_count: result.photo_count || 0}
 
     %Query.Details{
-      obj: result.o,
+      obj: obj,
       icon: icon,
       orig: orig,
       raw: raw,
@@ -158,6 +173,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
         id: :children,
         name: "Children",
         type: {:multiple, Album},
+        read_only: true
+      },
+      %Field{
+        id: :photo_count,
+        name: "Photo Count",
+        type: :integer,
         read_only: true
       },
       %Field{

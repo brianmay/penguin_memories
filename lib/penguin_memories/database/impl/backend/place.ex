@@ -104,6 +104,10 @@ defmodule PenguinMemories.Database.Impl.Backend.Place do
   end
 
   @impl API
+  @spec get_icon_details_from_result(result :: map()) :: String.t() | nil
+  def get_icon_details_from_result(%{} = _result), do: nil
+
+  @impl API
   @spec get_details_from_result(
           result :: map(),
           icon_size :: String.t(),

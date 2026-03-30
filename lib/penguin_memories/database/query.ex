@@ -28,12 +28,13 @@ defmodule PenguinMemories.Database.Query do
             url: String.t(),
             name: String.t(),
             subtitle: String.t() | nil,
+            details: String.t() | nil,
             width: integer,
             height: integer,
             type: module()
           }
     @enforce_keys [:id, :action, :url, :name, :subtitle, :width, :height, :type]
-    defstruct [:id, :action, :url, :name, :subtitle, :width, :height, :type]
+    defstruct [:id, :action, :url, :name, :subtitle, :details, :width, :height, :type]
   end
 
   defmodule Video do
@@ -305,6 +306,7 @@ defmodule PenguinMemories.Database.Query do
 
     name = backend.get_title_from_result(result)
     subtitle = backend.get_subtitle_from_result(result)
+    details = backend.get_icon_details_from_result(result)
     action = if type == Photo, do: result.o.action
 
     %Icon{
@@ -313,6 +315,7 @@ defmodule PenguinMemories.Database.Query do
       url: url,
       name: name,
       subtitle: subtitle,
+      details: details,
       height: result.icon.height,
       width: result.icon.width,
       type: type
@@ -410,6 +413,39 @@ defmodule PenguinMemories.Database.Query do
         type: Photo
       }
     end)
+  end
+
+  @spec get_photo_parents(albums :: list(struct())) :: list({integer(), list(Icon.t())})
+  defp get_photo_parents([]), do: []
+
+  defp get_photo_parents([album]) do
+    album_icon = query_icon_by_id(album.id, PenguinMemories.Photos.Album, "thumb")
+
+    ancestors =
+      album.id
+      |> query_parents(PenguinMemories.Photos.Album)
+      |> Enum.group_by(fn {_icon, position} -> position end)
+      |> Enum.map(fn {position, list} ->
+        {position, Enum.map(list, fn {icon, _} -> icon end)}
+      end)
+      |> Enum.sort_by(fn {position, _} -> -position end)
+
+    if album_icon == nil do
+      ancestors
+    else
+      ancestors ++ [{0, [album_icon]}]
+    end
+  end
+
+  defp get_photo_parents(albums) do
+    icons =
+      albums
+      |> Enum.map(fn album ->
+        query_icon_by_id(album.id, PenguinMemories.Photos.Album, "thumb")
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    if icons == [], do: [], else: [{1, icons}]
   end
 
   @spec query_parents(id :: integer, type :: object_type()) :: list({Icon.t(), integer})
@@ -559,16 +595,21 @@ defmodule PenguinMemories.Database.Query do
         nil
 
       result ->
-        parents =
-          id
-          |> query_parents(type)
-          |> Enum.group_by(fn {_icon, position} -> position end)
-          |> Enum.map(fn {position, list} ->
-            {position, Enum.map(list, fn {icon, _} -> icon end)}
-          end)
-          |> Enum.sort_by(fn {position, _} -> -position end)
-
         details = backend.get_details_from_result(result, icon_size, video_size)
+
+        parents =
+          if type == Photo do
+            get_photo_parents(details.obj.albums)
+          else
+            id
+            |> query_parents(type)
+            |> Enum.group_by(fn {_icon, position} -> position end)
+            |> Enum.map(fn {position, list} ->
+              {position, Enum.map(list, fn {icon, _} -> icon end)}
+            end)
+            |> Enum.sort_by(fn {position, _} -> -position end)
+          end
+
         %Details{details | parents: parents}
     end
   end

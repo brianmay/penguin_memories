@@ -31,7 +31,9 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
             show_selected_value: boolean(),
             selected_name: String.t(),
             selected_value: selected_type,
-            drop_on_select: list(String.t())
+            drop_on_select: list(String.t()),
+            auto_big: boolean(),
+            navigate_on_select: boolean()
           }
     @enforce_keys [
       :type,
@@ -55,7 +57,9 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
               show_selected_value: false,
               selected_name: nil,
               selected_value: MapSet.new(),
-              drop_on_select: []
+              drop_on_select: [],
+              auto_big: false,
+              navigate_on_select: false
   end
 
   defmodule Response do
@@ -115,11 +119,11 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
     clicked_id = to_int(clicked_id)
 
-    {selected_ids, socket} =
+    {selected_ids, socket, auto_big} =
       cond do
         ctrl_key ->
           s = toggle(socket.assigns.request.selected_value, clicked_id)
-          {s, socket}
+          {s, socket, true}
 
         shift_key ->
           s =
@@ -130,22 +134,32 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
               clicked_id
             )
 
-          {s, socket}
+          {s, socket, true}
 
-        alt_key ->
+        socket.assigns.request.navigate_on_select and not alt_key ->
           type_name = Types.get_name!(socket.assigns.request.type)
           url = Routes.main_path(socket, :index, type_name, clicked_id)
           socket = push_patch(socket, to: url)
-          {socket.assigns.request.selected_value, socket}
+          socket = assign(socket, last_clicked_id: clicked_id)
+          {:navigated, socket, true}
+
+        alt_key ->
+          {MapSet.new([clicked_id]), socket, false}
 
         true ->
-          {MapSet.new([clicked_id]), socket}
+          {MapSet.new([clicked_id]), socket, true}
       end
 
     socket =
-      socket
-      |> assign(last_clicked_id: clicked_id)
-      |> set_selected(selected_ids)
+      case selected_ids do
+        :navigated ->
+          socket
+
+        selected_ids ->
+          socket
+          |> assign(last_clicked_id: clicked_id)
+          |> set_selected(selected_ids, auto_big: auto_big)
+      end
 
     {:noreply, socket}
   end
@@ -212,7 +226,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
   @impl true
   def handle_info({:select_object, id}, socket) do
-    socket = set_selected(socket, MapSet.new([id]))
+    socket = set_selected(socket, MapSet.new([id]), auto_big: false)
     {:noreply, socket}
   end
 
@@ -283,7 +297,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
 
           new_request = %PenguinMemoriesWeb.ObjectDetailsLive.Request{
             type: type,
-            id: selection_id
+            id: selection_id,
+            keyboard_nav: true
           }
 
           send(
@@ -517,8 +532,39 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     end
   end
 
-  @spec set_selected(socket :: Socket.t(), selected :: selected_type) :: Socket.t()
-  defp set_selected(%Socket{} = socket, selected) do
+  @spec apply_auto_big(
+          socket :: Socket.t(),
+          request :: Request.t(),
+          selected :: selected_type,
+          string :: String.t() | nil,
+          add :: map(),
+          drop :: list(String.t()),
+          auto_big :: boolean()
+        ) :: {map(), list(String.t())}
+  defp apply_auto_big(socket, request, selected, string, add, drop, auto_big) do
+    big_active = socket.assigns.common.big_id != nil
+
+    cond do
+      not request.auto_big ->
+        {add, drop}
+
+      string == nil or MapSet.size(selected) != 1 ->
+        {add, ["big" | drop]}
+
+      auto_big or big_active ->
+        big_id = child_id(socket, "selected")
+        {Map.put(add, "big", big_id), drop}
+
+      true ->
+        {add, drop}
+    end
+  end
+
+  @spec set_selected(socket :: Socket.t(), selected :: selected_type, opts :: keyword()) ::
+          Socket.t()
+  defp set_selected(%Socket{} = socket, selected, opts \\ []) do
+    auto_big = Keyword.get(opts, :auto_big, true)
+
     string =
       cond do
         selected == :all -> "all"
@@ -535,6 +581,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
       end
 
     drop = request.drop_on_select ++ drop
+    {add, drop} = apply_auto_big(socket, request, selected, string, add, drop, auto_big)
 
     url =
       socket.assigns.common.url

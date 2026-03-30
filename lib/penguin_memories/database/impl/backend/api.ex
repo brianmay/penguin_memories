@@ -23,6 +23,7 @@ defmodule PenguinMemories.Database.Impl.Backend.API do
   @callback preload_details_from_results(list(struct())) :: list(struct())
   @callback get_title_from_result(result :: map()) :: String.t()
   @callback get_subtitle_from_result(result :: map()) :: String.t() | nil
+  @callback get_icon_details_from_result(result :: map()) :: String.t() | nil
   @callback get_details_from_result(
               result :: map(),
               icon_size :: String.t(),

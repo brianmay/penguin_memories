@@ -26,14 +26,16 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
     @type t :: %__MODULE__{
             type: Database.object_type(),
-            id: integer()
+            id: integer(),
+            keyboard_nav: boolean()
           }
     @enforce_keys [
       :type,
       :id
     ]
     defstruct type: nil,
-              id: nil
+              id: nil,
+              keyboard_nav: false
   end
 
   @impl true
@@ -130,7 +132,29 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   @impl true
   def handle_event("delete", _params, %Socket{} = socket) do
     if Auth.can_edit(socket.assigns.common.current_user) do
+      if socket.assigns.request.type == Photos.Photo do
+        handle_delete(socket)
+      else
+        {:noreply, assign(socket, mode: :confirm_delete)}
+      end
+    else
+      {:noreply, assign(socket, :error, "Permission denied")}
+    end
+  end
+
+  @impl true
+  def handle_event("delete-confirm", _params, %Socket{} = socket) do
+    if Auth.can_edit(socket.assigns.common.current_user) do
       handle_delete(socket)
+    else
+      {:noreply, assign(socket, :error, "Permission denied")}
+    end
+  end
+
+  @impl true
+  def handle_event("undelete", _params, %Socket{} = socket) do
+    if Auth.can_edit(socket.assigns.common.current_user) do
+      handle_undelete(socket)
     else
       {:noreply, assign(socket, :error, "Permission denied")}
     end
@@ -303,7 +327,24 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
           nil
       end
 
-    {:noreply, assign(socket, error: error)}
+    {:noreply, assign(socket, error: error, mode: :display)}
+  end
+
+  @spec handle_undelete(socket :: Socket.t()) :: {:noreply, Socket.t()}
+  defp handle_undelete(%Socket{} = socket) do
+    changeset = Query.get_edit_changeset(socket.assigns.details.obj, %{"action" => "auto"}, %{})
+
+    socket =
+      case Query.apply_edit_changeset(changeset) do
+        {:error, _changeset, error} ->
+          assign(socket, error: error)
+
+        {:ok, _object} ->
+          PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+          socket
+      end
+
+    {:noreply, socket}
   end
 
   @spec handle_validate(socket :: Socket.t(), params :: map()) :: {:noreply, Socket.t()}
@@ -447,7 +488,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       else
         assign(socket, :title, "")
         name = details.icon.name
-        "#{type_name}: #{name} (#{id})"
+        "#{type_name}: #{name}"
       end
 
     socket = assign(socket, details: details, title: title)
@@ -484,6 +525,13 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   defp get_unbig_url(%Socket{} = _socket, %{} = assigns) do
     assigns.common.url
     |> Urls.url_merge(%{}, ["big"])
+    |> URI.to_string()
+  end
+
+  @spec get_back_url(socket :: Socket.t(), assigns :: map()) :: String.t()
+  defp get_back_url(%Socket{} = _socket, %{} = assigns) do
+    assigns.common.url
+    |> Urls.url_merge(%{}, ["big", "p_selected", "obj_selected"])
     |> URI.to_string()
   end
 

@@ -24,12 +24,13 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
     @type selected_type :: PenguinMemoriesWeb.ObjectListLive.selected_type()
 
     @type t :: %__MODULE__{
-            type: Database.object_type()
+            type: Database.object_type(),
+            query: String.t() | nil
           }
     @enforce_keys [
       :type
     ]
-    defstruct type: nil
+    defstruct type: nil, query: nil
   end
 
   @impl true
@@ -37,6 +38,7 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
   def mount(_params, _session, socket) do
     assigns = [
       type: nil,
+      query: nil,
       error: nil,
       changeset: nil,
       edit_obj: nil,
@@ -120,10 +122,10 @@ defmodule PenguinMemoriesWeb.ListDetailsLive do
 
     socket =
       LiveRequest.apply_common(socket, common)
-      |> assign(type: request.type)
+      |> assign(type: request.type, query: request.query)
 
     socket =
-      if request_changed or common.force_reload do
+      if request_changed do
         reload(socket)
       else
         socket

@@ -2,29 +2,28 @@
   <div class="details">
     <%= if @error do %>
       <div class="alert alert-danger">
-        <%= @error %>
+        {@error}
       </div>
     <% end %>
 
     <%= if is_editing(assigns) do %>
       <% fields = Fields.get_fields(@type, @common.current_user) %>
-      <.form :let={f} for={@changeset} phx-change="validate" phx-submit="save">
+      <.form :let={f} for={@changeset} as={:object} phx-change="validate" phx-submit="save">
         <%= for %Fields.Field{} = field <- fields do %>
           <%= if field.read_only == false do %>
-            <%= FieldHelpers.input_field f, field %>
+            {FieldHelpers.input_field(f, field)}
           <% end %>
         <% end %>
         <div>
-          <span
-            ><input type="submit" class="btn btn-primary" value="Save"
-          /></span>
-          <span
-            ><input
+          <span><input type="submit" class="btn btn-primary" value="Save" /></span>
+          <span>
+            <input
               type="button"
               class="btn btn-danger"
               phx-click="cancel"
               value="Cancel"
-          /></span>
+            />
+          </span>
         </div>
       </.form>
     <% end %>
