@@ -36,7 +36,7 @@ defmodule PenguinMemories.Database.Impl.Index.Generic do
 
         o
         |> Enum.map(fn {_, v} -> v end)
-        |> Enum.reject(fn v -> is_nil(v) end)
+        |> Enum.reject(&is_nil/1)
     end
   end
 
@@ -81,8 +81,13 @@ defmodule PenguinMemories.Database.Impl.Index.Generic do
   end
 
   @impl API
-  @spec create_index(id :: integer, index :: {integer, integer}, type :: object_type) :: :ok
-  def create_index(id, index, type) do
+  @spec bulk_update_index(
+          id :: integer,
+          to_delete :: list(integer()),
+          to_upsert :: list({integer(), integer()}),
+          type :: object_type
+        ) :: :ok
+  def bulk_update_index(id, to_delete, to_upsert, type) do
     backend = Types.get_backend!(type)
 
     case backend.get_index_type() do
@@ -90,58 +95,35 @@ defmodule PenguinMemories.Database.Impl.Index.Generic do
         :ok
 
       index_type ->
-        {referenced_id, position} = index
-
-        Repo.insert!(
-          struct(index_type,
-            ascendant_id: referenced_id,
-            descendant_id: id,
-            position: position
-          )
-        )
-
-        :ok
-    end
-  end
-
-  @impl API
-  @spec update_index(id :: integer, index :: {integer, integer}, type :: object_type) :: :ok
-  def update_index(id, index, type) do
-    backend = Types.get_backend!(type)
-
-    case backend.get_index_type() do
-      nil ->
-        :ok
-
-      index_type ->
-        {referenced_id, position} = index
-
-        query =
+        unless Enum.empty?(to_delete) do
           from(oa in index_type,
-            where: oa.ascendant_id == ^referenced_id and oa.descendant_id == ^id
+            where: oa.descendant_id == ^id and oa.ascendant_id in ^to_delete
           )
+          |> Repo.delete_all()
+        end
 
-        {1, _} = Repo.update_all(query, set: [position: position])
-        :ok
-    end
-  end
+        unless Enum.empty?(to_upsert) do
+          now = DateTime.utc_now()
 
-  @impl API
-  @spec delete_index(id :: integer, ref_id :: integer, type :: object_type) :: :ok
-  def delete_index(id, ref_id, type) do
-    backend = Types.get_backend!(type)
+          rows =
+            Enum.map(to_upsert, fn {ascendant_id, position} ->
+              %{
+                ascendant_id: ascendant_id,
+                descendant_id: id,
+                position: position,
+                inserted_at: now,
+                updated_at: now
+              }
+            end)
 
-    case backend.get_index_type() do
-      nil ->
-        :ok
-
-      index_type ->
-        query =
-          from(oa in index_type,
-            where: oa.ascendant_id == ^ref_id and oa.descendant_id == ^id
+          Repo.insert_all(
+            index_type,
+            rows,
+            on_conflict: {:replace, [:position, :updated_at]},
+            conflict_target: [:ascendant_id, :descendant_id]
           )
+        end
 
-        Repo.delete_all(query)
         :ok
     end
   end

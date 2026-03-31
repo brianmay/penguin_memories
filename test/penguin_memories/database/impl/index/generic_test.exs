@@ -136,28 +136,40 @@ defmodule PenguinMemories.Database.Impl.Index.GenericTest do
     end
   end
 
-  describe "create_index/3" do
+  describe "bulk_update_index/4" do
     for type <- [Album, Category, Person, Place] do
       @tag type: type
-      test "#{inspect(type)}", %{type: type} do
+      test "creates new entries for #{inspect(type)}", %{type: type} do
         obj = create(type, "object")
-        :ok = Generic.create_index(obj.id, {obj.id, 0}, type)
+        :ok = Generic.bulk_update_index(obj.id, [], [{obj.id, 0}], type)
         result = Generic.get_index(obj.id, type)
         assert result == MapSet.new([{obj.id, 0}])
       end
-    end
-  end
 
-  describe "delete_index/3" do
-    for type <- [Album, Category, Person, Place] do
       @tag type: type
-      test "#{inspect(type)}", %{type: type} do
-        index = Types.get_backend!(type).get_index_type()
+      test "deletes removed entries for #{inspect(type)}", %{type: type} do
+        index_type = Types.get_backend!(type).get_index_type()
         obj = create(type, "object")
-        struct(index, ascendant_id: obj.id, descendant_id: obj.id, position: 0) |> Repo.insert!()
-        :ok = Generic.delete_index(obj.id, obj.id, type)
+
+        struct(index_type, ascendant_id: obj.id, descendant_id: obj.id, position: 0)
+        |> Repo.insert!()
+
+        :ok = Generic.bulk_update_index(obj.id, [obj.id], [], type)
         result = Generic.get_index(obj.id, type)
         assert result == MapSet.new([])
+      end
+
+      @tag type: type
+      test "updates existing entries for #{inspect(type)}", %{type: type} do
+        index_type = Types.get_backend!(type).get_index_type()
+        obj = create(type, "object")
+
+        struct(index_type, ascendant_id: obj.id, descendant_id: obj.id, position: 0)
+        |> Repo.insert!()
+
+        :ok = Generic.bulk_update_index(obj.id, [], [{obj.id, 5}], type)
+        result = Generic.get_index(obj.id, type)
+        assert result == MapSet.new([{obj.id, 5}])
       end
     end
   end

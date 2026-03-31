@@ -133,47 +133,23 @@ defmodule PenguinMemories.Database.Index do
   def update_index(id, index, type, api) do
     old_index = api.get_index(id, type)
 
-    new_index =
-      Enum.reduce(index, MapSet.new(), fn
-        {_id, _position} = index, mapset -> MapSet.put(mapset, index)
-      end)
-
-    # IO.puts("")
-    # IO.puts("xxxxxxx #{id}")
-    # IO.inspect(old_index)
-    # IO.inspect(index)
-    # IO.inspect(new_index)
+    new_index = MapSet.new(index)
 
     new_index_ids =
-      Enum.reduce(new_index, MapSet.new(), fn
-        {ref_id, _}, mapset -> MapSet.put(mapset, ref_id)
+      Enum.reduce(new_index, MapSet.new(), fn {ref_id, _}, mapset ->
+        MapSet.put(mapset, ref_id)
       end)
 
     old_index_ids =
-      Enum.reduce(old_index, MapSet.new(), fn
-        {ref_id, _}, mapset -> MapSet.put(mapset, ref_id)
+      Enum.reduce(old_index, MapSet.new(), fn {ref_id, _}, mapset ->
+        MapSet.put(mapset, ref_id)
       end)
 
-    Enum.each(
-      MapSet.difference(old_index_ids, new_index_ids),
-      fn ref_id ->
-        # IO.inspect("delete #{id} #{inspect(ref_id)}")
-        :ok = api.delete_index(id, ref_id, type)
-      end
-    )
+    to_delete = MapSet.difference(old_index_ids, new_index_ids) |> MapSet.to_list()
 
-    Enum.each(
-      MapSet.difference(new_index, old_index),
-      fn {ref_id, _} = index ->
-        if MapSet.member?(old_index_ids, ref_id) do
-          # IO.inspect("update #{id} #{inspect(index)}")
-          :ok = api.update_index(id, index, type)
-        else
-          # IO.inspect("create #{id} #{inspect(index)}")
-          :ok = api.create_index(id, index, type)
-        end
-      end
-    )
+    to_upsert = MapSet.difference(new_index, old_index) |> MapSet.to_list()
+
+    :ok = api.bulk_update_index(id, to_delete, to_upsert, type)
 
     api.set_done(id, type)
 

@@ -1,26 +1,4 @@
 defmodule PenguinMemories.Database.IndexTest do
-  defmodule MapSetStore do
-    def init(state \\ %{}) do
-      {:ok, state}
-    end
-
-    def handle_call({:put, id, ref_id, position}, _from, state) do
-      state =
-        Map.update(
-          state,
-          id,
-          MapSet.new([{ref_id, position}]),
-          fn mapset -> MapSet.put(mapset, {ref_id, position}) end
-        )
-
-      {:reply, :ok, state}
-    end
-
-    def handle_call(:get, _from, state) do
-      {:reply, state, state}
-    end
-  end
-
   use ExUnit.Case, async: true
   use PenguinMemories.DataCase
 
@@ -422,40 +400,18 @@ defmodule PenguinMemories.Database.IndexTest do
       old_index = %{1 => MapSet.new([{1, 1}, {5, 1}])}
       new_index = %{2 => 1, 1 => 2}
 
-      {:ok, delete_table} = GenServer.start(MapSetStore, %{})
-      {:ok, update_table} = GenServer.start(MapSetStore, %{})
-      {:ok, create_table} = GenServer.start(MapSetStore, %{})
-
       PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_index, fn id, _ -> map_fetch(old_index, id) end)
       |> expect(:set_done, 1, fn _, _ -> :ok end)
-      |> expect(:delete_index, 1, fn id, ref_id, _ ->
-        :ok = GenServer.call(delete_table, {:put, id, ref_id, 99})
-        :ok
-      end)
-      |> expect(:create_index, 1, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(create_table, {:put, id, ref_id, position})
-        :ok
-      end)
-      |> expect(:update_index, 1, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
+      |> expect(:bulk_update_index, 1, fn id, to_delete, to_upsert, _ ->
+        assert id == 1
+        assert to_delete == [5]
+        assert MapSet.new(to_upsert) == MapSet.new([{2, 1}, {1, 2}])
         :ok
       end)
 
       :ok =
         Index.update_index(1, new_index, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
-
-      assert GenServer.call(delete_table, :get) == %{
-               1 => MapSet.new([{5, 99}])
-             }
-
-      assert GenServer.call(create_table, :get) == %{
-               1 => MapSet.new([{2, 1}])
-             }
-
-      assert GenServer.call(update_table, :get) == %{
-               1 => MapSet.new([{1, 2}])
-             }
 
       verify!()
     end
@@ -478,42 +434,35 @@ defmodule PenguinMemories.Database.IndexTest do
         3 => MapSet.new([])
       }
 
-      {:ok, delete_table} = GenServer.start(MapSetStore, %{})
-      {:ok, update_table} = GenServer.start(MapSetStore, %{})
-      {:ok, create_table} = GenServer.start(MapSetStore, %{})
+      {:ok, upsert_table} = Agent.start(fn -> %{} end)
 
       PenguinMemories.Database.Impl.Index.Mock
       |> stub(:get_parent_ids, fn id, _ -> map_fetch(parent_data, id) end)
       |> stub(:get_child_ids, fn id, _ -> map_fetch(child_data, id) end)
       |> stub(:get_index, fn id, _ -> map_fetch(index, id) end)
       |> expect(:set_done, 3, fn _, _ -> :ok end)
-      |> expect(:delete_index, 0, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(delete_table, {:put, id, ref_id, position})
-        :ok
-      end)
-      |> expect(:create_index, 7, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(create_table, {:put, id, ref_id, position})
-        :ok
-      end)
-      |> expect(:update_index, 2, fn id, {ref_id, position}, _ ->
-        :ok = GenServer.call(update_table, {:put, id, ref_id, position})
+      |> stub(:bulk_update_index, fn id, _to_delete, to_upsert, _ ->
+        Agent.update(upsert_table, fn acc ->
+          Enum.reduce(to_upsert, acc, fn {ref_id, position}, acc ->
+            Map.update(
+              acc,
+              id,
+              MapSet.new([{ref_id, position}]),
+              &MapSet.put(&1, {ref_id, position})
+            )
+          end)
+        end)
+
         :ok
       end)
 
       {:ok, _, _} =
         Index.fix_index_tree(3, %{}, %{}, @dummy_type, PenguinMemories.Database.Impl.Index.Mock)
 
-      assert GenServer.call(delete_table, :get) == %{}
-
-      assert GenServer.call(create_table, :get) == %{
-               1 => MapSet.new([{2, -1}, {3, -2}]),
-               2 => MapSet.new([{2, 0}, {3, -1}]),
+      assert Agent.get(upsert_table, & &1) == %{
+               1 => MapSet.new([{1, 0}, {2, -1}, {3, -2}]),
+               2 => MapSet.new([{1, 1}, {2, 0}, {3, -1}]),
                3 => MapSet.new([{3, 0}, {2, 1}, {1, 2}])
-             }
-
-      assert GenServer.call(update_table, :get) == %{
-               1 => MapSet.new([{1, 0}]),
-               2 => MapSet.new([{1, 1}])
              }
 
       verify!()
