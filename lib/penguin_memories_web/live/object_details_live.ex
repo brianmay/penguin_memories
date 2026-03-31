@@ -89,6 +89,15 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   @impl true
+  def handle_event("key", %{"key" => "Escape"}, %Socket{} = socket) do
+    if socket.assigns.big do
+      url = get_back_url(socket, socket.assigns)
+      {:noreply, push_patch(socket, to: url)}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_event("key", %{"key" => key}, %Socket{} = socket) do
     case key do
       "ArrowLeft" ->
