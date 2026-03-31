@@ -92,7 +92,7 @@ defmodule PenguinMemories.MixProject do
 
   defp dialyzer do
     [
-      ignore_warnings: "dialyzer.ignore-warnings",
+      ignore_warnings: "dialyzer.ignore-warnings.exs",
       plt_core_path: "priv/plts",
       plt_file: {:no_warn, "priv/plts/dialyzer.plt"},
       plt_add_apps: [:ex_unit]

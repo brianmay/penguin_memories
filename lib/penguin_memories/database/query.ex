@@ -832,13 +832,14 @@ defmodule PenguinMemories.Database.Query do
   def can_delete?(id, type) do
     index = get_index_api()
     child_ids = index.get_child_ids(id, type)
-    photo_filter = %Filter{reference: {type, id}}
 
     cond do
       not Enum.empty?(child_ids) ->
         {:no, "Cannot delete object with children"}
 
       type != Photo ->
+        photo_filter = %Filter{reference: {type, id}}
+
         case count_results(photo_filter, Photo) do
           {:ok, 0} -> :yes
           {:ok, _} -> {:no, "Cannot delete object with photos"}

@@ -746,7 +746,7 @@ defmodule PenguinMemories.Database.Search do
     end
   end
 
-  @spec filter_by_query(query :: Ecto.Query.t(), query_string :: String.t()) ::
+  @spec filter_by_query(query :: Ecto.Query.t(), query_string :: String.t() | nil) ::
           {:ok, Ecto.Query.t()} | {:error, String.t()}
   def filter_by_query(%Ecto.Query{} = query, nil) do
     {:ok, query}
