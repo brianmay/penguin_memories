@@ -19,11 +19,29 @@
         <div class="btn btn-secondary" phx-click="select-all">Select All</div>
       <% end %>
       <div class="btn btn-secondary" phx-click="select-none">Unselect All</div>
-      <%= if @request.filter.reference != nil and elem(@request.filter.reference, 0) == PenguinMemories.Photos.Album and @request.type == PenguinMemories.Photos.Photo do %>
+      <%= if @request.filter.reference != nil and @request.type == PenguinMemories.Photos.Photo and elem(@request.filter.reference, 0) in [PenguinMemories.Photos.Album, PenguinMemories.Photos.Category, PenguinMemories.Photos.Place] do %>
         <%= if @request.deep do %>
-          <div class="btn btn-secondary" phx-click="toggle-deep">Show This Album Only</div>
+          <div class="btn btn-secondary" phx-click="toggle-deep">
+            <%= case elem(@request.filter.reference, 0) do %>
+              <% PenguinMemories.Photos.Album -> %>
+                Show This Album Only
+              <% PenguinMemories.Photos.Category -> %>
+                Show This Category Only
+              <% PenguinMemories.Photos.Place -> %>
+                Show This Place Only
+            <% end %>
+          </div>
         <% else %>
-          <div class="btn btn-secondary" phx-click="toggle-deep">Include Sub-albums</div>
+          <div class="btn btn-secondary" phx-click="toggle-deep">
+            <%= case elem(@request.filter.reference, 0) do %>
+              <% PenguinMemories.Photos.Album -> %>
+                Include Sub-albums
+              <% PenguinMemories.Photos.Category -> %>
+                Include Sub-categories
+              <% PenguinMemories.Photos.Place -> %>
+                Include Sub-places
+            <% end %>
+          </div>
         <% end %>
       <% end %>
       <%= if @response.before_url do %>
@@ -38,10 +56,29 @@
       <% end %>
     </div>
 
-    <%= if @request.filter.reference != nil and elem(@request.filter.reference, 0) == PenguinMemories.Photos.Album and @request.type == PenguinMemories.Photos.Photo do %>
+    <%= if @request.filter.reference != nil and @request.type == PenguinMemories.Photos.Photo and elem(@request.filter.reference, 0) in [PenguinMemories.Photos.Album, PenguinMemories.Photos.Category, PenguinMemories.Photos.Place] do %>
       <div class="mb-2">
         <small class="text-muted">
-          Currently showing: {if @request.deep, do: "all sub-albums", else: "this album only"}
+          Currently showing:
+          <%= if @request.deep do %>
+            <%= case elem(@request.filter.reference, 0) do %>
+              <% PenguinMemories.Photos.Album -> %>
+                all sub-albums
+              <% PenguinMemories.Photos.Category -> %>
+                all sub-categories
+              <% PenguinMemories.Photos.Place -> %>
+                all sub-places
+            <% end %>
+          <% else %>
+            <%= case elem(@request.filter.reference, 0) do %>
+              <% PenguinMemories.Photos.Album -> %>
+                this album only
+              <% PenguinMemories.Photos.Category -> %>
+                this category only
+              <% PenguinMemories.Photos.Place -> %>
+                this place only
+            <% end %>
+          <% end %>
         </small>
       </div>
     <% end %>

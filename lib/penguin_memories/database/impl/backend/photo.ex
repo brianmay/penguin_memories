@@ -13,10 +13,12 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Format
   alias PenguinMemories.Photos.AlbumAscendant
+  alias PenguinMemories.Photos.CategoryAscendant
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoAlbum
   alias PenguinMemories.Photos.PhotoCategory
   alias PenguinMemories.Photos.PhotoPerson
+  alias PenguinMemories.Photos.PlaceAscendant
   alias PenguinMemories.Photos.PhotoRelation
   alias PenguinMemories.Photos.PhotoUpdate
   alias PenguinMemories.Photos.Relation
@@ -96,11 +98,20 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       distinct: true
   end
 
-  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Category, id}, _deep) do
+  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Category, id}, false) do
     from [object: o] in query,
       join: op in PhotoCategory,
       on: op.photo_id == o.id,
       where: op.category_id == ^id
+  end
+
+  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Category, id}, true) do
+    from [object: o] in query,
+      join: op in PhotoCategory,
+      on: op.photo_id == o.id,
+      join: ca in CategoryAscendant,
+      on: ca.descendant_id == op.category_id and ca.ascendant_id == ^id and ca.position >= 0,
+      distinct: true
   end
 
   def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Person, id}, _deep) do
@@ -110,9 +121,16 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       where: op.person_id == ^id
   end
 
-  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Place, id}, _deep) do
+  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Place, id}, false) do
     from [object: o] in query,
       where: o.place_id == ^id
+  end
+
+  def filter_by_reference(%Ecto.Query{} = query, {PenguinMemories.Photos.Place, id}, true) do
+    from [object: o] in query,
+      left_join: pa in PlaceAscendant,
+      on: pa.descendant_id == o.place_id and pa.ascendant_id == ^id and pa.position >= 0,
+      where: o.place_id == ^id or not is_nil(pa.ascendant_id)
   end
 
   def filter_by_reference(%Ecto.Query{} = query, _, _deep) do
