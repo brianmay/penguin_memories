@@ -73,18 +73,29 @@
 
 .photo_item {
   border: 1px solid #dddddd;
-  height: 180px;
+  min-height: 180px;
+  max-height: 220px;
   padding-top: 10px;
   text-align: center;
   width: 140px;
-  overflow: hidden;
 
   .name {
     font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-bottom: 4px;
   }
 
-  .subtitle {
+  .subtitle, .icon_details {
     color: #333;
+    font-size: 0.9em;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 2px;
   }
 
   &:hover {
