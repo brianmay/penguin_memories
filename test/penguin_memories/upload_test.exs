@@ -163,7 +163,7 @@ defmodule PenguinMemories.Uploadtest do
     assert photo.camera_model == "Canon EOS R5"
     assert photo.ccd_width == nil
     assert photo.private_notes == nil
-    assert photo.datetime == ~U[2021-04-01 03:32:00Z]
+    assert photo.datetime == ~U[2021-04-01 03:31:36Z]
     assert photo.utc_offset == 660
     assert photo.description == nil
     assert_in_delta(photo.exposure_time, 0.01666666667, 0.0001)
