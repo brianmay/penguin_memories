@@ -69,7 +69,8 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -130,7 +131,8 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -191,7 +193,8 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -252,7 +255,8 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -313,7 +317,8 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -374,7 +379,8 @@ defmodule PenguinMemories.Uploadtest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -432,7 +438,8 @@ defmodule PenguinMemories.Uploadtest do
   @tag :slow
   test "upload_directory/2 exif works" do
     %Album{
-      name: "Uploads"
+      name: "Uploads",
+      sort_name: "Uploads"
     }
     |> Repo.insert!()
 

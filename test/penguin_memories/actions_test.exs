@@ -29,7 +29,8 @@ defmodule PenguinMemories.Actionstest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -126,7 +127,8 @@ defmodule PenguinMemories.Actionstest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -310,7 +312,8 @@ defmodule PenguinMemories.Actionstest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -356,7 +359,8 @@ defmodule PenguinMemories.Actionstest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
@@ -406,7 +410,8 @@ defmodule PenguinMemories.Actionstest do
 
     album =
       %Album{
-        name: "test"
+        name: "test",
+        sort_name: "test"
       }
       |> Repo.insert!()
 
