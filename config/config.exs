@@ -50,7 +50,8 @@ config :penguin_memories, PenguinMemories.Accounts.Guardian, issuer: "penguin_me
 
 config :mime, :types, %{
   "image/cr2" => ["cr2"],
-  "image/cr3" => ["cr3"]
+  "image/cr3" => ["cr3"],
+  "image/x-portable-pixmap" => ["ppm"]
 }
 
 config :libcluster,
