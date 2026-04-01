@@ -21,9 +21,9 @@
       <div class="btn btn-secondary" phx-click="select-none">Unselect All</div>
       <%= if @request.filter.reference != nil and elem(@request.filter.reference, 0) == PenguinMemories.Photos.Album and @request.type == PenguinMemories.Photos.Photo do %>
         <%= if @request.deep do %>
-          <div class="btn btn-primary" phx-click="toggle-deep">All Descendants</div>
+          <div class="btn btn-secondary" phx-click="toggle-deep">Show This Album Only</div>
         <% else %>
-          <div class="btn btn-secondary" phx-click="toggle-deep">Direct Only</div>
+          <div class="btn btn-secondary" phx-click="toggle-deep">Include Sub-albums</div>
         <% end %>
       <% end %>
       <%= if @response.before_url do %>
@@ -37,6 +37,14 @@
         </.link>
       <% end %>
     </div>
+
+    <%= if @request.filter.reference != nil and elem(@request.filter.reference, 0) == PenguinMemories.Photos.Album and @request.type == PenguinMemories.Photos.Photo do %>
+      <div class="mb-2">
+        <small class="text-muted">
+          Currently showing: {if @request.deep, do: "all sub-albums", else: "this album only"}
+        </small>
+      </div>
+    <% end %>
 
     <div class="photo_list">
       <%= for icon <- @response.icons do %>
