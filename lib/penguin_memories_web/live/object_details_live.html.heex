@@ -73,13 +73,75 @@ throttle = if keydown != nil, do: 550, else: nil %>
         </div>
 
         <%= if @mode == :display do %>
-          <table class="photo_table table table-hover">
-            <tbody>
-              <%= for field <- fields do %>
-                {FieldHelpers.output_field(@common.current_user, @details.obj, field)}
+          <%= if @big do %>
+            <!-- Big mode: toggle buttons container -->
+            <div class="big-mode-controls">
+              <div class="details-header" onclick="togglePanel(this, 'details')">
+                <span>ℹ️ Photo Details</span>
+                <span class="toggle-icon">▶</span>
+              </div>
+              <%= if photo_has_coordinates?(assigns) do %>
+                <div class="map-header" onclick="togglePanel(this, 'map')">
+                  <span>📍 Photo Location</span>
+                  <span class="toggle-icon">▶</span>
+                </div>
               <% end %>
-            </tbody>
-          </table>
+            </div>
+            
+<!-- Big mode: overlay panels -->
+            <div class="photo-details-container big-mode">
+              <table class="photo_table table table-hover">
+                <tbody>
+                  <%= for field <- fields do %>
+                    {FieldHelpers.output_field(@common.current_user, @details.obj, field)}
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+
+            <%= if photo_has_coordinates?(assigns) do %>
+              <% {lat, lng} = get_photo_coordinates(assigns) %>
+              <div class="photo-map-container big-mode">
+                <div
+                  class="photo-map"
+                  phx-hook="map"
+                  data-lat={lat}
+                  data-lng={lng}
+                  id={"map-#{@details.obj.id}"}
+                >
+                </div>
+              </div>
+            <% end %>
+          <% else %>
+            <!-- Normal mode: original behavior -->
+            <div class="photo-details-container normal-mode">
+              <table class="photo_table table table-hover">
+                <tbody>
+                  <%= for field <- fields do %>
+                    {FieldHelpers.output_field(@common.current_user, @details.obj, field)}
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+
+            <%= if photo_has_coordinates?(assigns) do %>
+              <% {lat, lng} = get_photo_coordinates(assigns) %>
+              <div class="photo-map-container normal-mode">
+                <div class="map-header" onclick="toggleMap(this)">
+                  <span>📍 Photo Location</span>
+                  <span class="toggle-icon">▼</span>
+                </div>
+                <div
+                  class="photo-map"
+                  phx-hook="map"
+                  data-lat={lat}
+                  data-lng={lng}
+                  id={"map-#{@details.obj.id}"}
+                >
+                </div>
+              </div>
+            <% end %>
+          <% end %>
         <% end %>
 
         <%= if @mode == :edit do %>

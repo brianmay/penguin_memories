@@ -647,6 +647,36 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     end
   end
 
+  @spec photo_has_coordinates?(assigns :: map()) :: boolean()
+  defp photo_has_coordinates?(assigns) do
+    case assigns do
+      %{
+        request: %{type: PenguinMemories.Photos.Photo},
+        details: %{obj: photo},
+        common: %{current_user: user}
+      } ->
+        Auth.can_see_geo_point(user, photo.point)
+
+      _ ->
+        false
+    end
+  end
+
+  @spec get_photo_coordinates(assigns :: map()) :: {float(), float()} | nil
+  defp get_photo_coordinates(assigns) do
+    case assigns do
+      %{request: %{type: PenguinMemories.Photos.Photo}, details: %{obj: photo}} ->
+        case photo.point do
+          # PostGIS: x=lat, y=lng; we need {lat, lng}
+          %Geo.Point{coordinates: {x, y}} -> {x, y}
+          _ -> nil
+        end
+
+      _ ->
+        nil
+    end
+  end
+
   @spec get_parent_details_from_db(parent_type :: Types.object_type(), parent_id :: integer()) ::
           {String.t(), String.t()} | nil
   defp get_parent_details_from_db(parent_type, parent_id) do

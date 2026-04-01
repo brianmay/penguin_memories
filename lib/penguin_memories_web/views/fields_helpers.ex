@@ -65,7 +65,18 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
         nil
 
       value ->
-        if can_show_field_value(obj, value, field) or Auth.can_see_latlng(user) do
+        show_field =
+          case field do
+            %Field{type: :geo_point} ->
+              # Use unified geo point authorization
+              Auth.can_see_geo_point(user, value)
+
+            _ ->
+              # For other field types, always show (non-geographic fields are public)
+              true
+          end
+
+        if show_field do
           [
             raw("<tr>"),
             raw("<th>"),
@@ -81,20 +92,6 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
         end
     end
   end
-
-  @spec can_show_field_value(obj :: struct(), value :: any(), field :: Field.t()) :: bool()
-  defp can_show_field_value(_, value, %Field{type: :geo_point}) do
-    {lat, lng} = value.coordinates
-    point = %{latitude: lat, longitude: lng}
-
-    private =
-      Application.fetch_env!(:penguin_memories, :private_locations)
-      |> Enum.any?(fn x -> Geocalc.in_area?(x, point) end)
-
-    not private
-  end
-
-  defp can_show_field_value(_, _, _field), do: true
 
   @spec output_field_value(obj :: struct(), value :: any(), field :: Field.t()) :: any()
   defp output_field_value(_, nil, _field), do: "N/A"

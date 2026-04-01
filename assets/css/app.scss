@@ -265,8 +265,83 @@ form {
       display: none;
     }
 
-    .photo_table {
-      display: none;
+    /* Remove old photo_table display rules - handled below */
+
+    /* Big mode controls container */
+    .big-mode-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    /* Big mode overlay panels */
+    .photo-details-container.big-mode .photo_table {
+      display: none; /* Hidden by default in Big mode */
+      color: #212529;
+      background: #fff;
+      padding: 10px;
+      border-radius: 0.25em;
+      position: absolute;
+      z-index: 100;
+      top: 10px;
+      right: 10px;
+      max-width: 400px;
+      max-height: 70vh;
+      overflow-y: auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      
+      &.expanded {
+        display: block;
+      }
+    }
+    
+    .photo-map-container.big-mode .photo-map {
+      display: none; /* Hidden by default in Big mode */
+      width: 400px;
+      height: 300px;
+      position: absolute;
+      z-index: 100;
+      top: 10px;
+      right: 10px;
+      border-radius: 0.25em;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      
+      &.expanded {
+        display: block;
+      }
+    }
+    
+    /* Shared header styling for both details and map headers in big mode controls */
+    .details-header,
+    .map-header {
+      padding: 8px 12px;
+      background-color: rgba(248, 249, 250, 0.9);
+      border: 1px solid #dddddd;
+      border-radius: 0.25em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 500;
+      color: #212529;
+      min-width: 140px;
+      
+      &:hover {
+        background-color: rgba(233, 236, 239, 0.9);
+      }
+      
+      .toggle-icon {
+        transition: transform 0.2s;
+        font-size: 12px;
+      }
+      
+      &.expanded .toggle-icon {
+        transform: rotate(90deg); /* Point down when expanded */
+      }
     }
 
     .btn-prev:hover .hover,
@@ -280,11 +355,6 @@ form {
       background: #fff;
       padding: 10px;
       border-radius: 0.25em;
-    }
-
-    h2:hover+div .photo_table {
-      position: absolute;
-      display: block;
     }
   }
 }
@@ -366,4 +436,60 @@ form {
     display: inline-block;
   }
 
+}
+
+/* Photo details container */
+.photo-details-container {
+  /* Normal mode: details always visible */
+  &.normal-mode .photo_table {
+    display: table; /* Normal table display */
+  }
+  
+  /* Big mode: overlay behavior handled above in .big section */
+}
+
+/* Photo location map */
+.photo-map-container {
+  margin-top: 10px;
+  border: 1px solid #dddddd;
+  border-radius: 0.25em;
+  
+  /* Only show header styling in normal mode - Big mode uses .big-mode-controls */
+  &.normal-mode .map-header {
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dddddd;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 500;
+    color: #212529; /* Explicit dark text color to override Big mode white text */
+    
+    &:hover {
+      background-color: #e9ecef;
+    }
+    
+    .toggle-icon {
+      transition: transform 0.2s;
+      font-size: 12px;
+    }
+    
+    &.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+  }
+  
+  /* Normal mode: map expanded by default */
+  &.normal-mode .photo-map {
+    width: 100%;
+    height: 300px;
+    display: block;
+    
+    &.collapsed {
+      display: none;
+    }
+  }
+  
+  /* Big mode: overlay behavior handled above in .big section */
 }
