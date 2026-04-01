@@ -898,4 +898,49 @@ defmodule PenguinMemories.Database.Query do
       {:no, error} -> {:error, error}
     end
   end
+
+  @doc """
+  Set the cover photo for an album, category, place, or person.
+  """
+  @spec set_cover_photo(
+          parent_type :: object_type(),
+          parent_id :: integer(),
+          photo_id :: integer()
+        ) ::
+          {:ok, struct()} | {:error, String.t()}
+  def set_cover_photo(parent_type, parent_id, photo_id)
+      when parent_type in [
+             PenguinMemories.Photos.Album,
+             PenguinMemories.Photos.Category,
+             PenguinMemories.Photos.Place,
+             PenguinMemories.Photos.Person
+           ] do
+    # Verify the photo exists and parent exists
+    with {:ok, _photo} <-
+           (case Repo.get(Photo, photo_id) do
+              nil -> {:error, "Photo not found"}
+              photo -> {:ok, photo}
+            end),
+         {:ok, parent} <-
+           (case Repo.get(parent_type, parent_id) do
+              nil -> {:error, "Parent entity not found"}
+              parent -> {:ok, parent}
+            end) do
+      # Update the cover photo
+      changeset = Changeset.change(parent, %{cover_photo_id: photo_id})
+
+      case Repo.update(changeset) do
+        {:ok, updated} ->
+          {:ok, updated}
+
+        {:error, changeset} ->
+          errors = Changeset.traverse_errors(changeset, fn {msg, _opts} -> msg end)
+          {:error, "Update failed: #{inspect(errors)}"}
+      end
+    end
+  end
+
+  def set_cover_photo(_parent_type, _parent_id, _photo_id) do
+    {:error, "Invalid parent type for cover photo"}
+  end
 end

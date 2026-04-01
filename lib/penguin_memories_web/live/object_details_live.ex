@@ -13,6 +13,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   alias PenguinMemories.Database.Query
   alias PenguinMemories.Database.Types
   alias PenguinMemories.Photos
+  alias PenguinMemories.Repo
   alias PenguinMemories.Urls
   alias PenguinMemoriesWeb.FieldHelpers
   alias PenguinMemoriesWeb.LiveRequest
@@ -56,6 +57,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
       prev_icon: nil,
       next_icon: nil,
       error: nil,
+      success: nil,
       changeset: nil,
       edit_obj: nil,
       action: nil,
@@ -220,6 +222,31 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     {:noreply, socket}
   end
 
+  @impl true
+  def handle_event(
+        "set-cover-photo",
+        %{"parent-type" => type_name, "parent-id" => parent_id},
+        socket
+      ) do
+    if Auth.can_edit(socket.assigns.common.current_user) do
+      with {:ok, parent_type} <- Types.get_type_for_name(type_name),
+           {parent_id, ""} <- Integer.parse(parent_id),
+           {:ok, _updated} <-
+             Query.set_cover_photo(parent_type, parent_id, socket.assigns.details.obj.id) do
+        PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+        {:noreply, assign(socket, success: "Cover photo updated successfully", error: nil)}
+      else
+        {:error, reason} ->
+          {:noreply, assign(socket, error: "Failed to set cover photo: #{reason}", success: nil)}
+
+        _error ->
+          {:noreply, assign(socket, error: "Invalid parameters", success: nil)}
+      end
+    else
+      {:noreply, assign(socket, error: "Permission denied", success: nil)}
+    end
+  end
+
   # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def handle_info(
         {:parameters, %Query.Filter{} = filter, %LiveRequest{} = common, %Request{} = request},
@@ -346,7 +373,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
         type = socket.assigns.request.type
 
         if type == Photos.Photo do
-          {:noreply, assign(socket, error: nil, mode: :display)}
+          {:noreply, assign(socket, error: nil, success: nil, mode: :display)}
         else
           type_name = Types.get_name!(type)
           url = Routes.main_path(socket, :index, type_name)
@@ -520,9 +547,9 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     send(socket.parent_pid, {:title, socket.id, title})
 
     if details == nil do
-      assign(socket, :error, "Cannot load type #{inspect(type)} id #{id}")
+      assign(socket, error: "Cannot load type #{inspect(type)} id #{id}", success: nil)
     else
-      assign(socket, :error, nil)
+      assign(socket, error: nil, success: nil)
     end
   end
 
@@ -564,5 +591,79 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   defp to_int(int) do
     {int, ""} = Integer.parse(int)
     int
+  end
+
+  @spec get_parent_context(assigns :: map()) :: {Types.object_type(), integer()} | nil
+  defp get_parent_context(%{filter: %Query.Filter{reference: {parent_type, parent_id}}})
+       when parent_type in [
+              PenguinMemories.Photos.Album,
+              PenguinMemories.Photos.Category,
+              PenguinMemories.Photos.Place,
+              PenguinMemories.Photos.Person
+            ] do
+    {parent_type, parent_id}
+  end
+
+  defp get_parent_context(_), do: nil
+
+  @spec get_parent_details_from_context(assigns :: map()) :: {String.t(), String.t()} | nil
+  defp get_parent_details_from_context(assigns) do
+    case get_parent_context(assigns) do
+      {parent_type, parent_id} ->
+        # Look for the parent in the existing parents data
+        parent_icon =
+          assigns.details.parents
+          |> Enum.flat_map(fn {_position, icons} -> icons end)
+          |> Enum.find(fn icon -> icon.type == parent_type and icon.id == parent_id end)
+
+        if parent_icon do
+          type_name =
+            case parent_type do
+              PenguinMemories.Photos.Album -> "Album"
+              PenguinMemories.Photos.Category -> "Category"
+              PenguinMemories.Photos.Place -> "Place"
+              PenguinMemories.Photos.Person -> "Person"
+            end
+
+          {type_name, parent_icon.name}
+        else
+          # Fallback to database query if not found in parents
+          get_parent_details_from_db(parent_type, parent_id)
+        end
+
+      nil ->
+        nil
+    end
+  end
+
+  @spec get_confirmation_message(assigns :: map()) :: String.t()
+  defp get_confirmation_message(assigns) do
+    case get_parent_details_from_context(assigns) do
+      {type_name, parent_name} ->
+        "Set this photo as the cover photo for #{type_name}: '#{parent_name}'?"
+
+      nil ->
+        "Set this photo as the cover photo?"
+    end
+  end
+
+  @spec get_parent_details_from_db(parent_type :: Types.object_type(), parent_id :: integer()) ::
+          {String.t(), String.t()} | nil
+  defp get_parent_details_from_db(parent_type, parent_id) do
+    case Repo.get(parent_type, parent_id) do
+      nil ->
+        nil
+
+      parent ->
+        type_name =
+          case parent_type do
+            PenguinMemories.Photos.Album -> "Album"
+            PenguinMemories.Photos.Category -> "Category"
+            PenguinMemories.Photos.Place -> "Place"
+            PenguinMemories.Photos.Person -> "Person"
+          end
+
+        {type_name, parent.name}
+    end
   end
 end

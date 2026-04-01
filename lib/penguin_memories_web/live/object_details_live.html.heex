@@ -23,6 +23,11 @@ throttle = if keydown != nil, do: 550, else: nil %>
           {@error}
         </div>
       <% end %>
+      <%= if @success do %>
+        <div class="alert alert-success">
+          {@success}
+        </div>
+      <% end %>
       <%= if length(@details.parents) > 0 do %>
         <div class="parents">
           <%= for {_position, icons} <- @details.parents do %>
@@ -171,6 +176,24 @@ throttle = if keydown != nil, do: 550, else: nil %>
             <div class="btn btn-secondary" phx-click="create">Create</div>
           <% end %>
           <div class="btn btn-secondary" phx-click="edit">Edit</div>
+
+          <%= if @request.type == Photos.Photo do %>
+            <%= case get_parent_context(assigns) do %>
+              <% {parent_type, parent_id} -> %>
+                <div
+                  class="btn btn-info"
+                  phx-click="set-cover-photo"
+                  phx-value-parent-type={Types.get_name!(parent_type)}
+                  phx-value-parent-id={parent_id}
+                  data-confirm={get_confirmation_message(assigns)}
+                >
+                  Set as Cover Photo
+                </div>
+              <% nil -> %>
+                <!-- No parent context, don't show button -->
+            <% end %>
+          <% end %>
+
           <%= if @request.type == Photos.Photo and @details.obj.action == "D" do %>
             <div class="btn btn-warning" phx-click="undelete">Undelete</div>
           <% else %>
