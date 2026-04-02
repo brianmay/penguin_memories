@@ -223,6 +223,11 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   @impl true
+  def handle_event("add_parent", %{"id" => _parent_id_string}, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event(
         "set-cover-photo",
         %{"parent-type" => type_name, "parent-id" => parent_id},
@@ -307,7 +312,13 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
         {:noreply, socket}
 
       true ->
-        handle_validate(socket, socket.assigns.changeset.params)
+        # For album_parents_edit changes, we need to trigger validation carefully
+        # to update the changeset without causing page reloads
+
+        # IMPORTANT: Use the socket that already has the updated assoc
+        changeset = get_edit_changeset(socket, %{})
+
+        {:noreply, assign(socket, changeset: changeset)}
     end
   end
 

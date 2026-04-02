@@ -30,7 +30,7 @@ config :penguin_memories,
     "large" => %{max_width: 1920, max_height: 1440}
   },
   formats: ["image/jpeg", "video/mp4", "video/webm"],
-  index_api: PenguinMemories.Database.Impl.Index.Generic
+  index_api: PenguinMemories.Database.Impl.Index.AlbumAware
 
 config :penguin_memories, PenguinMemories.Repo, types: PenguinMemories.PostgresTypes
 

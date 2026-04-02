@@ -119,51 +119,59 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
     %{"id" => clicked_id, "ctrlKey" => ctrl_key, "shiftKey" => shift_key, "altKey" => alt_key} =
       params
 
-    clicked_id = to_int(clicked_id)
+    # Get button type, default to 0 (left-click) if not present for backward compatibility
+    button = Map.get(params, "button", 0)
 
-    {selected_ids, socket, auto_big} =
-      cond do
-        ctrl_key ->
-          s = toggle(socket.assigns.request.selected_value, clicked_id)
-          {s, socket, false}
+    # Only handle left-click (button 0), ignore middle-click (button 1) and right-click (button 2)
+    if button != 0 do
+      {:noreply, socket}
+    else
+      clicked_id = to_int(clicked_id)
 
-        shift_key ->
-          s =
-            toggle_range(
-              socket.assigns.request.selected_value,
-              socket.assigns.response.icons,
-              socket.assigns.last_clicked_id,
-              clicked_id
-            )
+      {selected_ids, socket, auto_big} =
+        cond do
+          ctrl_key ->
+            s = toggle(socket.assigns.request.selected_value, clicked_id)
+            {s, socket, false}
 
-          {s, socket, false}
+          shift_key ->
+            s =
+              toggle_range(
+                socket.assigns.request.selected_value,
+                socket.assigns.response.icons,
+                socket.assigns.last_clicked_id,
+                clicked_id
+              )
 
-        socket.assigns.request.navigate_on_select and not alt_key ->
-          type_name = Types.get_name!(socket.assigns.request.type)
-          url = Routes.main_path(socket, :index, type_name, clicked_id)
-          socket = push_patch(socket, to: url)
-          socket = assign(socket, last_clicked_id: clicked_id)
-          {:navigated, socket, true}
+            {s, socket, false}
 
-        alt_key ->
-          {MapSet.new([clicked_id]), socket, false}
+          socket.assigns.request.navigate_on_select and not alt_key ->
+            type_name = Types.get_name!(socket.assigns.request.type)
+            url = Routes.main_path(socket, :index, type_name, clicked_id)
+            socket = push_patch(socket, to: url)
+            socket = assign(socket, last_clicked_id: clicked_id)
+            {:navigated, socket, true}
 
-        true ->
-          {MapSet.new([clicked_id]), socket, true}
-      end
+          alt_key ->
+            {MapSet.new([clicked_id]), socket, false}
 
-    socket =
-      case selected_ids do
-        :navigated ->
-          socket
+          true ->
+            {MapSet.new([clicked_id]), socket, true}
+        end
 
-        selected_ids ->
-          socket
-          |> assign(last_clicked_id: clicked_id)
-          |> set_selected(selected_ids, auto_big: auto_big)
-      end
+      socket =
+        case selected_ids do
+          :navigated ->
+            socket
 
-    {:noreply, socket}
+          selected_ids ->
+            socket
+            |> assign(last_clicked_id: clicked_id)
+            |> set_selected(selected_ids, auto_big: auto_big)
+        end
+
+      {:noreply, socket}
+    end
   end
 
   @impl true

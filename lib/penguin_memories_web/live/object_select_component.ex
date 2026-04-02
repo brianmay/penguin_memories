@@ -147,21 +147,31 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
     else
       type = socket.assigns.type
       {id, ""} = Integer.parse(id)
-      [icon | _] = socket.assigns.choices |> Enum.filter(fn icon -> icon.id == id end)
-      icons = add_icon(socket.assigns.icons, icon)
-      selected = add_selection(socket.assigns.selected, id, socket.assigns.single_choice, type)
-      notify(socket, selected)
 
-      assigns = [
-        choices: [],
-        # form: %{socket.assigns.form | source: changeset},
-        icons: icons,
-        selected: selected,
-        text: "",
-        error: nil
-      ]
+      # Verify the ID exists in choices (for safety)
+      if Enum.any?(socket.assigns.choices, fn icon -> icon.id == id end) do
+        [icon | _] = socket.assigns.choices |> Enum.filter(fn icon -> icon.id == id end)
 
-      {:noreply, assign(socket, assigns)}
+        # Update local state optimistically for immediate UI feedback
+        icons = add_icon(socket.assigns.icons, icon)
+        selected = add_selection(socket.assigns.selected, id, socket.assigns.single_choice, type)
+
+        # Send the update to parent
+        notify(socket, selected)
+
+        assigns = [
+          choices: [],
+          icons: icons,
+          selected: selected,
+          text: "",
+          error: nil
+        ]
+
+        {:noreply, assign(socket, assigns)}
+      else
+        # ID not found in choices, ignore
+        {:noreply, socket}
+      end
     end
   end
 
@@ -171,13 +181,16 @@ defmodule PenguinMemoriesWeb.ObjectSelectComponent do
       {:noreply, socket}
     else
       {id, ""} = Integer.parse(id)
+
+      # Update local state optimistically for immediate UI feedback
       icons = remove_icon(socket.assigns.icons, id)
       selected = remove_selection(socket.assigns.selected, id, socket.assigns.single_choice)
+
+      # Send the update to parent
       notify(socket, selected)
 
       assigns = [
         choices: [],
-        # form: %{socket.assigns.form | source: changeset},
         icons: icons,
         selected: selected,
         text: "",

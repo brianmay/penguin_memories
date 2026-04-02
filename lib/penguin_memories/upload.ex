@@ -9,6 +9,7 @@ defmodule PenguinMemories.Upload do
   alias PenguinMemories.Database.Conflicts
   alias PenguinMemories.Media
   alias PenguinMemories.Photos.Album
+  alias PenguinMemories.Photos.AlbumParent
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Repo
@@ -320,17 +321,35 @@ defmodule PenguinMemories.Upload do
   def get_upload_album(name) do
     parent = get_parent_album()
 
-    case Repo.one(from a in Album, where: a.parent_id == ^parent.id and a.name == ^name) do
+    # Query for albums that have the parent as a parent via AlbumParent relationship
+    query =
+      from a in Album,
+        join: ap in AlbumParent,
+        on: ap.album_id == a.id,
+        where: ap.parent_id == ^parent.id and a.name == ^name
+
+    case Repo.one(query) do
       nil ->
+        # Create new album and establish parent relationship
         album =
           %Album{
             name: name,
             sort_name: name,
-            parent_id: parent.id,
             reindex: true
           }
           |> Ecto.Changeset.change()
           |> Repo.insert!()
+
+        # Create the parent-child relationship using AlbumParent
+        %AlbumParent{
+          album_id: album.id,
+          parent_id: parent.id,
+          context_name: nil,
+          context_sort_name: nil,
+          context_cover_photo_id: nil
+        }
+        |> Ecto.Changeset.change()
+        |> Repo.insert!()
 
         album
 

@@ -2,6 +2,7 @@ defmodule PenguinMemories.Database.Updates do
   @moduledoc """
   Generic database functions
   """
+  import Ecto.Query
 
   alias PenguinMemories.Database
   alias PenguinMemories.Database.Query
@@ -166,12 +167,9 @@ defmodule PenguinMemories.Database.Updates do
   defp apply_updates_to_object(updates, object) do
     changeset = get_update_obj_changeset(object, updates)
 
-    case PenguinMemories.Database.Query.apply_edit_changeset(changeset) do
-      {:ok, new_obj} ->
-        {:ok, changeset, new_obj}
-
-      {:error, _changeset, error_message} ->
-        {:error, "Update of object #{object.id} failed: #{error_message}"}
+    case Repo.update(changeset) do
+      {:ok, new_obj} -> {:ok, changeset, new_obj}
+      {:error, _} -> {:error, "Update of object #{object.id} failed"}
     end
   end
 
@@ -198,24 +196,14 @@ defmodule PenguinMemories.Database.Updates do
 
     Repo.transaction(fn ->
       query
+      |> select_merge([object: o], %{o: o})
       |> Repo.stream()
       |> Stream.each(fn result ->
-        # Get the actual object from the result - result might be a map or struct  
-        object_id = Map.get(result, :id)
+        [obj] = backend.preload_details_from_results([result.o])
 
-        if object_id do
-          # Get the schema module from the backend and fetch the full struct
-          schema_module = backend.query().from.source |> elem(1)
-          object = Repo.get(schema_module, object_id)
-
-          if object do
-            [obj] = backend.preload_details_from_results([object])
-
-            apply_updates_to_object(updates, obj)
-            |> fix_index()
-            |> rollback_if_error()
-          end
-        end
+        apply_updates_to_object(updates, obj)
+        |> fix_index()
+        |> rollback_if_error()
       end)
       |> Stream.run()
     end)

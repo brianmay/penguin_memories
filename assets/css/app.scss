@@ -79,6 +79,12 @@
   text-align: center;
   width: 140px;
 
+  /* Remove link styling when photo_item is a link */
+  &, &:hover, &:focus, &:active, &:visited {
+    text-decoration: none !important;
+    color: inherit;
+  }
+
   .name {
     font-weight: bold;
     overflow: hidden;
@@ -141,6 +147,76 @@
 
   .list .hoverable {
     display: block;
+  }
+  
+  /* Multiple trails styling */
+  &.multiple-trails {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    
+    .trail {
+      background-color: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 0.375rem;
+      padding: 8px 12px;
+      position: relative;
+      
+      /* Trail alternating colors for better distinction */
+      &:nth-child(odd) {
+        background-color: #f1f3f4;
+        border-color: #d3d3d4;
+      }
+      
+      &:nth-child(even) {
+        background-color: #f8f9fa;
+        border-color: #e9ecef;
+      }
+      
+      /* Add trail number indicator */
+      &::before {
+        content: "Path " attr(data-trail) ":";
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        position: absolute;
+        top: -8px;
+        left: 8px;
+        background: inherit;
+        padding: 0 4px;
+        border-radius: 2px;
+      }
+      
+      /* Trail content layout */
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      margin-top: 12px; /* Space for the label */
+      
+      .list .hoverable {
+        display: block;
+      }
+      
+      .arrow {
+        margin: 0 2px;
+        color: #6c757d;
+        font-size: 0.9em;
+      }
+      
+      /* Hover effect for entire trail */
+      &:hover {
+        background-color: #e2e6ea;
+        border-color: #adb5bd;
+      }
+      
+      &:nth-child(odd):hover {
+        background-color: #e2e6ea;
+        border-color: #adb5bd;
+      }
+    }
   }
 }
 
@@ -492,4 +568,53 @@ form {
   }
   
   /* Big mode: overlay behavior handled above in .big section */
+}
+
+/* Album Parents Table Styling */
+.album-parents-table {
+  margin-top: 0.5rem;
+  
+  .album-parent-row {
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: #f8f9fa !important;
+      cursor: pointer;
+    }
+    
+    td.parent-name {
+      font-weight: 600;
+      color: #0d6efd;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    
+    td.context-name {
+      font-style: italic;
+      color: #6c757d;
+    }
+    
+    td.context-sort-name {
+      color: #495057;
+    }
+    
+    td.cover-photo {
+      color: #6c757d;
+      font-size: 0.9em;
+    }
+  }
+  
+  th {
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    padding: 0.5rem;
+  }
+  
+  td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #dee2e6;
+  }
 }

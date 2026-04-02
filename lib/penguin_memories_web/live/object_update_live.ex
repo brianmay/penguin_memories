@@ -293,7 +293,19 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     fields = Fields.get_update_fields(type, socket.assigns.common.current_user)
 
     enabled = get_enabled(fields, params)
-    get_update_changes(enabled, fields, params, assoc)
+
+    # Auto-enable fields that have assoc data (UX improvement) - same logic as get_update_changeset
+    auto_enabled =
+      Enum.reduce(Map.keys(assoc), enabled, fn assoc_key, acc ->
+        if not is_nil(Map.get(assoc, assoc_key)) do
+          MapSet.put(acc, assoc_key)
+        else
+          acc
+        end
+      end)
+
+    updates = get_update_changes(auto_enabled, fields, params, assoc)
+    updates
   end
 
   @spec get_update_changeset(socket :: Socket.t(), params :: map(), assoc :: map()) ::
@@ -303,8 +315,19 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     fields = Fields.get_update_fields(type, socket.assigns.common.current_user)
 
     enabled = get_enabled(fields, params)
-    changeset = Updates.get_update_changeset(type, params, assoc, enabled)
-    {enabled, changeset}
+
+    # Auto-enable fields that have assoc data (UX improvement)
+    auto_enabled =
+      Enum.reduce(Map.keys(assoc), enabled, fn assoc_key, acc ->
+        if not is_nil(Map.get(assoc, assoc_key)) do
+          MapSet.put(acc, assoc_key)
+        else
+          acc
+        end
+      end)
+
+    changeset = Updates.get_update_changeset(type, params, assoc, auto_enabled)
+    {auto_enabled, changeset}
   end
 
   @spec reload(Socket.t()) :: Socket.t()

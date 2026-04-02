@@ -6,11 +6,13 @@ defmodule PenguinMemories.Photos.AlbumUpdate do
 
   @type t :: %__MODULE__{
           parent: t() | Ecto.Association.NotLoaded.t() | nil,
+          album_parents_edit: list() | Ecto.Association.NotLoaded.t() | nil,
           revised: DateTime.t() | nil
         }
 
   embedded_schema do
     belongs_to :parent, PenguinMemories.Photos.Album, on_replace: :nilify
+    field :album_parents_edit, {:array, :map}
     field :revised, :utc_datetime
   end
 end

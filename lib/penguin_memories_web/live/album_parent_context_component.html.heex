@@ -1,0 +1,141 @@
+<div class="border rounded p-3" style="background-color: #f8f9fa;">
+  <div class="form-group">
+    <label class="control-label">{@field.name}</label>
+    
+<!-- Parent Search Section -->
+    <div class="mb-3 bg-white p-3 rounded border">
+      <div class="dropdown">
+        <div class="autoselect form-control">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Type to search for parent albums..."
+            value={@parent_search_text}
+            phx-keyup="search_parent"
+            phx-target={@myself}
+            disabled={@parent_search_disabled}
+          />
+        </div>
+
+        <%= if @parent_search_error do %>
+          <div class="alert alert-danger mt-2">
+            {@parent_search_error}
+          </div>
+        <% end %>
+
+        <%= if length(@parent_choices) > 0 do %>
+          <div class="dropdown-menu show" phx-click-away="blur_parent_search" phx-target={@myself}>
+            <div class="photo_list">
+              <%= for choice <- @parent_choices do %>
+                <div
+                  class="dropdown-item px-3 py-2 cursor-pointer border-bottom"
+                  style="cursor: pointer; background-color: #f0f8ff; border: 2px solid #007bff;"
+                  phx-click="add_parent"
+                  phx-value-id={choice.id}
+                  phx-target={@myself}
+                  onmousedown="event.preventDefault()"
+                >
+                  🔹 {choice.name} (ID: {choice.id})
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+<!-- Current Parent Relationships Section -->
+    <div class="current-relationships">
+      <%= if length(@current_relationships) == 0 do %>
+        <div class="text-muted">
+          <em>No parent albums selected. Use the search above to add parent albums.</em>
+        </div>
+      <% else %>
+        <%= for relationship <- @current_relationships do %>
+          <div class="card mb-2 shadow-sm" style="transition: all 0.2s ease;">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <div class="relationship-info flex-grow-1">
+                  <h6 class="card-title mb-3">
+                    {relationship.parent_name}
+                    <span class="badge badge-secondary ms-2">Parent Album</span>
+                  </h6>
+                  
+<!-- Inline context editing fields - always visible -->
+                  <div class="context-fields">
+                    <div class="row">
+                      <div class="col-md-4">
+                        <label class="form-label small text-muted">Context Name</label>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          placeholder="How this album appears in parent"
+                          value={relationship.context_name || ""}
+                          phx-keyup="update_context_field"
+                          phx-blur="update_context_field"
+                          phx-value-parent-id={relationship.parent_id}
+                          phx-value-field="context_name"
+                          phx-target={@myself}
+                        />
+                        <small class="form-text text-muted">
+                          Leave blank for album's default name
+                        </small>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label small text-muted">Context Sort Name</label>
+                        <input
+                          type="text"
+                          class="form-control form-control-sm"
+                          placeholder="Sort order name"
+                          value={relationship.context_sort_name || ""}
+                          phx-keyup="update_context_field"
+                          phx-blur="update_context_field"
+                          phx-value-parent-id={relationship.parent_id}
+                          phx-value-field="context_sort_name"
+                          phx-target={@myself}
+                        />
+                        <small class="form-text text-muted">
+                          Leave blank for album's default sort name
+                        </small>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label small text-muted">Cover Photo ID</label>
+                        <input
+                          type="number"
+                          class="form-control form-control-sm"
+                          placeholder="Photo ID"
+                          value={relationship.context_cover_photo_id || ""}
+                          phx-keyup="update_context_field"
+                          phx-blur="update_context_field"
+                          phx-value-parent-id={relationship.parent_id}
+                          phx-value-field="context_cover_photo_id"
+                          phx-target={@myself}
+                        />
+                        <small class="form-text text-muted">Leave blank for default cover</small>
+                      </div>
+                      <div class="col-md-1 d-flex align-items-center">
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-outline-danger mt-4"
+                          phx-click="remove_parent"
+                          phx-value-parent-id={relationship.parent_id}
+                          phx-target={@myself}
+                          title="Remove this parent relationship"
+                        >
+                          <i class="fa fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+    
+<!-- Hidden input to maintain form field -->
+    <input type="hidden" name={Phoenix.HTML.Form.input_name(@form, @field.id)} value="" />
+  </div>
+</div>

@@ -60,7 +60,15 @@ defmodule PenguinMemories.Uploadtest do
     album = Upload.get_upload_album("test")
     %Album{} = album
     assert album.name == "test"
-    assert album.parent_id == root_album.id
+
+    # Verify the parent relationship exists via AlbumParent
+    album_parent =
+      Repo.get_by(PenguinMemories.Photos.AlbumParent,
+        album_id: album.id,
+        parent_id: root_album.id
+      )
+
+    assert album_parent != nil, "AlbumParent relationship should exist between child and parent"
   end
 
   @tag :slow

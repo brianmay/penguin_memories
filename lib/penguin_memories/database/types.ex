@@ -6,6 +6,7 @@ defmodule PenguinMemories.Database.Types do
 
   @types %{
     "album" => PenguinMemories.Photos.Album,
+    "album_parent" => PenguinMemories.Photos.AlbumParent,
     "category" => PenguinMemories.Photos.Category,
     "person" => PenguinMemories.Photos.Person,
     "place" => PenguinMemories.Photos.Place,
@@ -14,6 +15,7 @@ defmodule PenguinMemories.Database.Types do
 
   @type backend_type ::
           PenguinMemories.Database.Impl.Backend.Album
+          | PenguinMemories.Database.Impl.Backend.AlbumParent
           | PenguinMemories.Database.Impl.Backend.Category
           | PenguinMemories.Database.Impl.Backend.Person
           | PenguinMemories.Database.Impl.Backend.Place
@@ -21,6 +23,7 @@ defmodule PenguinMemories.Database.Types do
 
   @query_backends %{
     PenguinMemories.Photos.Album => PenguinMemories.Database.Impl.Backend.Album,
+    PenguinMemories.Photos.AlbumParent => PenguinMemories.Database.Impl.Backend.AlbumParent,
     PenguinMemories.Photos.Category => PenguinMemories.Database.Impl.Backend.Category,
     PenguinMemories.Photos.Person => PenguinMemories.Database.Impl.Backend.Person,
     PenguinMemories.Photos.Place => PenguinMemories.Database.Impl.Backend.Place,

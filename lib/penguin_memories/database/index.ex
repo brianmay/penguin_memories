@@ -5,6 +5,7 @@ defmodule PenguinMemories.Database.Index do
   import Ecto.Query
 
   alias PenguinMemories.Database
+  alias PenguinMemories.Database.PathCompute
   alias PenguinMemories.Photos
   alias PenguinMemories.Repo
 
@@ -176,6 +177,11 @@ defmodule PenguinMemories.Database.Index do
         generate_index(id, 0, parents, children, %{}, do_parents: true, do_children: true)
 
       :ok = update_index(id, index, type, api)
+
+      # For Albums, also compute and store hierarchical paths for multiple breadcrumb trails
+      if type == Photos.Album do
+        PathCompute.compute_and_store_paths(id)
+      end
 
       parent_list = Map.get(parents, id)
       children_list = Map.get(children, id)

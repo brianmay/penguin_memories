@@ -28,17 +28,38 @@ throttle = if keydown != nil, do: 550, else: nil %>
           {@success}
         </div>
       <% end %>
-      <%= if length(@details.parents) > 0 do %>
-        <div class="parents">
-          <%= for {_position, icons} <- @details.parents do %>
-            {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
-              icons: icons,
-              classes: [],
-              event: "goto"
-            )}
-            <div class="arrow">🠆</div>
-          <% end %>
-        </div>
+      <%= cond do %>
+        <% match?({:multiple_trails, _}, @details.parents) -> %>
+          <% {:multiple_trails, trails} = @details.parents %>
+          <div class="parents multiple-trails">
+            <%= for {trail, trail_index} <- Enum.with_index(trails) do %>
+              <div class="trail" data-trail={trail_index + 1}>
+                <%= for {{_position, icons}, index} <- Enum.with_index(trail) do %>
+                  <%= if index > 0 do %>
+                    <div class="arrow">🠆</div>
+                  <% end %>
+                  {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
+                    icons: icons,
+                    classes: [],
+                    event: "goto"
+                  )}
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% is_list(@details.parents) and length(@details.parents) > 0 -> %>
+          <div class="parents">
+            <%= for {_position, icons} <- @details.parents do %>
+              {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
+                icons: icons,
+                classes: [],
+                event: "goto"
+              )}
+              <div class="arrow">🠆</div>
+            <% end %>
+          </div>
+        <% true -> %>
+          <% # No parents %>
       <% end %>
 
       <div class="photo_details">

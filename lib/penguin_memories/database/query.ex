@@ -8,11 +8,17 @@ defmodule PenguinMemories.Database.Query do
   alias Ecto.Multi
 
   alias PenguinMemories.Database
+  alias PenguinMemories.Database.PathCompute
   alias PenguinMemories.Database.Search
   alias PenguinMemories.Database.Types
+  alias PenguinMemories.Photos.Album
+  alias PenguinMemories.Photos.AlbumAscendant
+  alias PenguinMemories.Photos.AlbumParent
+  alias PenguinMemories.Photos.AlbumPath
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.FileOrder
   alias PenguinMemories.Photos.Photo
+  alias PenguinMemories.Photos.PhotoAlbum
   alias PenguinMemories.Repo
 
   @type object_type :: Database.object_type()
@@ -213,6 +219,19 @@ defmodule PenguinMemories.Database.Query do
             }
           }
 
+      # Relationship types that don't have cover photos
+      AlbumParent ->
+        from [object: o] in query,
+          select_merge: %{
+            icon: %{
+              dir: nil,
+              filename: nil,
+              height: nil,
+              width: nil
+            }
+          }
+
+      # Main content types that have cover photos
       _ ->
         from [object: o] in query,
           left_join: p in Photo,
@@ -454,7 +473,13 @@ defmodule PenguinMemories.Database.Query do
   @spec query_parents(id :: integer, type :: object_type()) :: list({Icon.t(), integer})
   def query_parents(_, Photo), do: []
 
+  def query_parents(id, Album = type) do
+    # For albums, we need context-aware parent queries that show ONLY direct parents
+    query_album_direct_parents_with_context(id, type)
+  end
+
   def query_parents(id, type) do
+    # For other types, use the regular approach
     query =
       query(type)
       |> filter_by_ascendants(id)
@@ -468,6 +493,208 @@ defmodule PenguinMemories.Database.Query do
       end)
 
     icons
+  end
+
+  # Context-aware direct parent query for albums - only direct parents, not all ancestors
+  @spec query_album_direct_parents_with_context(integer, module()) :: list({Icon.t(), integer})
+  defp query_album_direct_parents_with_context(id, type) do
+    # Create file subquery for thumbnails
+    file_query =
+      from f in File,
+        where: f.size_key == "thumb" and f.mime_type == "image/jpeg"
+
+    # Photo count subquery - same pattern as in album backend
+    photo_count_query =
+      from pa in PhotoAlbum,
+        join: aa in AlbumAscendant,
+        on: aa.descendant_id == pa.album_id and aa.position >= 0,
+        group_by: aa.ascendant_id,
+        select: %{album_id: aa.ascendant_id, count: count(pa.photo_id, :distinct)}
+
+    # Child count subquery - same pattern as in album backend  
+    child_count_query =
+      from a in Album,
+        where: not is_nil(a.parent_id),
+        group_by: a.parent_id,
+        select: %{album_id: a.parent_id, count: count(a.id)}
+
+    # Query for direct parents via AlbumParent (many-to-many relationships)
+    many_to_many_query =
+      from a in Album,
+        join: ap in AlbumParent,
+        on: ap.parent_id == a.id and ap.album_id == ^id,
+        left_join: pc in subquery(photo_count_query),
+        on: pc.album_id == a.id,
+        left_join: cc in subquery(child_count_query),
+        on: cc.album_id == a.id,
+        left_join: icon in subquery(file_query),
+        on: icon.photo_id == coalesce(ap.context_cover_photo_id, a.cover_photo_id),
+        select: %{
+          sort_name: a.sort_name,
+          name: a.name,
+          id: a.id,
+          photo_count: pc.count,
+          child_count: cc.count,
+          # All direct parents get position 1
+          position: 1,
+          icon: %{
+            dir: icon.dir,
+            filename: icon.filename,
+            height: icon.height,
+            width: icon.width
+          }
+        }
+
+    # Query for direct parents via old parent_id (single parent relationships)
+    single_parent_query =
+      from a in Album,
+        where: a.id == ^id and not is_nil(a.parent_id),
+        join: parent in Album,
+        on: parent.id == a.parent_id,
+        left_join: pc in subquery(photo_count_query),
+        on: pc.album_id == parent.id,
+        left_join: cc in subquery(child_count_query),
+        on: cc.album_id == parent.id,
+        left_join: icon in subquery(file_query),
+        on: icon.photo_id == parent.cover_photo_id,
+        select: %{
+          sort_name: parent.sort_name,
+          name: parent.name,
+          id: parent.id,
+          photo_count: pc.count,
+          child_count: cc.count,
+          # Direct parent gets position 1
+          position: 1,
+          icon: %{
+            dir: icon.dir,
+            filename: icon.filename,
+            height: icon.height,
+            width: icon.width
+          }
+        }
+
+    # Union both queries to get all direct parents
+    all_parents_query = union_all(many_to_many_query, ^single_parent_query)
+
+    # Execute and convert to icons
+    icons =
+      Repo.all(all_parents_query)
+      |> Enum.map(fn result ->
+        {get_icon_from_result(result, type), result.position}
+      end)
+
+    icons
+  end
+
+  @doc """
+  Queries multiple complete breadcrumb trails for a single album using the AlbumPath table.
+
+  Returns a list of breadcrumb trails, where each trail is a list of {position, icons}.
+  This enables display of multiple parent hierarchies for albums with many-to-many relationships.
+
+  ## Examples
+
+  For an album that appears in multiple hierarchies:
+  ```
+  [
+    [{3, [life_events_icon]}, {2, [memorial_services_icon]}, {1, [album_icon]}],  # Life Events path
+    [{2, [travel_icon]}, {1, [album_icon]}]                                       # Travel path  
+  ]
+  ```
+  """
+  @spec query_album_breadcrumb_trails(integer()) :: [
+          [{integer(), [Icon.t()]}]
+        ]
+  def query_album_breadcrumb_trails(album_id) when is_integer(album_id) do
+    # Get all stored paths for this album from AlbumPath table
+    paths_query =
+      from ap in AlbumPath,
+        where: ap.descendant_id == ^album_id,
+        order_by: [desc: ap.path_length, asc: ap.id],
+        select: ap
+
+    paths = Repo.all(paths_query)
+
+    # Convert each path to breadcrumb trail format
+    Enum.map(paths, &convert_path_to_breadcrumb_trail/1)
+  end
+
+  @spec convert_path_to_breadcrumb_trail(AlbumPath.t()) :: [{integer(), [Icon.t()]}]
+  defp convert_path_to_breadcrumb_trail(%AlbumPath{
+         path_ids: path_ids,
+         path_contexts: path_contexts
+       }) do
+    # Get icons for all albums in the path
+    album_icons =
+      path_ids
+      |> Enum.map(fn album_id ->
+        icon = query_icon_by_id(album_id, Album, "thumb")
+
+        # Apply context-aware name if available
+        context_key = to_string(album_id)
+
+        icon =
+          if Map.has_key?(path_contexts, context_key) do
+            context = path_contexts[context_key]
+            context_name = context["name"] || context[:name]
+
+            if context_name do
+              %{icon | name: context_name}
+            else
+              icon
+            end
+          else
+            icon
+          end
+
+        {album_id, icon}
+      end)
+      |> Enum.reject(fn {_id, icon} -> icon == nil end)
+
+    # Convert to position-based format: position 0 = root, position 1 = next level, etc.
+    # The path_ids are already stored in root→descendant order, so preserve that order
+    album_icons
+    |> Enum.with_index()
+    |> Enum.map(fn {{_album_id, icon}, index} ->
+      # Position starts from 0 (root) and increases toward descendant
+      position = index
+      {position, [icon]}
+    end)
+  end
+
+  @doc """
+  Enhanced version of get_photo_parents that supports multiple breadcrumb trails for albums.
+
+  For single album: Returns multiple breadcrumb trails if available
+  For multiple albums: Returns simplified parent display as before
+  """
+  @spec get_photo_parents_with_trails(list(struct())) ::
+          list({integer(), list(Icon.t())})
+          | {:multiple_trails, [list({integer(), list(Icon.t())})]}
+  def get_photo_parents_with_trails([]), do: []
+
+  def get_photo_parents_with_trails([album]) do
+    # For single album, try to get multiple breadcrumb trails
+    trails = query_album_breadcrumb_trails(album.id)
+
+    case trails do
+      [] ->
+        # No trails found, fall back to current direct parent approach
+        get_photo_parents([album])
+
+      [single_trail] ->
+        # Only one trail, return it in the standard format
+        single_trail
+
+      multiple_trails ->
+        # Multiple trails - return special format for UI to handle
+        {:multiple_trails, multiple_trails}
+    end
+  end
+
+  def get_photo_parents_with_trails(albums) do
+    # Multiple albums - use existing simple approach
+    get_photo_parents(albums)
   end
 
   @spec query_icons_by_id_map(
@@ -601,16 +828,22 @@ defmodule PenguinMemories.Database.Query do
         details = backend.get_details_from_result(result, icon_size, video_size)
 
         parents =
-          if type == Photo do
-            get_photo_parents(details.obj.albums)
-          else
-            id
-            |> query_parents(type)
-            |> Enum.group_by(fn {_icon, position} -> position end)
-            |> Enum.map(fn {position, list} ->
-              {position, Enum.map(list, fn {icon, _} -> icon end)}
-            end)
-            |> Enum.sort_by(fn {position, _} -> -position end)
+          cond do
+            type == Photo ->
+              get_photo_parents_with_trails(details.obj.albums)
+
+            type == Album ->
+              # For albums, we want to get the trails for the album itself
+              get_photo_parents_with_trails([details.obj])
+
+            true ->
+              id
+              |> query_parents(type)
+              |> Enum.group_by(fn {_icon, position} -> position end)
+              |> Enum.map(fn {position, list} ->
+                {position, Enum.map(list, fn {icon, _} -> icon end)}
+              end)
+              |> Enum.sort_by(fn {position, _} -> -position end)
           end
 
         %Details{details | parents: parents}
@@ -696,7 +929,23 @@ defmodule PenguinMemories.Database.Query do
   def get_create_child_changeset(object, attrs, assoc) do
     assoc =
       if Map.has_key?(object, :parent) and not is_nil(object.id) do
-        Map.put(assoc, :parent, object)
+        # Special handling for Album - use ONLY the new album_parents_edit system
+        if object.__struct__ == Album do
+          # Format parent data the way AlbumParentContextComponent expects
+          album_parent_data = %{
+            id: object.id,
+            name: object.name,
+            # Default context
+            context_name: nil,
+            context_sort_name: nil,
+            context_cover_photo_id: nil
+          }
+
+          Map.put(assoc, :album_parents_edit, [album_parent_data])
+        else
+          # For non-Album types, use legacy parent system
+          Map.put(assoc, :parent, object)
+        end
       else
         assoc
       end
@@ -796,10 +1045,43 @@ defmodule PenguinMemories.Database.Query do
 
     multi
     |> Multi.insert_or_update({:update, id}, changeset)
+    |> apply_album_parents_operations_if_needed(changeset)
     |> Multi.run({:index, id}, fn _, data ->
       obj = Map.fetch!(data, {:update, id})
       {:ok, _} = fix_index(changeset, obj)
     end)
+  end
+
+  # Apply album_parents operations if they were stored during validation
+  defp apply_album_parents_operations_if_needed(%Multi{} = multi, %Changeset{} = changeset) do
+    case Ecto.Changeset.get_change(changeset, :album_parents_operations) do
+      nil ->
+        # No operations to apply
+        multi
+
+      %{to_add: to_add, to_update: to_update, to_remove: to_remove} ->
+        # Apply the operations that were validated but not executed during changeset creation
+        # Use the album ID from the inserted/updated album result, not from changeset.data
+        changeset_id = changeset.data.id
+
+        Multi.run(multi, {:album_parents, changeset_id}, fn _, data ->
+          alias PenguinMemories.Database.Impl.Backend.Album
+
+          # Get the album from the insert/update operation
+          album = Map.fetch!(data, {:update, changeset_id})
+          album_id = album.id
+
+          case Album.apply_album_parent_operations(
+                 album_id,
+                 to_add,
+                 to_update,
+                 to_remove
+               ) do
+            :ok -> {:ok, :applied}
+            {:error, reason} -> {:error, reason}
+          end
+        end)
+    end
   end
 
   @spec apply_edit_changeset(changeset :: Changeset.t()) ::
@@ -813,7 +1095,24 @@ defmodule PenguinMemories.Database.Query do
     case result do
       {:ok, data} ->
         obj = Map.fetch!(data, {:update, changeset.data.id})
-        {:ok, obj}
+
+        # If album_parents operations were applied, reload the object with associations
+        case Map.get(data, {:album_parents, changeset.data.id}) do
+          :applied ->
+            # Reload the album with updated associations
+            reloaded_obj =
+              Repo.get!(changeset.data.__struct__, obj.id)
+              |> Repo.preload([:album_parents])
+
+            # Recompute paths for the album and its descendants since parent relationships changed
+            # This ensures breadcrumbs reflect updated context information
+            PathCompute.recompute_paths_for_album_and_descendants(obj.id)
+
+            {:ok, reloaded_obj}
+
+          _ ->
+            {:ok, obj}
+        end
 
       {:error, {:update, _id}, changeset, _} ->
         {:error, changeset, "The update failed"}

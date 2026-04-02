@@ -37,6 +37,7 @@ let metadata  = {
             shiftKey: e.shiftKey,
             ctrlKey: e.ctrlKey,
             altKey: e.altKey,
+            button: e.button,
             clientX: e.clientX,
             clientY: e.clientY
         };
@@ -140,6 +141,35 @@ window.addEventListener("phx:page-loading-stop", info => NProgress.done());
 
 // connect if there are any LiveViews on the page
 liveSocket.connect();
+
+// Handle middle-click on icon links to open in new tab
+document.addEventListener('mousedown', function(e) {
+    // Only handle middle-click (button 1) on elements with phx-click that are also links
+    if (e.button === 1 && e.target.closest('a[phx-click]')) {
+        const link = e.target.closest('a[phx-click]');
+        
+        // Prevent the phx-click event from firing for middle-click
+        e.stopImmediatePropagation();
+        
+        // Let the browser handle the middle-click naturally (open in new tab)
+        // The href attribute will be used
+        return true;
+    }
+});
+
+// Also handle auxiliary click events (middle-click, back/forward buttons)
+document.addEventListener('auxclick', function(e) {
+    // Handle middle-click (button 1) on icon links
+    if (e.button === 1 && e.target.closest('a[phx-click]')) {
+        const link = e.target.closest('a[phx-click]');
+        
+        // Prevent the phx-click event from firing
+        e.stopImmediatePropagation();
+        
+        // Let browser handle middle-click (open in new tab)
+        return true;
+    }
+});
 
 // expose liveSocket on window for web console debug logs and latency simulation:
 // >> liveSocket.enableDebug()

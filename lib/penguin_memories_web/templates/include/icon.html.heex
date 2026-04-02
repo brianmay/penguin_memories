@@ -1,14 +1,17 @@
 <% target = assigns[:target]
+type_name = PenguinMemories.Database.Types.get_name!(@icon.type)
+href = "/#{type_name}/#{@icon.id}/"
 
 classes =
   ["photo_item"]
   |> prepend_list_if(true, icon_classes(@icon))
   |> prepend_list_if(true, @classes)
   |> Enum.join(" ") %>
-<div
+<a
   class={classes}
+  href={href}
   phx-click={@event}
-  phx-value-type={PenguinMemories.Database.Types.get_name!(@icon.type)}
+  phx-value-type={type_name}
   phx-value-id={@icon.id}
   phx-target={target}
 >
@@ -29,4 +32,4 @@ classes =
   <%= if @icon.details do %>
     <div class="icon_details">{@icon.details}</div>
   <% end %>
-</div>
+</a>
