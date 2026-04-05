@@ -157,6 +157,20 @@ document.addEventListener('mousedown', function(e) {
     }
 });
 
+// Handle left-clicks on icon links to prevent default navigation and allow phx-click
+document.addEventListener('click', function(e) {
+    // Only handle left-click (button 0) on elements with phx-click that are also links
+    if (e.button === 0 && e.target.closest('a[phx-click]')) {
+        const link = e.target.closest('a[phx-click]');
+        
+        // Prevent default navigation for left-clicks so phx-click can handle it
+        e.preventDefault();
+        
+        // Let the phx-click event proceed normally
+        return true;
+    }
+});
+
 // Also handle auxiliary click events (middle-click, back/forward buttons)
 document.addEventListener('auxclick', function(e) {
     // Handle middle-click (button 1) on icon links
