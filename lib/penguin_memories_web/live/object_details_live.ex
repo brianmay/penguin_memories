@@ -622,10 +622,27 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
     case get_parent_context(assigns) do
       {parent_type, parent_id} ->
         # Look for the parent in the existing parents data
+        # Handle both regular parents format and multiple_trails format
         parent_icon =
-          assigns.details.parents
-          |> Enum.flat_map(fn {_position, icons} -> icons end)
-          |> Enum.find(fn icon -> icon.type == parent_type and icon.id == parent_id end)
+          case assigns.details.parents do
+            {:multiple_trails, trails} ->
+              # Extract all icons from all trails
+              trails
+              |> Enum.flat_map(fn trail ->
+                Enum.flat_map(trail, fn {_position, icons} -> icons end)
+              end)
+              |> Enum.find(fn icon -> icon.type == parent_type and icon.id == parent_id end)
+
+            parents when is_list(parents) ->
+              # Regular format: list of {position, icons} tuples
+              parents
+              |> Enum.flat_map(fn {_position, icons} -> icons end)
+              |> Enum.find(fn icon -> icon.type == parent_type and icon.id == parent_id end)
+
+            _ ->
+              # Unexpected format, skip search
+              nil
+          end
 
         if parent_icon do
           type_name =
