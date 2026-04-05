@@ -724,4 +724,22 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
         {type_name, parent.name}
     end
   end
+
+  @spec group_person_parents_by_level([{integer(), [any()]}]) :: [
+          {String.t(), [{integer(), [any()]}]}
+        ]
+  defp group_person_parents_by_level(parents) do
+    parents
+    |> Enum.group_by(fn {position, _icons} ->
+      case position do
+        1 -> "Parents"
+        2 -> "Grandparents"
+        3 -> "Great-Grandparents"
+        4 -> "Great-Great-Grandparents"
+        n when n >= 5 -> "#{n - 2}x Great-Grandparents"
+      end
+    end)
+    |> Enum.map(fn {level_name, parent_group} -> {level_name, parent_group} end)
+    |> Enum.sort_by(fn {_level_name, [{position, _icons} | _]} -> position end)
+  end
 end

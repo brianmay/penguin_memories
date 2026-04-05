@@ -48,16 +48,39 @@ throttle = if keydown != nil, do: 550, else: nil %>
             <% end %>
           </div>
         <% is_list(@details.parents) and length(@details.parents) > 0 -> %>
-          <div class="parents">
-            <%= for {_position, icons} <- @details.parents do %>
-              {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
-                icons: icons,
-                classes: [],
-                event: "goto"
-              )}
-              <div class="arrow">🠆</div>
-            <% end %>
-          </div>
+          <%= if @request.type == PenguinMemories.Photos.Person do %>
+            <% grouped_parents = group_person_parents_by_level(@details.parents) %>
+            <div class="parents person-hierarchy">
+              <%= for {level_name, parent_group} <- grouped_parents do %>
+                <div class="parent-level" data-level={level_name}>
+                  <h5 class="level-label">{level_name}</h5>
+                  <div class="level-content">
+                    <%= for {position, icons} <- parent_group do %>
+                      {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
+                        icons: icons,
+                        classes: [],
+                        event: "goto"
+                      )}
+                      <%= unless {position, icons} == List.last(parent_group) do %>
+                        <span class="separator">•</span>
+                      <% end %>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="parents">
+              <%= for {_position, icons} <- @details.parents do %>
+                {Phoenix.View.render(PenguinMemoriesWeb.IncludeView, "list.html",
+                  icons: icons,
+                  classes: [],
+                  event: "goto"
+                )}
+                <div class="arrow">🠆</div>
+              <% end %>
+            </div>
+          <% end %>
         <% true -> %>
           <% # No parents %>
       <% end %>
