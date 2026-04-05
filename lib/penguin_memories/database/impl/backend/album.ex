@@ -93,8 +93,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
     # Support both old parent_id field AND new many-to-many AlbumParent relationships
     from [object: o] in query,
       left_join: ap in AlbumParent,
-      on: ap.album_id == o.id,
-      where: o.parent_id == ^parent_id or ap.parent_id == ^parent_id,
+      on: ap.album_id == o.id and ap.parent_id == ^parent_id,
+      where: o.parent_id == ^parent_id or not is_nil(ap.id),
       # Update select to include context fields when available
       select_merge: %{
         context_name: ap.context_name,
