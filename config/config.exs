@@ -51,6 +51,7 @@ config :penguin_memories, PenguinMemories.Accounts.Guardian, issuer: "penguin_me
 config :mime, :types, %{
   "image/cr2" => ["cr2"],
   "image/cr3" => ["cr3"],
+  "image/x-adobe-dng" => ["dng"],
   "image/x-portable-pixmap" => ["ppm"]
 }
 

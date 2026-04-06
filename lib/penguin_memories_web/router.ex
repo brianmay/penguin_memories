@@ -77,6 +77,11 @@ defmodule PenguinMemoriesWeb.Router do
     end
 
     scope "/", PenguinMemoriesWeb do
+      pipe_through [:browser, :ensure_auth]
+      live "/upload", UploadLive, :index
+    end
+
+    scope "/", PenguinMemoriesWeb do
       pipe_through [:browser, :auth]
       PenguinMemoriesWeb
       live "/", PageLive, :index

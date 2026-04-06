@@ -66,6 +66,16 @@
         </.link>
       </li>
       <%= if user != nil do %>
+        <li class="nav-item">
+          <.link
+            navigate={Routes.upload_path(@socket, :index)}
+            class={link_class(active, "upload")}
+          >
+            Upload
+          </.link>
+        </li>
+      <% end %>
+      <%= if user != nil do %>
         <%= if PenguinMemories.Auth.user_is_admin?(user) do %>
           <li class="nav-item">
             <.link

@@ -46,7 +46,11 @@ defmodule PenguinMemoriesWeb.Endpoint do
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
-    json_decoder: Phoenix.json_library()
+    json_decoder: Phoenix.json_library(),
+    # Allow large RAW files (CR2/CR3 can be 30–80 MB). LiveView uploads
+    # use a separate websocket channel and are not limited by this plug,
+    # but set generously in case any non-LiveView multipart routes exist.
+    length: 250_000_000
 
   plug Plug.MethodOverride
   plug Plug.Head
