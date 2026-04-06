@@ -329,7 +329,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
         :description,
         :private_notes,
         :reindex,
-        :revised
+        :revised,
+        :parent_id
       ])
       |> validate_required([:sort_name, :name])
       |> handle_album_parents_assoc(assoc)
@@ -385,7 +386,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
       :description,
       :private_notes,
       :reindex,
-      :revised
+      :revised,
+      :parent_id
     ])
     |> validate_required([:sort_name, :name])
     |> handle_album_parents_assoc(assoc)
@@ -448,13 +450,27 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
         :ok ->
           # Store the operations in changeset for later application during save
           # DO NOT apply them to the database during validation
-          changeset
-          |> Ecto.Changeset.put_change(:album_parents_operations, %{
-            to_add: to_add,
-            to_update: to_update,
-            to_remove: to_remove
-          })
-          |> Ecto.Changeset.put_change(:album_parents_edit, new_album_parents)
+          updated_changeset =
+            changeset
+            |> Ecto.Changeset.put_change(:album_parents_operations, %{
+              to_add: to_add,
+              to_update: to_update,
+              to_remove: to_remove
+            })
+            |> Ecto.Changeset.put_change(:album_parents_edit, new_album_parents)
+
+          # Automatically clear legacy parent_id when new album_parents relationships are added
+          # This prevents conflicts between single-parent (legacy) and many-to-many parent systems
+          # Check both the original album's parent_id AND if parent_id is being set in this changeset
+          has_existing_parent_id = not is_nil(album.parent_id)
+          has_new_parent_id = Map.has_key?(updated_changeset.changes, :parent_id)
+          has_new_album_parents = not Enum.empty?(new_album_parents)
+
+          if has_new_album_parents and (has_existing_parent_id or has_new_parent_id) do
+            Ecto.Changeset.put_change(updated_changeset, :parent_id, nil)
+          else
+            updated_changeset
+          end
 
         {:error, :circular_reference} ->
           Ecto.Changeset.add_error(

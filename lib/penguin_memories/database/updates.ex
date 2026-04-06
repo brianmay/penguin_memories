@@ -196,6 +196,24 @@ defmodule PenguinMemories.Database.Updates do
   def apply_updates(updates, %Ecto.Query{} = query) do
     backend = get_query_backend(query)
 
+    # Check if any updates involve album parent relationships
+    has_album_parent_updates =
+      Enum.any?(updates, fn update ->
+        update.field_id == :album_parents_edit
+      end)
+
+    if has_album_parent_updates and
+         backend == PenguinMemories.Database.Impl.Backend.Album do
+      apply_album_bulk_updates_with_parent_handling(updates, query, backend)
+    else
+      apply_standard_bulk_updates(updates, query, backend)
+    end
+  end
+
+  # Standard bulk update logic (original implementation)
+  @spec apply_standard_bulk_updates(list(UpdateChange.t()), Ecto.Query.t(), module()) ::
+          :ok | {:error, String.t()}
+  defp apply_standard_bulk_updates(updates, query, backend) do
     Repo.transaction(fn ->
       query
       |> Repo.stream()
@@ -218,6 +236,81 @@ defmodule PenguinMemories.Database.Updates do
         end
       end)
       |> Stream.run()
+    end)
+    |> decode_result()
+  end
+
+  # Special handling for album bulk updates with parent relationships
+  @spec apply_album_bulk_updates_with_parent_handling(
+          list(UpdateChange.t()),
+          Ecto.Query.t(),
+          module()
+        ) ::
+          :ok | {:error, String.t()}
+  defp apply_album_bulk_updates_with_parent_handling(updates, query, backend) do
+    # Separate parent relationship updates from other field updates
+    {parent_updates, other_updates} =
+      Enum.split_with(updates, fn update ->
+        update.field_id == :album_parents_edit
+      end)
+
+    Repo.transaction(fn ->
+      # Phase 1: Apply non-parent field updates first
+      if not Enum.empty?(other_updates) do
+        query
+        |> Repo.stream()
+        |> Stream.each(fn result ->
+          object_id = Map.get(result, :id)
+
+          if object_id do
+            schema_module = backend.query().from.source |> elem(1)
+            object = Repo.get(schema_module, object_id)
+
+            if object do
+              [obj] = backend.preload_details_from_results([object])
+
+              # Apply only non-parent updates
+              apply_updates_to_object(other_updates, obj)
+              |> fix_index()
+              |> rollback_if_error()
+            end
+          end
+        end)
+        |> Stream.run()
+      end
+
+      # Phase 2: Apply parent relationship updates after all field updates complete
+      if not Enum.empty?(parent_updates) do
+        # Collect all albums that need parent relationship updates
+        albums_with_parent_ops =
+          query
+          |> Repo.stream()
+          |> Enum.map(fn result ->
+            object_id = Map.get(result, :id)
+
+            if object_id do
+              schema_module = backend.query().from.source |> elem(1)
+              object = Repo.get(schema_module, object_id)
+              if object, do: backend.preload_details_from_results([object]) |> hd()
+            end
+          end)
+          |> Enum.filter(&(&1 != nil))
+
+        # Apply parent operations to all albums in correct order
+        Enum.each(albums_with_parent_ops, fn obj ->
+          # Create changeset with only parent updates
+          parent_changeset = get_update_obj_changeset(obj, parent_updates)
+
+          # Apply parent operations (this handles the deferred operations properly)
+          case PenguinMemories.Database.Query.apply_edit_changeset(parent_changeset) do
+            {:ok, _updated_obj} ->
+              :ok
+
+            {:error, _changeset, error_message} ->
+              Repo.rollback("Update of album #{obj.id} parents failed: #{error_message}")
+          end
+        end)
+      end
     end)
     |> decode_result()
   end
