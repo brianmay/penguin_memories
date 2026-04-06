@@ -245,6 +245,23 @@ defmodule PenguinMemoriesWeb.MainLive do
     {:noreply, socket}
   end
 
+  def handle_info(:clear_selections, %Socket{} = socket) do
+    # Clear all selections after successful bulk operations to prevent confusion
+    # when items move out of the current view
+    url =
+      socket.assigns.url
+      |> Urls.url_merge(%{}, [
+        "obj_selected",
+        "obj_show_selected",
+        "p_selected",
+        "p_show_selected"
+      ])
+      |> URI.to_string()
+
+    socket = push_patch(socket, to: url)
+    {:noreply, socket}
+  end
+
   @spec get_common(Socket.t(), force_reload :: boolean()) :: PenguinMemoriesWeb.LiveRequest.t()
   def get_common(%Socket{} = socket, force_reload) do
     %PenguinMemoriesWeb.LiveRequest{

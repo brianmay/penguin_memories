@@ -208,6 +208,11 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
         case Updates.apply_updates(updates, query) do
           :ok ->
             PenguinMemoriesWeb.Endpoint.broadcast("refresh", "refresh", %{})
+
+            # Clear selections after successful bulk operation to prevent confusion
+            # when items move out of the current view
+            send(socket.parent_pid, :clear_selections)
+
             assign(socket, edit: nil, changeset: nil, error: nil, enabled: nil)
 
           {:error, reason} ->
