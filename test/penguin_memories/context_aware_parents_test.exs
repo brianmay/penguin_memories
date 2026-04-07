@@ -48,7 +48,7 @@ defmodule PenguinMemories.ContextAwareParentsTest do
       assert memorial_parent_rel.parent.name == "Memorial Services"
       assert memorial_parent_rel.context_name == "Uncle Peter's Funeral in Orbost"
 
-      # Find travel adventures parent relationship  
+      # Find travel adventures parent relationship
       travel_parent_rel =
         Enum.find(child_album.album_parents, fn rel ->
           rel.parent_id == travel_adventures.id

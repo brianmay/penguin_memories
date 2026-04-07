@@ -20,7 +20,7 @@ defmodule PenguinMemories.AlbumCreationTest do
           sort_name: "test-parent-album"
         })
 
-      # Test creating child album using the UI workflow  
+      # Test creating child album using the UI workflow
       {assoc, changeset} =
         Query.get_create_child_changeset(
           parent_album,
@@ -146,7 +146,7 @@ defmodule PenguinMemories.AlbumCreationTest do
         ]
       }
 
-      # Create changeset for new album  
+      # Create changeset for new album
       changeset =
         Query.get_edit_changeset(
           %Album{},

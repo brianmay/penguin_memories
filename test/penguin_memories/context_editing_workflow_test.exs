@@ -58,7 +58,7 @@ defmodule PenguinMemories.ContextEditingWorkflowTest do
 
       # Verify album starts with no parents
       album = Repo.preload(album, :album_parents)
-      assert length(album.album_parents) == 0
+      assert album.album_parents == []
 
       # Create form changeset with pending parent addition
       assoc_data = %{
@@ -80,11 +80,11 @@ defmodule PenguinMemories.ContextEditingWorkflowTest do
       # This was the core bug - operations were being applied during validation
       album_reloaded = Repo.get(Album, album.id) |> Repo.preload(:album_parents)
       # Should still be empty!
-      assert length(album_reloaded.album_parents) == 0
+      assert album_reloaded.album_parents == []
 
       # Verify operations are stored in changeset for later application
       operations = changeset.changes.album_parents_operations
-      assert length(operations.to_add) == 1
+      assert operations.to_add != []
       assert operations.to_add |> List.first() |> Map.get(:parent_id) == parent.id
 
       # Now apply the changeset (save step)

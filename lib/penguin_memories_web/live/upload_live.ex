@@ -138,9 +138,7 @@ defmodule PenguinMemoriesWeb.UploadLive do
   def handle_event("import-server", _params, socket) do
     user = socket.assigns[:current_user]
 
-    unless Auth.user_is_admin?(user) do
-      {:noreply, assign(socket, server_error: "Admin access required.")}
-    else
+    if Auth.user_is_admin?(user) do
       staging_dir = socket.assigns.staging_dir
       raw_path = String.trim(socket.assigns.server_path)
       album_name = String.trim(socket.assigns.server_album_name)
@@ -171,15 +169,15 @@ defmodule PenguinMemoriesWeb.UploadLive do
         {:dir, false} ->
           {:noreply, assign(socket, server_error: "Path does not exist or is not a directory.")}
       end
+    else
+      {:noreply, assign(socket, server_error: "Admin access required.")}
     end
   end
 
   def handle_event("upload", _params, socket) do
     user = socket.assigns[:current_user]
 
-    unless Auth.can_edit(user) do
-      {:noreply, assign(socket, error: "You must be logged in to upload photos.")}
-    else
+    if Auth.can_edit(user) do
       album_name = String.trim(socket.assigns.album_name)
       auto_rotate = socket.assigns.auto_rotate
 
@@ -196,6 +194,8 @@ defmodule PenguinMemoriesWeb.UploadLive do
         true ->
           start_processing(socket, album_name, auto_rotate)
       end
+    else
+      {:noreply, assign(socket, error: "You must be logged in to upload photos.")}
     end
   end
 

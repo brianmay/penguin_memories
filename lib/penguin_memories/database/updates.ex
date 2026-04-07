@@ -218,7 +218,7 @@ defmodule PenguinMemories.Database.Updates do
       query
       |> Repo.stream()
       |> Stream.each(fn result ->
-        # Get the actual object from the result - result might be a map or struct  
+        # Get the actual object from the result - result might be a map or struct
         object_id = Map.get(result, :id)
 
         if object_id do

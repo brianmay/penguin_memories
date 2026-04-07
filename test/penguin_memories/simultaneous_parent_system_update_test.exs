@@ -6,6 +6,7 @@ defmodule PenguinMemories.SimultaneousParentSystemUpdateTest do
   use PenguinMemories.DataCase
 
   alias PenguinMemories.Database.Impl.Backend.Album, as: AlbumBackend
+  alias PenguinMemories.Database.{Query, Updates}
   alias PenguinMemories.Photos.{Album, AlbumUpdate}
 
   describe "simultaneous parent system updates" do
@@ -53,7 +54,7 @@ defmodule PenguinMemories.SimultaneousParentSystemUpdateTest do
       assert changeset.changes[:album_parents_edit] == new_parents_data
 
       # Apply the changeset
-      {:ok, updated_album} = PenguinMemories.Database.Query.apply_edit_changeset(changeset)
+      {:ok, updated_album} = Query.apply_edit_changeset(changeset)
 
       # Verify the result - new parent system should win
       final_album = Repo.get!(Album, updated_album.id) |> Repo.preload(:album_parents)
@@ -117,7 +118,7 @@ defmodule PenguinMemories.SimultaneousParentSystemUpdateTest do
         assoc_data = Map.put(assoc_data, :parent, update_changeset.changes.parent)
       end
 
-      # Add album_parents_edit info  
+      # Add album_parents_edit info
       if Map.has_key?(update_changeset.changes, :album_parents_edit) do
         assoc_data =
           Map.put(assoc_data, :album_parents_edit, update_changeset.changes.album_parents_edit)
@@ -176,7 +177,7 @@ defmodule PenguinMemories.SimultaneousParentSystemUpdateTest do
       ]
 
       # Apply bulk update - this should go through my special album handling
-      result = PenguinMemories.Database.Updates.apply_updates(updates, query)
+      result = Updates.apply_updates(updates, query)
 
       # Should succeed
       assert result == :ok

@@ -61,19 +61,17 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
       """
       <div class="table-responsive">
       <table class="album-parents-table table table-striped table-sm">
-        <thead>
-          <tr>
-            <th>Parent Album</th>
-            <th>You appear as</th>
-            <th>Sort Name</th>
-            <th>Cover Photo</th>
-          </tr>
-        </thead>
-        <tbody>
+      <thead>
+        <tr>
+          <th>Parent Album</th>
+          <th>You appear as</th>
+          <th>Sort Name</th>
+          <th>Cover Photo</th>
+        </tr>
+      </thead>
+      <tbody>
       """ <>
-        (album_parents
-         |> Enum.map(&render_album_parent_row/1)
-         |> Enum.join("")) <>
+        Enum.map_join(album_parents, "", &render_album_parent_row/1) <>
         """
           </tbody>
         </table>

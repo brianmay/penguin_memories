@@ -41,7 +41,6 @@ defmodule PenguinMemories.BulkUpdateAlbumParentsTest do
       if changeset.valid? do
         {:ok, _updated_album} = Query.apply_edit_changeset(changeset)
       else
-        IO.inspect(changeset.errors, label: "Changeset errors")
         flunk("Changeset invalid: #{inspect(changeset.errors)}")
       end
     end
@@ -80,11 +79,8 @@ defmodule PenguinMemories.BulkUpdateAlbumParentsTest do
         end)
 
       if !Enum.empty?(failures) do
-        IO.inspect(failures, label: "Bulk update failures")
         flunk("Bulk update failed for some albums")
       end
-
-      assert length(failures) == 0
     end
   end
 end

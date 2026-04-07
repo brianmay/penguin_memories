@@ -10,8 +10,8 @@ defmodule PenguinMemories.Database.PathCompute do
 
   import Ecto.Query
 
-  alias PenguinMemories.Photos.{Album, AlbumPath, AlbumParent}
   alias PenguinMemories.Database.Impl.Index.AlbumAware
+  alias PenguinMemories.Photos.{Album, AlbumParent, AlbumPath}
   alias PenguinMemories.Repo
 
   @spec compute_and_store_paths(integer()) :: :ok

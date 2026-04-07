@@ -302,10 +302,10 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     # Auto-enable fields that have assoc data (UX improvement) - same logic as get_update_changeset
     auto_enabled =
       Enum.reduce(Map.keys(assoc), enabled, fn assoc_key, acc ->
-        if not is_nil(Map.get(assoc, assoc_key)) do
-          MapSet.put(acc, assoc_key)
-        else
+        if is_nil(Map.get(assoc, assoc_key)) do
           acc
+        else
+          MapSet.put(acc, assoc_key)
         end
       end)
 
@@ -324,10 +324,10 @@ defmodule PenguinMemoriesWeb.ObjectUpdateLive do
     # Auto-enable fields that have assoc data (UX improvement)
     auto_enabled =
       Enum.reduce(Map.keys(assoc), enabled, fn assoc_key, acc ->
-        if not is_nil(Map.get(assoc, assoc_key)) do
-          MapSet.put(acc, assoc_key)
-        else
+        if is_nil(Map.get(assoc, assoc_key)) do
           acc
+        else
+          MapSet.put(acc, assoc_key)
         end
       end)
 

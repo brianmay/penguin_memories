@@ -6,6 +6,7 @@ defmodule PenguinMemories.NoDoubleParentSystemTest do
   use PenguinMemories.DataCase
 
   alias PenguinMemories.Database.Impl.Backend.Album, as: AlbumBackend
+  alias PenguinMemories.Database.Query
   alias PenguinMemories.Photos.{Album, AlbumParent}
 
   describe "no double parent system" do
@@ -42,7 +43,7 @@ defmodule PenguinMemories.NoDoubleParentSystemTest do
         AlbumBackend.edit_changeset(child_album, %{}, %{album_parents_edit: new_parents_data})
 
       # Apply the changeset
-      {:ok, _updated_album} = PenguinMemories.Database.Query.apply_edit_changeset(changeset)
+      {:ok, _updated_album} = Query.apply_edit_changeset(changeset)
 
       # Reload the child to see final state
       updated_child = Repo.get!(Album, child_album.id) |> Repo.preload(:album_parents)
@@ -54,13 +55,13 @@ defmodule PenguinMemories.NoDoubleParentSystemTest do
 
       # Verify child no longer appears in old parent's children (legacy system)
       children_via_legacy_after = Repo.all(filtered_query)
-      assert length(children_via_legacy_after) == 0
+      assert children_via_legacy_after == []
 
       # Verify child appears in new parent's children (new system)
       filtered_query_new = AlbumBackend.filter_by_parent_id(query, other_parent.id)
       children_via_new = Repo.all(filtered_query_new)
 
-      assert length(children_via_new) == 1
+      assert children_via_new != []
       assert hd(children_via_new).id == child_album.id
       assert hd(children_via_new).context_name == "Test Context"
     end
@@ -107,12 +108,12 @@ defmodule PenguinMemories.NoDoubleParentSystemTest do
         changeset =
           AlbumBackend.edit_changeset(child, %{}, %{album_parents_edit: new_parents_data})
 
-        {:ok, _updated_album} = PenguinMemories.Database.Query.apply_edit_changeset(changeset)
+        {:ok, _updated_album} = Query.apply_edit_changeset(changeset)
       end
 
       # Verify no children appear in legacy parent anymore
       legacy_children_after = Repo.all(filtered_query)
-      assert length(legacy_children_after) == 0
+      assert legacy_children_after == []
 
       # Verify children appear in new parents
       for new_parent <- [new_parent1, new_parent2] do

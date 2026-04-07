@@ -6,7 +6,7 @@ defmodule PenguinMemories.ContextBreadcrumbSyncTest do
 
   use PenguinMemories.DataCase
 
-  alias PenguinMemories.Database.Query
+  alias PenguinMemories.Database.{PathCompute, Query}
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.AlbumParent
   alias PenguinMemories.Photos.AlbumPath
@@ -30,7 +30,7 @@ defmodule PenguinMemories.ContextBreadcrumbSyncTest do
 
       # Trigger path computation (simulating initial indexing)
       # This should populate the AlbumPath table with initial breadcrumb data
-      PenguinMemories.Database.PathCompute.compute_and_store_paths(child_album.id)
+      PathCompute.compute_and_store_paths(child_album.id)
 
       # Verify initial breadcrumb data exists
       initial_path = Repo.get_by(AlbumPath, descendant_id: child_album.id)
@@ -113,7 +113,7 @@ defmodule PenguinMemories.ContextBreadcrumbSyncTest do
 
       assert has_updated_context, "Updated breadcrumb should contain new context name"
 
-      # Verify old context name is no longer present  
+      # Verify old context name is no longer present
       refute has_old_context, "Updated breadcrumb should not contain old context name"
     end
 
@@ -143,9 +143,9 @@ defmodule PenguinMemories.ContextBreadcrumbSyncTest do
         })
 
       # Compute initial paths for all albums
-      PenguinMemories.Database.PathCompute.compute_and_store_paths(grandparent.id)
-      PenguinMemories.Database.PathCompute.compute_and_store_paths(parent.id)
-      PenguinMemories.Database.PathCompute.compute_and_store_paths(child.id)
+      PathCompute.compute_and_store_paths(grandparent.id)
+      PathCompute.compute_and_store_paths(parent.id)
+      PathCompute.compute_and_store_paths(child.id)
 
       # Update the middle level (parent) context
       assoc_data = %{

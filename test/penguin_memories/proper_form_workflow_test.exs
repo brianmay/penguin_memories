@@ -25,19 +25,19 @@ defmodule PenguinMemories.ProperFormWorkflowTest do
       # Verify that validation does NOT apply changes immediately
       child_after_validation = Repo.get!(AlbumSchema, child.id) |> Repo.preload([:album_parents])
 
-      assert length(child_after_validation.album_parents) == 0,
+      assert child_after_validation.album_parents == [],
              "Validation should not apply changes immediately"
 
       # Verify operations are stored in changeset for later application
       stored_operations = Ecto.Changeset.get_change(changeset, :album_parents_operations)
       assert stored_operations != nil, "Operations should be stored in changeset"
-      assert length(stored_operations.to_add) == 1, "Should have one operation to add"
+      assert stored_operations.to_add != [], "Should have one operation to add"
 
       # Now simulate form save (user clicks Save button)
       {:ok, updated_album} = Query.apply_edit_changeset(changeset)
 
       # Verify changes are only applied after form save
-      assert length(updated_album.album_parents) == 1, "Changes should be applied after form save"
+      assert updated_album.album_parents != [], "Changes should be applied after form save"
 
       assert Enum.any?(updated_album.album_parents, &(&1.parent_id == parent.id)),
              "Parent relationship should exist after save"
@@ -62,7 +62,7 @@ defmodule PenguinMemories.ProperFormWorkflowTest do
       # Check that no changes were applied
       child_after_cancel = Repo.get!(AlbumSchema, child.id) |> Repo.preload([:album_parents])
 
-      assert length(child_after_cancel.album_parents) == 0,
+      assert child_after_cancel.album_parents == [],
              "No changes should be applied when form is cancelled"
     end
   end

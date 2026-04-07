@@ -618,6 +618,7 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   defp get_parent_context(_), do: nil
 
   @spec get_parent_details_from_context(assigns :: map()) :: {String.t(), String.t()} | nil
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp get_parent_details_from_context(assigns) do
     case get_parent_context(assigns) do
       {parent_type, parent_id} ->

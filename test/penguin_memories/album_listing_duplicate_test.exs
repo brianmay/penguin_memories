@@ -52,7 +52,7 @@ defmodule PenguinMemories.AlbumListingDuplicateTest do
       hobart_entry = List.first(hobart_entries)
       assert hobart_entry.context_name == "Hobart"
 
-      # Test query for children of conferences_album  
+      # Test query for children of conferences_album
       conference_filtered_query = AlbumBackend.filter_by_parent_id(query, conferences_album.id)
       conference_children = Repo.all(conference_filtered_query)
 

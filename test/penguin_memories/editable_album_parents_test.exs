@@ -231,7 +231,7 @@ defmodule PenguinMemories.EditableAlbumParentsTest do
       assert parent1_rel.context_name == "Updated P1"
       assert parent1_rel.context_sort_name == "updated_p1"
 
-      # Parent 3 should be newly added  
+      # Parent 3 should be newly added
       assert parent3_rel.context_name == "New P3"
       assert parent3_rel.context_sort_name == "new_p3"
 

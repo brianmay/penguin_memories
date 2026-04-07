@@ -7,6 +7,7 @@ defmodule PenguinMemories.LegacyParentClearingTest do
   use PenguinMemories.DataCase
 
   alias PenguinMemories.Database.Impl.Backend.Album, as: AlbumBackend
+  alias PenguinMemories.Database.Query
   alias PenguinMemories.Photos.{Album, AlbumParent}
 
   describe "legacy parent_id clearing" do
@@ -52,7 +53,7 @@ defmodule PenguinMemories.LegacyParentClearingTest do
 
       # Apply the changeset
       {:ok, updated_album} = Repo.update(changeset)
-      {:ok, updated_album} = PenguinMemories.Database.Query.apply_edit_changeset(changeset)
+      {:ok, updated_album} = Query.apply_edit_changeset(changeset)
 
       # Verify legacy parent_id is cleared and new relationships exist
       final_album = Repo.get!(Album, updated_album.id) |> Repo.preload(:album_parents)
@@ -100,7 +101,7 @@ defmodule PenguinMemories.LegacyParentClearingTest do
       assert changeset.valid?
       refute Map.has_key?(changeset.changes, :parent_id)
 
-      # Apply the changeset  
+      # Apply the changeset
       {:ok, updated_album} = Repo.update(changeset)
 
       # Verify legacy parent_id is preserved

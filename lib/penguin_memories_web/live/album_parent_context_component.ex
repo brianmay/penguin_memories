@@ -162,6 +162,7 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
   defp normalize_relationships(nil), do: []
   defp normalize_relationships([]), do: []
 
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp normalize_relationships(relationships) when is_list(relationships) do
     Enum.map(relationships, fn
       # Handle the new format from backend - maps with context data
@@ -258,6 +259,7 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
     socket
   end
 
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp handle_context_update(socket, parent_id_string, field, value) do
     parent_id = String.to_integer(parent_id_string)
 

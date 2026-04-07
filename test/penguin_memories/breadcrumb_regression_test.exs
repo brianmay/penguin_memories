@@ -7,7 +7,7 @@ defmodule PenguinMemories.BreadcrumbRegressionTest do
 
   use PenguinMemories.DataCase
 
-  alias PenguinMemories.Database.Query
+  alias PenguinMemories.Database.{PathCompute, Query}
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.AlbumParent
   alias PenguinMemories.Photos.AlbumPath
@@ -32,7 +32,7 @@ defmodule PenguinMemories.BreadcrumbRegressionTest do
         })
 
       # Initial path computation (simulating the state before the update)
-      PenguinMemories.Database.PathCompute.compute_and_store_paths(orbost_album.id)
+      PathCompute.compute_and_store_paths(orbost_album.id)
 
       # Verify initial breadcrumb contains the original context name
       initial_path = Repo.get_by(AlbumPath, descendant_id: orbost_album.id)
@@ -120,14 +120,13 @@ defmodule PenguinMemories.BreadcrumbRegressionTest do
             # Extract icon names from the trail structure
             trail
             |> Enum.flat_map(fn {_position, icons} -> icons end)
-            |> Enum.map(& &1.name)
-            |> Enum.join(" 🠆 ")
+            |> Enum.map_join(" 🠆 ", & &1.name)
 
           {:single_trail, trail} when is_list(trail) ->
-            trail |> Enum.map(& &1.name) |> Enum.join(" 🠆 ")
+            Enum.map_join(trail, " 🠆 ", & &1.name)
 
-          {:multiple_trails, trails} when is_list(trails) and length(trails) > 0 ->
-            trails |> List.first() |> Enum.map(& &1.name) |> Enum.join(" 🠆 ")
+          {:multiple_trails, trails} when is_list(trails) and trails != [] ->
+            trails |> List.first() |> Enum.map_join(" 🠆 ", & &1.name)
 
           _ ->
             ""

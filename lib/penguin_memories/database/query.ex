@@ -511,7 +511,7 @@ defmodule PenguinMemories.Database.Query do
         group_by: aa.ascendant_id,
         select: %{album_id: aa.ascendant_id, count: count(pa.photo_id, :distinct)}
 
-    # Child count subquery - same pattern as in album backend  
+    # Child count subquery - same pattern as in album backend
     child_count_query =
       from a in Album,
         where: not is_nil(a.parent_id),

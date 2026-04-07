@@ -18,9 +18,9 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
   alias PenguinMemories.Photos.PhotoAlbum
   alias PenguinMemories.Photos.PhotoCategory
   alias PenguinMemories.Photos.PhotoPerson
-  alias PenguinMemories.Photos.PlaceAscendant
   alias PenguinMemories.Photos.PhotoRelation
   alias PenguinMemories.Photos.PhotoUpdate
+  alias PenguinMemories.Photos.PlaceAscendant
   alias PenguinMemories.Photos.Relation
   alias PenguinMemories.Repo
   @behaviour API

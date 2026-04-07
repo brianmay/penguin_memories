@@ -39,7 +39,7 @@ defmodule PenguinMemories.CircularReferenceDebugTest do
       # This simulates what the UI does when editing album_parents_edit
       import Ecto.Changeset
 
-      # Simulate what the UI form does - pass album_parents_edit in params  
+      # Simulate what the UI form does - pass album_parents_edit in params
       params = %{"album_parents_edit" => [album1]}
       assoc = %{album_parents_edit: [album1]}
 
@@ -64,7 +64,7 @@ defmodule PenguinMemories.CircularReferenceDebugTest do
       album1: album1,
       album40: album40
     } do
-      # First establish album40 -> album1 relationship  
+      # First establish album40 -> album1 relationship
       {:ok, _} = Album.add_to_parent(album40.id, album1.id, %{})
 
       # Now try to add album40 as parent of album1 (this SHOULD fail)

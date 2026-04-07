@@ -5,6 +5,7 @@ defmodule PenguinMemories.MultipleBreadcrumbsTest do
 
   use PenguinMemories.DataCase
 
+  # credo:disable-for-next-line Credo.Check.Readability.AliasOrder
   alias PenguinMemories.Photos.{Album, AlbumParent, AlbumPath}
   alias PenguinMemories.Database.{PathCompute, Query}
 
@@ -74,7 +75,7 @@ defmodule PenguinMemories.MultipleBreadcrumbsTest do
 
       # Each trail should be non-empty
       Enum.each(trails, fn trail ->
-        assert length(trail) > 0, "Each trail should have breadcrumb items"
+        assert trail != [], "Each trail should have breadcrumb items"
       end)
 
       # Test the enhanced get_photo_parents_with_trails function

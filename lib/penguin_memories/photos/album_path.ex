@@ -51,6 +51,7 @@ defmodule PenguinMemories.Photos.AlbumPath do
   end
 
   @spec validate_path_ids(Ecto.Changeset.t()) :: Ecto.Changeset.t()
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp validate_path_ids(changeset) do
     case get_field(changeset, :path_ids) do
       nil ->

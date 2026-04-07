@@ -115,6 +115,7 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   end
 
   @impl true
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def handle_event("select", params, socket) do
     %{"id" => clicked_id, "ctrlKey" => ctrl_key, "shiftKey" => shift_key, "altKey" => alt_key} =
       params

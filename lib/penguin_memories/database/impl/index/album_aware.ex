@@ -53,7 +53,7 @@ defmodule PenguinMemories.Database.Impl.Index.AlbumAware do
       )
       |> Repo.all()
 
-    # Get new many-to-many children  
+    # Get new many-to-many children
     new_child_ids =
       from(ap in AlbumParent,
         where: ap.parent_id == ^id,

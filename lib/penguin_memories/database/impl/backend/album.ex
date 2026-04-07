@@ -608,7 +608,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
       Enum.filter(to_add, fn rel_data ->
         parent_id = rel_data.parent_id
         # Check if adding this parent would create a cycle:
-        # 1. album_id == parent_id (self-reference)  
+        # 1. album_id == parent_id (self-reference)
         # 2. parent_id is already an ancestor of album_id (would create redundant path or cycle)
         album_id == parent_id or is_ancestor?(parent_id, album_id)
       end)
@@ -626,7 +626,9 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
           to_update :: list(map()),
           to_remove :: list(integer())
         ) :: :ok | {:error, any()}
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   def apply_album_parent_operations(album_id, to_add, to_update, to_remove) do
+    # credo:disable-for-next-line Credo.Check.Readability.PreferImplicitTry
     try do
       # Remove relationships
       Enum.each(to_remove, fn parent_id ->
