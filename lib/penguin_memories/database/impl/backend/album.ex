@@ -636,7 +636,6 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
           {:ok, _} -> :ok
           # Already removed, ignore
           {:error, :not_found} -> :ok
-          {:error, reason} -> throw({:remove_error, reason})
         end
       end)
 
