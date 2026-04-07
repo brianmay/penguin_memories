@@ -2,6 +2,7 @@ import Config
 
 config :penguin_memories,
   image_dir: System.get_env("IMAGE_DIR"),
+  upload_staging_dir: System.get_env("UPLOAD_STAGING_DIR"),
   oidc: %{
     discovery_document_uri: System.get_env("OIDC_DISCOVERY_URL"),
     client_id: System.get_env("OIDC_CLIENT_ID"),

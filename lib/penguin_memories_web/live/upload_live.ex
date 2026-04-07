@@ -53,7 +53,15 @@ defmodule PenguinMemoriesWeb.UploadLive do
         status: :idle,
         results: [],
         pending: 0,
-        error: nil
+        error: nil,
+        # Server-side import assigns
+        server_path: "",
+        server_album_name: "",
+        server_auto_rotate: false,
+        server_error: nil,
+        server_status: :idle,
+        staging_dir: Application.get_env(:penguin_memories, :upload_staging_dir),
+        is_admin: false
       )
       |> allow_upload(:photos,
         accept: @all_extensions,
@@ -71,7 +79,8 @@ defmodule PenguinMemoriesWeb.UploadLive do
   @impl true
   def handle_params(_params, uri, socket) do
     url = Urls.parse_url(uri)
-    {:noreply, assign(socket, url: url)}
+    is_admin = Auth.user_is_admin?(socket.assigns[:current_user])
+    {:noreply, assign(socket, url: url, is_admin: is_admin)}
   end
 
   # ---------------------------------------------------------------------------
@@ -91,6 +100,64 @@ defmodule PenguinMemoriesWeb.UploadLive do
 
   def handle_event("cancel-upload", %{"ref" => ref}, socket) do
     {:noreply, cancel_upload(socket, :photos, ref)}
+  end
+
+  def handle_event("validate-server", %{"server" => params}, socket) do
+    server_path = Map.get(params, "server_path", socket.assigns.server_path)
+    server_album_name = Map.get(params, "server_album_name", socket.assigns.server_album_name)
+
+    server_auto_rotate =
+      Map.get(params, "server_auto_rotate", "false") == "true"
+
+    {:noreply,
+     assign(socket,
+       server_path: server_path,
+       server_album_name: server_album_name,
+       server_auto_rotate: server_auto_rotate
+     )}
+  end
+
+  def handle_event("validate-server", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("import-server", _params, socket) do
+    user = socket.assigns[:current_user]
+
+    unless Auth.user_is_admin?(user) do
+      {:noreply, assign(socket, server_error: "Admin access required.")}
+    else
+      staging_dir = socket.assigns.staging_dir
+      raw_path = String.trim(socket.assigns.server_path)
+      album_name = String.trim(socket.assigns.server_album_name)
+      auto_rotate = socket.assigns.server_auto_rotate
+
+      with {:staging, true} <- {:staging, not is_nil(staging_dir)},
+           {:album, true} <- {:album, album_name != ""},
+           {:path, true} <- {:path, raw_path != ""},
+           {:prefix, true} <- {:prefix, String.starts_with?(raw_path, staging_dir)},
+           {:dir, true} <- {:dir, File.dir?(raw_path)} do
+        start_server_processing(socket, raw_path, album_name, auto_rotate)
+      else
+        {:staging, false} ->
+          {:noreply, assign(socket, server_error: "Server-side import is not configured.")}
+
+        {:album, false} ->
+          {:noreply, assign(socket, server_error: "Please enter an album name.")}
+
+        {:path, false} ->
+          {:noreply, assign(socket, server_error: "Please enter a directory path.")}
+
+        {:prefix, false} ->
+          {:noreply,
+           assign(socket,
+             server_error: "Path must be inside the configured staging directory."
+           )}
+
+        {:dir, false} ->
+          {:noreply, assign(socket, server_error: "Path does not exist or is not a directory.")}
+      end
+    end
   end
 
   def handle_event("upload", _params, socket) do
@@ -141,6 +208,27 @@ defmodule PenguinMemoriesWeb.UploadLive do
 
   def handle_info({:processing_error, reason}, socket) do
     {:noreply, assign(socket, status: :done, error: "Processing failed: #{reason}")}
+  end
+
+  def handle_info({:server_file_result, result}, socket) do
+    results = socket.assigns.results ++ [result]
+    pending = max(socket.assigns.pending - 1, 0)
+    server_status = if pending == 0, do: :done, else: :processing
+
+    socket =
+      socket
+      |> assign(results: results, pending: pending, server_status: server_status)
+      |> then(fn s ->
+        if server_status == :done,
+          do: put_flash(s, :info, build_summary(results)),
+          else: s
+      end)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({:server_processing_error, reason}, socket) do
+    {:noreply, assign(socket, server_status: :done, server_error: "Import failed: #{reason}")}
   end
 
   # ---------------------------------------------------------------------------
@@ -276,6 +364,59 @@ defmodule PenguinMemoriesWeb.UploadLive do
         Logger.error("Upload failed for #{original_name}: #{inspect(reason)}")
         %{name: original_name, status: :error, detail: to_string(reason)}
     end
+  end
+
+  @spec start_server_processing(Phoenix.LiveView.Socket.t(), String.t(), String.t(), boolean()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
+  defp start_server_processing(socket, directory, album_name, auto_rotate) do
+    lv_pid = self()
+
+    # Count primary files first so we can set pending correctly.
+    # upload_directory/2 internally skips sidecars; we replicate that logic to
+    # get an accurate count before the task starts.
+    sidecar_exts = [".CR2", ".cr2", ".CR3", ".cr3", ".dng", ".pp3", ".xmp"]
+
+    pending =
+      File.ls!(directory)
+      |> Enum.reject(fn name ->
+        full = Path.join(directory, name)
+        File.dir?(full) or Path.extname(name) in sidecar_exts
+      end)
+      |> length()
+
+    Task.start(fn ->
+      try do
+        album = Upload.get_upload_album(album_name)
+        opts = [verbose: false, auto_rotate: auto_rotate]
+
+        File.ls!(directory)
+        |> Enum.sort()
+        |> Enum.reject(fn name ->
+          full = Path.join(directory, name)
+          File.dir?(full) or Path.extname(name) in sidecar_exts
+        end)
+        |> Enum.each(fn name ->
+          path = Path.join(directory, name)
+          result = do_upload_file(path, name, album, opts)
+          send(lv_pid, {:server_file_result, result})
+        end)
+      rescue
+        e ->
+          send(lv_pid, {:server_processing_error, Exception.message(e)})
+      end
+    end)
+
+    socket =
+      assign(socket,
+        server_status: :processing,
+        results: [],
+        pending: pending,
+        server_error: nil,
+        server_path: "",
+        server_album_name: ""
+      )
+
+    {:noreply, socket}
   end
 
   @spec build_summary(list(map())) :: String.t()

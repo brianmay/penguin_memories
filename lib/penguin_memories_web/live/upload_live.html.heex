@@ -180,4 +180,113 @@
       </table>
     </div>
   <% end %>
+
+  <%= if not is_nil(@staging_dir) and @is_admin do %>
+    <hr />
+    <h3>Import from server directory</h3>
+    <p class="text-muted small">
+      For large files (&gt;200 MB) that cannot be uploaded via the browser, rsync
+      them to a staging directory under <code>{@staging_dir}</code> and then
+      enter the path below.
+    </p>
+
+    <%= if @server_error do %>
+      <div class="alert alert-danger">{@server_error}</div>
+    <% end %>
+
+    <form id="server-import-form" phx-submit="import-server" phx-change="validate-server">
+      <div class="mb-3">
+        <label for="server_album_name" class="form-label">Album name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="server_album_name"
+          name="server[server_album_name]"
+          value={@server_album_name}
+          placeholder="e.g. 2024-03-Holiday"
+          required
+        />
+        <div class="form-text">
+          Photos will be placed in an album under <strong>Uploads</strong>.
+        </div>
+      </div>
+
+      <div class="mb-3 form-check">
+        <input
+          type="checkbox"
+          class="form-check-input"
+          id="server_auto_rotate"
+          name="server[server_auto_rotate]"
+          value="true"
+          checked={@server_auto_rotate}
+        />
+        <label class="form-check-label" for="server_auto_rotate">
+          Auto-rotate JPEG based on EXIF orientation after import
+        </label>
+      </div>
+
+      <div class="mb-3">
+        <label for="server_path" class="form-label">Directory path on server</label>
+        <input
+          type="text"
+          class="form-control font-monospace"
+          id="server_path"
+          name="server[server_path]"
+          value={@server_path}
+          placeholder={@staging_dir <> "/my-directory"}
+        />
+        <div class="form-text">
+          Must be a subdirectory of <code>{@staging_dir}</code>.
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <%= if @server_status == :processing do %>
+          <button type="button" class="btn btn-secondary" disabled>
+            <span
+              class="spinner-border spinner-border-sm me-1"
+              role="status"
+              aria-hidden="true"
+            >
+            </span>
+            Importing… ({@pending} remaining)
+          </button>
+        <% else %>
+          <button type="submit" class="btn btn-secondary">
+            Import from server
+          </button>
+        <% end %>
+      </div>
+    </form>
+
+    <%= if @server_status in [:processing, :done] and Enum.any?(@results) do %>
+      <hr />
+      <h4>
+        Results
+        <%= if @server_status == :processing do %>
+          <span class="spinner-border spinner-border-sm ms-2" role="status"></span>
+        <% end %>
+      </h4>
+      <div style="max-height:600px; overflow-y:auto;">
+        <table class="table table-sm table-hover">
+          <thead class="table-dark sticky-top">
+            <tr>
+              <th>Status</th>
+              <th>File</th>
+              <th>Detail</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= for result <- @results do %>
+              <tr class={result_row_class(result.status)}>
+                <td class="text-nowrap">{result_badge(result.status)}</td>
+                <td class="text-truncate" style="max-width:300px">{result.name}</td>
+                <td>{result.detail}</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% end %>
+  <% end %>
 </section>

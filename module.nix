@@ -11,6 +11,7 @@ let
     types
     mkEnableOption
     mkIf
+    optional
     ;
 
   cfg = config.services.penguin_memories;
@@ -57,6 +58,11 @@ in
       type = types.int;
       default = 4000;
     };
+    upload_staging_dir = mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = "Directory prefix that admin users may import from via the web UI. Set to null to disable the feature.";
+    };
     data_dir = mkOption {
       type = types.str;
       default = "/var/lib/penguin_memories";
@@ -95,7 +101,8 @@ in
           "IMAGE_DIR=${cfg.image_dir}"
           "PORT=${toString cfg.port}"
           "PRIVATE_LOCATIONS=${private_locations}"
-        ];
+        ]
+        ++ optional (cfg.upload_staging_dir != null) "UPLOAD_STAGING_DIR=${cfg.upload_staging_dir}";
         # Secrets (DATABASE_URL, RELEASE_COOKIE, …) come from a file that is
         # not world-readable, so they are not baked into the Nix store.
         EnvironmentFile = cfg.secrets;

@@ -12,6 +12,10 @@ config :penguin_memories,
   vcs_ref: System.get_env("VCS_REF"),
   ecto_repos: [PenguinMemories.Repo],
   image_url: "/images",
+  # Directory prefix that admins may import from via the web UI.
+  # Only paths that start with this prefix are accepted.
+  # Set to nil (the default) to disable the server-side import feature entirely.
+  upload_staging_dir: nil,
   cameras: %{
     "Canon EOS R5" => {"Australia/Victoria", "00:00:00"},
     "Canon EOS R5m2" => {"Australia/Victoria", "00:00:00"},
