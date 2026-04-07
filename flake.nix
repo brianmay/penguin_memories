@@ -165,15 +165,15 @@
                 http_url = "http://localhost:4000";
                 port = 4000;
                 secrets = pkgs.writeText "secrets.txt" ''
-                  export RELEASE_COOKIE="12345678901234567890123456789012345678901234567890123456"
-                  export DATABASE_URL="postgres://penguin_memories:your_secure_password_here@localhost/penguin_memories"
-                  export GUARDIAN_SECRET="1234567890123456789012345678901234567890123456789012345678901234"
-                  export SECRET_KEY_BASE="1234567890123456789012345678901234567890123456789012345678901234"
-                  export SIGNING_SALT="12345678901234567890123456789012"
-                  export OIDC_DISCOVERY_URL="http://localhost"
-                  export OIDC_CLIENT_ID="photos"
-                  export OIDC_CLIENT_SECRET="12345678901234567890123456789012"
-                  export OIDC_AUTH_SCOPE="openid profile groups"
+                  RELEASE_COOKIE="12345678901234567890123456789012345678901234567890123456"
+                  DATABASE_URL="postgres://penguin_memories:your_secure_password_here@localhost/penguin_memories"
+                  GUARDIAN_SECRET="1234567890123456789012345678901234567890123456789012345678901234"
+                  SECRET_KEY_BASE="1234567890123456789012345678901234567890123456789012345678901234"
+                  SIGNING_SALT="12345678901234567890123456789012"
+                  OIDC_DISCOVERY_URL="http://localhost"
+                  OIDC_CLIENT_ID="photos"
+                  OIDC_CLIENT_SECRET="12345678901234567890123456789012"
+                  OIDC_AUTH_SCOPE="openid profile groups"
                 '';
               };
               system.stateVersion = "24.05";
