@@ -274,59 +274,87 @@ defmodule PenguinMemoriesWeb.UploadLive do
   defp start_processing(socket, album_name, auto_rotate) do
     lv_pid = self()
 
+    # Cancel any errored entries before consuming. consume_uploaded_entries
+    # raises if *any* entry is not done? (including errored ones), so we must
+    # remove them first. Errored entries have done? == false, which would
+    # cause an ArgumentError and crash the LiveView process silently.
+    socket =
+      Enum.reduce(socket.assigns.uploads.photos.entries, socket, fn entry, acc ->
+        if upload_errors(acc.assigns.uploads.photos, entry) != [] do
+          cancel_upload(acc, :photos, entry.ref)
+        else
+          acc
+        end
+      end)
+
     # Consume all completed entries into a dedicated temp directory that we
     # own. LiveView cleans up its own tmp dir after consume_uploaded_entries
     # returns, so we must copy the files somewhere we control before handing
     # off to the background task.
     tmp_dir = Temp.mkdir!("pm_upload_")
 
-    file_pairs =
-      consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
-        dest = Path.join(tmp_dir, entry.client_name)
-        File.cp!(tmp_path, dest)
-        {:ok, {entry.client_name, dest}}
-      end)
-
-    # Group by base name so CR2/CR3 sidecars pair with their primary file.
-    file_groups =
-      Enum.group_by(file_pairs, fn {name, _path} ->
-        name |> Path.basename() |> Path.rootname() |> String.downcase()
-      end)
-
-    pending = map_size(file_groups)
-
-    Task.start(fn ->
+    result =
       try do
-        album = Upload.get_upload_album(album_name)
-        opts = [verbose: false, auto_rotate: auto_rotate]
+        file_pairs =
+          consume_uploaded_entries(socket, :photos, fn %{path: tmp_path}, entry ->
+            dest = Path.join(tmp_dir, entry.client_name)
+            File.cp!(tmp_path, dest)
+            {:ok, {entry.client_name, dest}}
+          end)
 
-        Enum.each(file_groups, fn {_base, files} ->
-          result = process_file_group(files, album, opts)
-          send(lv_pid, {:file_result, result})
-        end)
-
-        Index.process_pending(Photos.Album)
+        {:ok, file_pairs}
       rescue
         e ->
-          send(lv_pid, {:processing_error, Exception.message(e)})
-      catch
-        :exit, reason ->
-          send(lv_pid, {:processing_error, "unexpected exit: #{inspect(reason)}"})
-      after
-        File.rm_rf(tmp_dir)
+          File.rm_rf(tmp_dir)
+          {:error, Exception.message(e)}
       end
-    end)
 
-    socket =
-      assign(socket,
-        status: :processing,
-        results: [],
-        pending: pending,
-        error: nil,
-        album_name: ""
-      )
+    case result do
+      {:error, reason} ->
+        {:noreply, assign(socket, error: "Upload preparation failed: #{reason}")}
 
-    {:noreply, socket}
+      {:ok, file_pairs} ->
+        # Group by base name so CR2/CR3 sidecars pair with their primary file.
+        file_groups =
+          Enum.group_by(file_pairs, fn {name, _path} ->
+            name |> Path.basename() |> Path.rootname() |> String.downcase()
+          end)
+
+        pending = map_size(file_groups)
+
+        Task.start(fn ->
+          try do
+            album = Upload.get_upload_album(album_name)
+            opts = [verbose: false, auto_rotate: auto_rotate]
+
+            Enum.each(file_groups, fn {_base, files} ->
+              result = process_file_group(files, album, opts)
+              send(lv_pid, {:file_result, result})
+            end)
+
+            Index.process_pending(Photos.Album)
+          rescue
+            e ->
+              send(lv_pid, {:processing_error, Exception.message(e)})
+          catch
+            :exit, reason ->
+              send(lv_pid, {:processing_error, "unexpected exit: #{inspect(reason)}"})
+          after
+            File.rm_rf(tmp_dir)
+          end
+        end)
+
+        socket =
+          assign(socket,
+            status: :processing,
+            results: [],
+            pending: pending,
+            error: nil,
+            album_name: ""
+          )
+
+        {:noreply, socket}
+    end
   end
 
   # Given a group of files sharing the same base name, determine which is

@@ -5,7 +5,7 @@
     <div class="alert alert-danger">{@error}</div>
   <% end %>
 
-  <form id="upload-form" phx-submit="upload" phx-change="validate">
+  <form id="upload-form" phx-change="validate">
     <div class="mb-3">
       <label for="album_name" class="form-label">Album name</label>
       <input
@@ -147,7 +147,8 @@
           </button>
         <% true -> %>
           <button
-            type="submit"
+            type="button"
+            phx-click="upload"
             class="btn btn-primary"
             disabled={Enum.empty?(@uploads.photos.entries) or @status == :processing}
           >
