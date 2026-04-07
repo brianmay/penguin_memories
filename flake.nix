@@ -91,6 +91,11 @@
             mix do deps.loadpaths --no-deps-check, phx.digest
             mix phx.digest --no-deps-check
           '';
+
+          postInstall = ''
+            # Fix rambo binary execute permission (nix store issue)
+            chmod +x $out/lib/rambo-0.3.4/priv/rambo-linux
+          '';
         };
 
         psql = pkgs.writeShellScriptBin "pm_psql" ''
