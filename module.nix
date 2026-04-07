@@ -95,7 +95,7 @@ in
         User = "penguin_memories";
         # Non-secret configuration is declared directly in the unit.
         Environment = [
-          "PATH=${pkgs.gawk}/bin:${pkgs.coreutils}/bin:${pkgs.perl538Packages.ImageExifTool}/bin:${pkgs.ffmpeg}/bin:${pkgs.libraw}/bin:${pkgs.exiftran}/bin:${pkgs.imagemagick}/bin"
+          "PATH=${pkgs.gawk}/bin:${pkgs.coreutils}/bin:${pkgs.perl538Packages.ImageExifTool}/bin:${pkgs.ffmpeg}/bin:${pkgs.libraw}/bin:${pkgs.fbida}/bin:${pkgs.imagemagick}/bin"
           "RELEASE_TMP=${cfg.data_dir}/tmp"
           "HTTP_URL=${cfg.http_url}"
           "IMAGE_DIR=${cfg.image_dir}"
