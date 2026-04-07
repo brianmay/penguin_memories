@@ -2,6 +2,10 @@
 @import "../node_modules/nprogress/nprogress.css";
 @import "~bootstrap/scss/bootstrap";
 
+body {
+  overflow-x: hidden;
+}
+
 /* LiveView specific classes for your customizations */
 .phx-no-feedback.invalid-feedback,
 .phx-no-feedback .invalid-feedback {
@@ -131,6 +135,15 @@
 
 .list .hoverable {
   display: inline-block;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 /* PHOTO LIST */
@@ -311,11 +324,14 @@
 }
 
 .photo_table {
-  width: 400px;
-}
+  width: 100%;
+  max-width: 400px;
+  table-layout: fixed;
 
-form {
-  width: 400px;
+  td,
+  th {
+    overflow-wrap: break-word;
+  }
 }
 
 .details {
@@ -323,6 +339,10 @@ form {
   margin-top: 10px;
   padding: 5px;
   position: relative;
+
+  form {
+    width: 100%;
+  }
 
   .btn-prev {
     position: absolute;
@@ -442,6 +462,7 @@ form {
     .photo-map-container.big-mode .photo-map {
       display: none; /* Hidden by default in Big mode */
       width: 400px;
+      max-width: calc(100vw - 20px);
       height: 300px;
       position: absolute;
       z-index: 100;
@@ -508,9 +529,35 @@ form {
   flex-wrap: wrap;
   align-items: flex-start;
 
+  // Constrain the photo thumbnail so it never forces the container wider
+  // than the viewport. The hard width/height attributes on <img> set the
+  // intrinsic size; max-width overrides that on narrow screens.
+  .photo {
+    max-width: 100%;
+    min-width: 0; // allow flex item to shrink below its content size
+
+    img,
+    video {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+
   .photo_table,
   form {
     margin-left: 10px;
+    min-width: 0; // allow flex item to shrink below its content size
+    width: 100%;
+  }
+
+  @media (max-width: 575px) {
+    flex-direction: column;
+
+    .photo_table,
+    form {
+      margin-left: 0;
+      margin-top: 10px;
+    }
   }
 }
 
@@ -637,7 +684,18 @@ form {
 /* Album Parents Table Styling */
 .album-parents-table {
   margin-top: 0.5rem;
-  
+  /* Override the parent .photo_table's fixed-layout constraint so columns
+     can size to their content and the table is not truncated at 400px. */
+  width: auto;
+  max-width: none;
+  table-layout: auto;
+
+  td,
+  th {
+    overflow: visible;
+    overflow-wrap: normal;
+  }
+
   .album-parent-row {
     transition: background-color 0.2s ease;
     

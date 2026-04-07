@@ -59,6 +59,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   defp display_album_parents_table(album_parents) do
     table_html =
       """
+      <div class="table-responsive">
       <table class="album-parents-table table table-striped table-sm">
         <thead>
           <tr>
@@ -76,9 +77,10 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
         """
           </tbody>
         </table>
+        </div>
         """
 
-    raw(table_html)
+    {:wide, raw(table_html)}
   end
 
   @spec render_album_parent_row(album_parent :: AlbumParent.t()) :: String.t()
@@ -147,16 +149,35 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
           end
 
         if show_field do
-          [
-            raw("<tr>"),
-            raw("<th>"),
-            field.name,
-            raw("</th>"),
-            raw("<td>"),
-            output_field_value(obj, value, field),
-            raw("</td>"),
-            raw("</tr>")
-          ]
+          case output_field_value(obj, value, field) do
+            {:wide, rendered} ->
+              # Wide fields (e.g. album-parents table) span both columns so
+              # they are not constrained by the fixed-layout label column.
+              [
+                raw("<tr>"),
+                raw("<th colspan=\"2\">"),
+                field.name,
+                raw("</th>"),
+                raw("</tr>"),
+                raw("<tr>"),
+                raw("<td colspan=\"2\">"),
+                rendered,
+                raw("</td>"),
+                raw("</tr>")
+              ]
+
+            rendered ->
+              [
+                raw("<tr>"),
+                raw("<th>"),
+                field.name,
+                raw("</th>"),
+                raw("<td>"),
+                rendered,
+                raw("</td>"),
+                raw("</tr>")
+              ]
+          end
         else
           nil
         end
