@@ -51,11 +51,16 @@
     </div>
 
     <%= if Enum.any?(@uploads.photos.entries) do %>
-      <% total = length(@uploads.photos.entries) %>
-      <% done = Enum.count(@uploads.photos.entries, & &1.done?) %>
+      <% all_entries = Enum.sort_by(@uploads.photos.entries, & &1.client_name) %>
+      <% total = length(all_entries) %>
+      <% done = Enum.count(all_entries, & &1.done?) %>
+      <% errored = Enum.count(all_entries, &(upload_errors(@uploads.photos, &1) != [])) %>
       <div class="mb-3">
         <p class="text-muted small mb-1">
-          {total} file(s) selected — {done} of {total} transferred to server
+          {total} file(s) selected — {done} of {total - errored} transferred
+          <%= if errored > 0 do %>
+            <span class="text-danger">({errored} error(s) — will be skipped)</span>
+          <% end %>
         </p>
         <div style="max-height:300px; overflow-y:auto;">
           <table class="table table-sm table-hover mb-0">
@@ -68,25 +73,33 @@
               </tr>
             </thead>
             <tbody>
-              <%= for entry <- @uploads.photos.entries do %>
-                <tr>
+              <%= for entry <- all_entries do %>
+                <% entry_errors = upload_errors(@uploads.photos, entry) %>
+                <tr class={if entry_errors != [], do: "table-warning", else: ""}>
                   <td class="text-truncate" style="max-width:280px">{entry.client_name}</td>
                   <td class="text-nowrap">{format_bytes(entry.client_size)}</td>
                   <td style="min-width:100px">
-                    <%= if entry.done? do %>
-                      <span class="text-success small">&#10003; Ready</span>
-                    <% else %>
-                      <div class="progress" style="height:6px">
-                        <div
-                          class="progress-bar"
-                          role="progressbar"
-                          style={"width:#{entry.progress}%"}
-                          aria-valuenow={entry.progress}
-                          aria-valuemin="0"
-                          aria-valuemax="100"
-                        >
+                    <%= cond do %>
+                      <% entry_errors != [] -> %>
+                        <span class="text-danger small">
+                          <%= for err <- entry_errors do %>
+                            {error_to_string(err)}
+                          <% end %>
+                        </span>
+                      <% entry.done? -> %>
+                        <span class="text-success small">&#10003; Ready</span>
+                      <% true -> %>
+                        <div class="progress" style="height:6px">
+                          <div
+                            class="progress-bar"
+                            role="progressbar"
+                            style={"width:#{entry.progress}%"}
+                            aria-valuenow={entry.progress}
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                          >
+                          </div>
                         </div>
-                      </div>
                     <% end %>
                   </td>
                   <td>
@@ -101,11 +114,6 @@
                     </button>
                   </td>
                 </tr>
-                <%= for err <- upload_errors(@uploads.photos, entry) do %>
-                  <tr class="table-danger">
-                    <td colspan="4" class="small">{error_to_string(err)}</td>
-                  </tr>
-                <% end %>
               <% end %>
             </tbody>
           </table>
@@ -125,7 +133,9 @@
             </span>
             Processing… ({@pending} remaining)
           </button>
-        <% Enum.any?(@uploads.photos.entries) and not Enum.all?(@uploads.photos.entries, & &1.done?) -> %>
+        <% Enum.any?(@uploads.photos.entries, fn e ->
+             not e.done? and upload_errors(@uploads.photos, e) == []
+           end) -> %>
           <button type="submit" class="btn btn-primary" disabled>
             Waiting for transfer…
           </button>

@@ -106,8 +106,8 @@ defmodule PenguinMemoriesWeb.UploadLive do
         album_name == "" ->
           {:noreply, assign(socket, error: "Please enter an album name.")}
 
-        Enum.empty?(socket.assigns.uploads.photos.entries) ->
-          {:noreply, assign(socket, error: "No files selected.")}
+        Enum.empty?(valid_entries(socket)) ->
+          {:noreply, assign(socket, error: "No valid files to upload.")}
 
         not all_transfers_complete?(socket) ->
           {:noreply, assign(socket, error: "Please wait for all files to finish transferring.")}
@@ -149,7 +149,22 @@ defmodule PenguinMemoriesWeb.UploadLive do
 
   @spec all_transfers_complete?(Phoenix.LiveView.Socket.t()) :: boolean()
   defp all_transfers_complete?(socket) do
-    Enum.all?(socket.assigns.uploads.photos.entries, & &1.done?)
+    conf = socket.assigns.uploads.photos
+
+    # An entry with errors will never become done? — treat it as complete so
+    # it doesn't block processing of the valid entries.
+    Enum.all?(conf.entries, fn entry ->
+      entry.done? or upload_errors(conf, entry) != []
+    end)
+  end
+
+  @spec valid_entries(Phoenix.LiveView.Socket.t()) :: list()
+  defp valid_entries(socket) do
+    conf = socket.assigns.uploads.photos
+
+    Enum.filter(conf.entries, fn entry ->
+      upload_errors(conf, entry) == []
+    end)
   end
 
   @spec start_processing(Phoenix.LiveView.Socket.t(), String.t(), boolean()) ::
