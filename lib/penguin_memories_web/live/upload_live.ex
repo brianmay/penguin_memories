@@ -20,6 +20,8 @@ defmodule PenguinMemoriesWeb.UploadLive do
   require Logger
 
   alias PenguinMemories.Auth
+  alias PenguinMemories.Database.Index
+  alias PenguinMemories.Photos
   alias PenguinMemories.Upload
   alias PenguinMemories.Urls
 
@@ -290,9 +292,14 @@ defmodule PenguinMemoriesWeb.UploadLive do
           result = process_file_group(files, album, opts)
           send(lv_pid, {:file_result, result})
         end)
+
+        Index.process_pending(Photos.Album)
       rescue
         e ->
           send(lv_pid, {:processing_error, Exception.message(e)})
+      catch
+        :exit, reason ->
+          send(lv_pid, {:processing_error, "unexpected exit: #{inspect(reason)}"})
       after
         File.rm_rf(tmp_dir)
       end
