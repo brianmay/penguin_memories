@@ -194,32 +194,37 @@ defmodule PenguinMemories.Media do
 
     [type, subtype] = String.split(requirement.format, "/")
 
-    case {type, subtype, is_video(media)} do
-      {"image", "gif", true} ->
-        :ok =
+    result =
+      case {type, subtype, is_video(media)} do
+        {"image", "gif", true} ->
           Thumbnex.animated_gif_thumbnail(path, new_path,
             width: new_size.width,
             height: new_size.height
           )
 
-      {"video", _, _} ->
-        :ok = resize_video(media, new_path, requirement)
+        {"video", _, _} ->
+          resize_video(media, new_path, requirement)
 
-      {"image", _, _} ->
-        extension =
-          requirement.format
-          |> MIME.extensions()
-          |> hd()
+        {"image", _, _} ->
+          extension =
+            requirement.format
+            |> MIME.extensions()
+            |> hd()
 
-        :ok =
-          Thumbnex.create_thumbnail(path, new_path,
-            format: extension,
-            width: new_size.width,
-            height: new_size.height
-          )
+          case Thumbnex.create_thumbnail(path, new_path,
+                 format: extension,
+                 width: new_size.width,
+                 height: new_size.height
+               ) do
+            :ok -> :ok
+            {:error, reason} -> {:error, "thumbnail creation failed: #{reason}"}
+          end
+      end
+
+    case result do
+      :ok -> get_media(new_path, requirement.format)
+      {:error, _reason} -> result
     end
-
-    get_media(new_path, requirement.format)
   end
 
   @spec get_crf(format :: String.t()) :: String.t()
