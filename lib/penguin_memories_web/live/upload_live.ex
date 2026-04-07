@@ -104,6 +104,18 @@ defmodule PenguinMemoriesWeb.UploadLive do
     {:noreply, cancel_upload(socket, :photos, ref)}
   end
 
+  def handle_event("suggest-album-name", %{"name" => name}, socket) do
+    # Only fill in if the user hasn't typed anything yet.
+    socket =
+      if String.trim(socket.assigns.album_name) == "" do
+        assign(socket, album_name: name)
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
   def handle_event("validate-server", %{"server" => params}, socket) do
     server_path = Map.get(params, "server_path", socket.assigns.server_path)
     server_album_name = Map.get(params, "server_album_name", socket.assigns.server_album_name)

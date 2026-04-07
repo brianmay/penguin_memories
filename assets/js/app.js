@@ -133,6 +133,27 @@ Hooks.map = {
 }
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content");
+
+// Auto-populate album name from the selected directory name.
+// When the user picks a folder via webkitdirectory, every file's
+// webkitRelativePath begins with "<dirname>/filename". We extract
+// that first segment and push it to the server so the album name
+// field is pre-filled — but only when the field is currently empty,
+// so we never clobber something the user already typed.
+Hooks.DirectoryUpload = {
+    mounted() {
+        this.el.addEventListener("change", (e) => {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+            const firstPath = files[0].webkitRelativePath;
+            if (!firstPath) return;                       // individual files, not a directory
+            const dirName = firstPath.split("/")[0];
+            if (!dirName) return;
+            this.pushEvent("suggest-album-name", { name: dirName });
+        });
+    }
+}
+
 let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, metadata: metadata, hooks: Hooks});
 
 // Show progress bar on live navigation and form submits
