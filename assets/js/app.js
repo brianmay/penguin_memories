@@ -4,6 +4,8 @@
 import "../css/app.scss";
 
 // Import Leaflet map library
+
+// Import Leaflet map library
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -62,6 +64,7 @@ function get_video(node) {
 }
 
 let Hooks = {};
+
 Hooks.video = {
     mounted() {
         this.updated()
@@ -140,17 +143,32 @@ let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("
 // that first segment and push it to the server so the album name
 // field is pre-filled — but only when the field is currently empty,
 // so we never clobber something the user already typed.
+const PHX_LIVE_FILE_UPDATED = "phx:live-file:updated";
+
 Hooks.DirectoryUpload = {
     mounted() {
-        this.el.addEventListener("change", (e) => {
-            const files = e.target.files;
-            if (!files || files.length === 0) return;
-            const firstPath = files[0].webkitRelativePath;
-            if (!firstPath) return;                       // individual files, not a directory
-            const dirName = firstPath.split("/")[0];
-            if (!dirName) return;
-            this.pushEvent("suggest-album-name", { name: dirName });
+        // Poll for file inputs appearing (in case they're added after mount)
+        this.pollInterval = setInterval(() => {
+            const fileInput = this.el.querySelector("input[type='file']");
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                this.pushEvent("get-upload-info", {});
+            }
+        }, 500);
+
+        // Listen on window for the custom event
+        window.addEventListener(PHX_LIVE_FILE_UPDATED, () => {
+            this.pushEvent("get-upload-info", {});
         });
+    },
+
+    updated() {
+        this.pushEvent("get-upload-info", {});
+    },
+
+    destroyed() {
+        if (this.pollInterval) {
+            clearInterval(this.pollInterval);
+        }
     }
 }
 

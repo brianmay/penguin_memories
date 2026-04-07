@@ -105,7 +105,6 @@ defmodule PenguinMemoriesWeb.UploadLive do
   end
 
   def handle_event("suggest-album-name", %{"name" => name}, socket) do
-    # Only fill in if the user hasn't typed anything yet.
     socket =
       if String.trim(socket.assigns.album_name) == "" do
         assign(socket, album_name: name)
@@ -114,6 +113,32 @@ defmodule PenguinMemoriesWeb.UploadLive do
       end
 
     {:noreply, socket}
+  end
+
+  def handle_event("get-upload-info", _params, socket) do
+    conf = socket.assigns.uploads.photos
+
+    entries_with_path =
+      for entry <- conf.entries, entry.client_relative_path != nil do
+        entry.client_relative_path
+      end
+
+    first_path = List.first(entries_with_path)
+
+    if first_path do
+      dir_name = first_path |> String.split("/") |> List.first()
+
+      socket =
+        if String.trim(socket.assigns.album_name) == "" do
+          assign(socket, album_name: dir_name)
+        else
+          socket
+        end
+
+      {:noreply, socket}
+    else
+      {:noreply, socket}
+    end
   end
 
   def handle_event("validate-server", %{"server" => params}, socket) do

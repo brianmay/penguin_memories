@@ -44,13 +44,14 @@
           (JPG, CR2, CR3, DNG, MP4, MOV accepted; max 200 MB each)
         </span>
       </label>
-      <.live_file_input
-        upload={@uploads.photos}
-        webkitdirectory={true}
-        class="form-control"
-        phx-hook="DirectoryUpload"
-        id="photos-input"
-      />
+      <div phx-hook="DirectoryUpload" id="directory-upload-hook">
+        <.live_file_input
+          upload={@uploads.photos}
+          webkitdirectory={true}
+          class="form-control"
+          id="photos-input"
+        />
+      </div>
       <%= for err <- upload_errors(@uploads.photos) do %>
         <div class="text-danger mt-1">{error_to_string(err)}</div>
       <% end %>
