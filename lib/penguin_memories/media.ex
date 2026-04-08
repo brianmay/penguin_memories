@@ -42,6 +42,13 @@ defmodule PenguinMemories.Media do
 
   defguardp guard_is_video(type) when type == "video"
 
+  defp parse_exif_datetime(value) do
+    [date_part, time_part] = String.split(value, " ")
+    [y, m, d] = String.split(date_part, ":") |> Enum.map(&String.to_integer/1)
+    [h, min, s] = String.split(time_part, ":") |> Enum.map(&String.to_integer/1)
+    NaiveDateTime.new!(y, m, d, h, min, s)
+  end
+
   @spec is_image(t()) :: boolean()
   def is_image(%__MODULE__{type: type}), do: guard_is_image(type)
 
@@ -431,7 +438,7 @@ defmodule PenguinMemories.Media do
       ]
       |> Enum.map(fn name -> Map.get(exif, name, nil) end)
       |> Enum.reject(fn value -> Enum.member?(invalid_times, value) end)
-      |> Enum.map(fn value -> Timex.parse!(value, "%Y:%m:%d %H:%M:%S", :strftime) end)
+      |> Enum.map(&parse_exif_datetime/1)
       |> List.first()
 
     case datetime do
