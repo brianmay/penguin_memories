@@ -3,7 +3,7 @@ defmodule PenguinMemories.IndividualAlbumEditingTest do
 
   alias PenguinMemories.Database.Impl.Backend.Album, as: AlbumBackend
   alias PenguinMemories.Database.Query
-  alias PenguinMemories.Photos.{Album, AlbumParent}
+  alias PenguinMemories.Photos.Album
   alias PenguinMemories.Repo
 
   setup do

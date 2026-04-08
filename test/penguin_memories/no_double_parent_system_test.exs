@@ -7,7 +7,7 @@ defmodule PenguinMemories.NoDoubleParentSystemTest do
 
   alias PenguinMemories.Database.Impl.Backend.Album, as: AlbumBackend
   alias PenguinMemories.Database.Query
-  alias PenguinMemories.Photos.{Album, AlbumParent}
+  alias PenguinMemories.Photos.Album
 
   describe "no double parent system" do
     test "albums appear only once in parent listings regardless of relationship type" do

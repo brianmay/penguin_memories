@@ -17,7 +17,7 @@ defmodule PenguinMemories.ContextAwareParentsTest do
       {:ok, orbost_album} = Repo.insert(%Album{name: "Orbost Original", sort_name: "Orbost"})
 
       # Create the many-to-many relationships with context names
-      {:ok, memorial_relationship} =
+      {:ok, _memorial_relationship} =
         Repo.insert(%AlbumParent{
           album_id: orbost_album.id,
           parent_id: memorial_services.id,
@@ -25,7 +25,7 @@ defmodule PenguinMemories.ContextAwareParentsTest do
           context_sort_name: "Uncle Peter's Funeral"
         })
 
-      {:ok, travel_relationship} =
+      {:ok, _travel_relationship} =
         Repo.insert(%AlbumParent{
           album_id: orbost_album.id,
           parent_id: travel_adventures.id,

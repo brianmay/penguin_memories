@@ -3,7 +3,7 @@ defmodule PenguinMemories.BulkUpdateAlbumParentsTest do
 
   alias PenguinMemories.Database.Impl.Backend.Album, as: AlbumBackend
   alias PenguinMemories.Database.Query
-  alias PenguinMemories.Photos.{Album, AlbumUpdate}
+  alias PenguinMemories.Photos.Album
 
   describe "bulk update with album_parents" do
     test "update_changeset handles album_parents field" do

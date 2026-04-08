@@ -29,7 +29,7 @@ defmodule PenguinMemories.CircularReferenceDebugTest do
 
       # Now test the changeset validation used by UI
       # This simulates what happens in handle_album_parents_assoc
-      album_parents_data = [%{id: album1.id, name: album1.name}]
+      _album_parents_data = [%{id: album1.id, name: album1.name}]
 
       # Get album with current relationships
       album_with_assoc = Repo.get!(AlbumSchema, album40.id) |> Repo.preload([:album_parents])
@@ -37,7 +37,6 @@ defmodule PenguinMemories.CircularReferenceDebugTest do
 
       # Test the changeset logic through the public API
       # This simulates what the UI does when editing album_parents_edit
-      import Ecto.Changeset
 
       # Simulate what the UI form does - pass album_parents_edit in params
       params = %{"album_parents_edit" => [album1]}
