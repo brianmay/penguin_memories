@@ -202,7 +202,7 @@
       <div class="alert alert-danger">{@server_error}</div>
     <% end %>
 
-    <form id="server-import-form" phx-submit="import-server" phx-change="validate-server">
+    <form id="server-import-form" phx-change="validate-server">
       <div class="mb-3">
         <label for="server_album_name" class="form-label">Album name</label>
         <input
@@ -260,7 +260,7 @@
             Importing… ({@pending} remaining)
           </button>
         <% else %>
-          <button type="submit" class="btn btn-secondary">
+          <button type="button" phx-click="import-server" class="btn btn-secondary">
             Import from server
           </button>
         <% end %>

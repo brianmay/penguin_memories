@@ -163,41 +163,46 @@ defmodule PenguinMemoriesWeb.UploadLive do
   end
 
   def handle_event("import-server", _params, socket) do
-    user = socket.assigns[:current_user]
-
-    if Auth.user_is_admin?(user) do
-      staging_dir = socket.assigns.staging_dir
-      raw_path = String.trim(socket.assigns.server_path)
-      album_name = String.trim(socket.assigns.server_album_name)
-      auto_rotate = socket.assigns.server_auto_rotate
-
-      with {:staging, true} <- {:staging, not is_nil(staging_dir)},
-           {:album, true} <- {:album, album_name != ""},
-           {:path, true} <- {:path, raw_path != ""},
-           {:prefix, true} <- {:prefix, String.starts_with?(raw_path, staging_dir)},
-           {:dir, true} <- {:dir, File.dir?(raw_path)} do
-        start_server_processing(socket, raw_path, album_name, auto_rotate)
-      else
-        {:staging, false} ->
-          {:noreply, assign(socket, server_error: "Server-side import is not configured.")}
-
-        {:album, false} ->
-          {:noreply, assign(socket, server_error: "Please enter an album name.")}
-
-        {:path, false} ->
-          {:noreply, assign(socket, server_error: "Please enter a directory path.")}
-
-        {:prefix, false} ->
-          {:noreply,
-           assign(socket,
-             server_error: "Path must be inside the configured staging directory."
-           )}
-
-        {:dir, false} ->
-          {:noreply, assign(socket, server_error: "Path does not exist or is not a directory.")}
-      end
+    # Guard against double-click
+    if socket.assigns.server_status == :processing do
+      {:noreply, socket}
     else
-      {:noreply, assign(socket, server_error: "Admin access required.")}
+      user = socket.assigns[:current_user]
+
+      if Auth.user_is_admin?(user) do
+        staging_dir = socket.assigns.staging_dir
+        raw_path = String.trim(socket.assigns.server_path)
+        album_name = String.trim(socket.assigns.server_album_name)
+        auto_rotate = socket.assigns.server_auto_rotate
+
+        with {:staging, true} <- {:staging, not is_nil(staging_dir)},
+             {:album, true} <- {:album, album_name != ""},
+             {:path, true} <- {:path, raw_path != ""},
+             {:prefix, true} <- {:prefix, String.starts_with?(raw_path, staging_dir)},
+             {:dir, true} <- {:dir, File.dir?(raw_path)} do
+          start_server_processing(socket, raw_path, album_name, auto_rotate)
+        else
+          {:staging, false} ->
+            {:noreply, assign(socket, server_error: "Server-side import is not configured.")}
+
+          {:album, false} ->
+            {:noreply, assign(socket, server_error: "Please enter an album name.")}
+
+          {:path, false} ->
+            {:noreply, assign(socket, server_error: "Please enter a directory path.")}
+
+          {:prefix, false} ->
+            {:noreply,
+             assign(socket,
+               server_error: "Path must be inside the configured staging directory."
+             )}
+
+          {:dir, false} ->
+            {:noreply, assign(socket, server_error: "Path does not exist or is not a directory.")}
+        end
+      else
+        {:noreply, assign(socket, server_error: "Admin access required.")}
+      end
     end
   end
 
