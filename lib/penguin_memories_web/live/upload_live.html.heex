@@ -150,6 +150,7 @@
           <button
             type="button"
             phx-click="upload"
+            phx-disable-with="Uploading…"
             class="btn btn-primary"
             disabled={Enum.empty?(@uploads.photos.entries) or @status == :processing}
           >
@@ -202,7 +203,7 @@
       <div class="alert alert-danger">{@server_error}</div>
     <% end %>
 
-    <form id="server-import-form" phx-change="validate-server">
+    <form id="server-import-form" phx-change="validate-server" onsubmit="return false">
       <div class="mb-3">
         <label for="server_album_name" class="form-label">Album name</label>
         <input
@@ -260,7 +261,12 @@
             Importing… ({@pending} remaining)
           </button>
         <% else %>
-          <button type="button" phx-click="import-server" class="btn btn-secondary">
+          <button
+            type="button"
+            phx-click="import-server"
+            phx-disable-with="Importing…"
+            class="btn btn-secondary"
+          >
             Import from server
           </button>
         <% end %>

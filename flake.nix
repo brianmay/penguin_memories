@@ -114,6 +114,7 @@
                 export DATABASE_URL_TEST="postgres://penguin_memories:your_secure_password_here@localhost:6000/penguin_memories_test"
                 export DATABASE_URL="postgres://penguin_memories:your_secure_password_here@localhost:6000/penguin_memories"
                 export IMAGE_DIR="/tmp/images"
+                export UPLOAD_STAGING_DIR="/tmp/staging"
               '';
               packages =
                 with pkgs;

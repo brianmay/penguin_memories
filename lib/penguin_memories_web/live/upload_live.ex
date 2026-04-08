@@ -473,52 +473,53 @@ defmodule PenguinMemoriesWeb.UploadLive do
   defp start_server_processing(socket, directory, album_name, auto_rotate) do
     lv_pid = self()
 
-    # Count primary files first so we can set pending correctly.
-    # upload_directory/2 internally skips sidecars; we replicate that logic to
-    # get an accurate count before the task starts.
     sidecar_exts = [".CR2", ".cr2", ".CR3", ".cr3", ".dng", ".pp3", ".xmp"]
 
-    pending =
-      File.ls!(directory)
-      |> Enum.reject(fn name ->
-        full = Path.join(directory, name)
-        File.dir?(full) or Path.extname(name) in sidecar_exts
-      end)
-      |> length()
+    case File.ls(directory) do
+      {:ok, files} ->
+        pending =
+          Enum.reject(files, fn name ->
+            full = Path.join(directory, name)
+            File.dir?(full) or Path.extname(name) in sidecar_exts
+          end)
+          |> length()
 
-    Task.start(fn ->
-      try do
-        album = Upload.get_upload_album(album_name)
-        opts = [verbose: false, auto_rotate: auto_rotate]
+        Task.start(fn ->
+          try do
+            album = Upload.get_upload_album(album_name)
+            opts = [verbose: false, auto_rotate: auto_rotate]
 
-        File.ls!(directory)
-        |> Enum.sort()
-        |> Enum.reject(fn name ->
-          full = Path.join(directory, name)
-          File.dir?(full) or Path.extname(name) in sidecar_exts
+            Enum.sort(files)
+            |> Enum.reject(fn name ->
+              full = Path.join(directory, name)
+              File.dir?(full) or Path.extname(name) in sidecar_exts
+            end)
+            |> Enum.each(fn name ->
+              path = Path.join(directory, name)
+              result = do_upload_file(path, name, album, opts)
+              send(lv_pid, {:server_file_result, result})
+            end)
+          rescue
+            e ->
+              send(lv_pid, {:server_processing_error, Exception.message(e)})
+          end
         end)
-        |> Enum.each(fn name ->
-          path = Path.join(directory, name)
-          result = do_upload_file(path, name, album, opts)
-          send(lv_pid, {:server_file_result, result})
-        end)
-      rescue
-        e ->
-          send(lv_pid, {:server_processing_error, Exception.message(e)})
-      end
-    end)
 
-    socket =
-      assign(socket,
-        server_status: :processing,
-        results: [],
-        pending: pending,
-        server_error: nil,
-        server_path: "",
-        server_album_name: ""
-      )
+        socket =
+          assign(socket,
+            server_status: :processing,
+            results: [],
+            pending: pending,
+            server_error: nil,
+            server_path: "",
+            server_album_name: ""
+          )
 
-    {:noreply, socket}
+        {:noreply, socket}
+
+      {:error, reason} ->
+        {:noreply, assign(socket, server_error: "Cannot read directory: #{reason}")}
+    end
   end
 
   @spec build_summary(list(map())) :: String.t()
