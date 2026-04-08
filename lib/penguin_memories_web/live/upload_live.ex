@@ -69,9 +69,10 @@ defmodule PenguinMemoriesWeb.UploadLive do
         accept: @all_extensions,
         max_entries: 5_000,
         max_file_size: @max_file_size,
-        # Start transferring to the server as soon as files are selected,
-        # so progress bars are meaningful and all data is ready when the
-        # user clicks Upload.
+        # Larger chunk size and timeout for large files over slow connections
+        chunk_size: 128_000,
+        chunk_timeout: 30_000,
+        # Start transferring immediately so progress bars are meaningful
         auto_upload: true
       )
 
@@ -115,6 +116,7 @@ defmodule PenguinMemoriesWeb.UploadLive do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_event("get-upload-info", _params, socket) do
     conf = socket.assigns.uploads.photos
 
@@ -200,27 +202,45 @@ defmodule PenguinMemoriesWeb.UploadLive do
   end
 
   def handle_event("upload", _params, socket) do
-    user = socket.assigns[:current_user]
-
-    if Auth.can_edit(user) do
-      album_name = String.trim(socket.assigns.album_name)
-      auto_rotate = socket.assigns.auto_rotate
-
-      cond do
-        album_name == "" ->
-          {:noreply, assign(socket, error: "Please enter an album name.")}
-
-        Enum.empty?(valid_entries(socket)) ->
-          {:noreply, assign(socket, error: "No valid files to upload.")}
-
-        not all_transfers_complete?(socket) ->
-          {:noreply, assign(socket, error: "Please wait for all files to finish transferring.")}
-
-        true ->
-          start_processing(socket, album_name, auto_rotate)
-      end
+    # Guard against double-click - if already processing, ignore
+    if socket.assigns.status == :processing do
+      {:noreply, socket}
     else
-      {:noreply, assign(socket, error: "You must be logged in to upload photos.")}
+      user = socket.assigns[:current_user]
+
+      if Auth.can_edit(user) do
+        album_name = String.trim(socket.assigns.album_name)
+        auto_rotate = socket.assigns.auto_rotate
+
+        conf = socket.assigns.uploads.photos
+        all_count = length(conf.entries)
+        done_count = Enum.count(conf.entries, & &1.done?)
+        error_count = Enum.count(conf.entries, fn e -> upload_errors(conf, e) != [] end)
+        valid_count = Enum.count(conf.entries, fn e -> upload_errors(conf, e) == [] end)
+
+        Logger.info(
+          "upload clicked: #{all_count} total, #{done_count} done, #{error_count} errored, #{valid_count} valid"
+        )
+
+        cond do
+          album_name == "" ->
+            Logger.info("upload failed: empty album name")
+            {:noreply, assign(socket, error: "Please enter an album name.")}
+
+          Enum.empty?(valid_entries(socket)) ->
+            Logger.info("upload failed: no valid entries")
+            {:noreply, assign(socket, error: "No valid files to upload.")}
+
+          not all_transfers_complete?(socket) ->
+            Logger.info("upload failed: transfers incomplete")
+            {:noreply, assign(socket, error: "Please wait for all files to finish transferring.")}
+
+          true ->
+            start_processing(socket, album_name, auto_rotate)
+        end
+      else
+        {:noreply, assign(socket, error: "You must be logged in to upload photos.")}
+      end
     end
   end
 
@@ -312,6 +332,10 @@ defmodule PenguinMemoriesWeb.UploadLive do
         end
       end)
 
+    Logger.info(
+      "start_processing: after canceling errored, entries count: #{length(socket.assigns.uploads.photos.entries)}"
+    )
+
     # Consume all completed entries into a dedicated temp directory that we
     # own. LiveView cleans up its own tmp dir after consume_uploaded_entries
     # returns, so we must copy the files somewhere we control before handing
@@ -339,6 +363,7 @@ defmodule PenguinMemoriesWeb.UploadLive do
         {:noreply, assign(socket, error: "Upload preparation failed: #{reason}")}
 
       {:ok, file_pairs} ->
+        Logger.info("start_processing: consumed #{length(file_pairs)} file pairs")
         # Group by base name so CR2/CR3 sidecars pair with their primary file.
         file_groups =
           Enum.group_by(file_pairs, fn {name, _path} ->

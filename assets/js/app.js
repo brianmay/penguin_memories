@@ -147,7 +147,7 @@ const PHX_LIVE_FILE_UPDATED = "phx:live-file:updated";
 
 Hooks.DirectoryUpload = {
     mounted() {
-        // Poll for file inputs appearing (in case they're added after mount)
+        // Poll for file inputs to get upload info (directory name for album)
         this.pollInterval = setInterval(() => {
             const fileInput = this.el.querySelector("input[type='file']");
             if (fileInput && fileInput.files && fileInput.files.length > 0) {
@@ -155,7 +155,7 @@ Hooks.DirectoryUpload = {
             }
         }, 500);
 
-        // Listen on window for the custom event
+        // Listen for LiveView's file update event
         window.addEventListener(PHX_LIVE_FILE_UPDATED, () => {
             this.pushEvent("get-upload-info", {});
         });
@@ -171,6 +171,17 @@ Hooks.DirectoryUpload = {
         }
     }
 }
+
+// Log upload entry events
+document.addEventListener("phx:live-file:updated", (e) => {
+    const input = e.target;
+    if (input && input.type === "file") {
+        const active = input.getAttribute("data-phx-active-refs") || "";
+        const done = input.getAttribute("data-phx-done-refs") || "";
+        const preflighted = input.getAttribute("data-phx-preflighted-refs") || "";
+        console.log("File input updated - active:", active.split(",").length, "done:", done.split(",").filter(x => x).length, "preflighted:", preflighted.split(",").filter(x => x).length);
+    }
+});
 
 let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, metadata: metadata, hooks: Hooks});
 
