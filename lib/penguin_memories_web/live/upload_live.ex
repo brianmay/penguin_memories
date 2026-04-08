@@ -350,7 +350,7 @@ defmodule PenguinMemoriesWeb.UploadLive do
         Task.start(fn ->
           try do
             album = Upload.get_upload_album(album_name)
-            opts = [verbose: false, auto_rotate: auto_rotate]
+            opts = [auto_rotate: auto_rotate]
 
             Enum.each(file_groups, fn {_base, files} ->
               result = process_file_group(files, album, opts)

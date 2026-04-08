@@ -7,6 +7,8 @@ defmodule PenguinMemories.Actions do
   alias Ecto.Changeset
   import Ecto.Changeset
 
+  alias Logger
+  require Logger
   alias PenguinMemories.Media
   alias PenguinMemories.Photos.File
   alias PenguinMemories.Photos.Photo
@@ -38,9 +40,16 @@ defmodule PenguinMemories.Actions do
       nil
     else
       temp_path = Temp.path!()
-      {:ok, thumb} = Media.resize(original_media, temp_path, sr)
-      {:ok, file} = Storage.build_file_from_media(photo, thumb, size_key)
-      file
+
+      case Media.resize(original_media, temp_path, sr) do
+        {:ok, thumb} ->
+          {:ok, file} = Storage.build_file_from_media(photo, thumb, size_key)
+          file
+
+        {:error, reason} ->
+          Logger.error("Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}")
+          nil
+      end
     end
   end
 
@@ -77,8 +86,8 @@ defmodule PenguinMemories.Actions do
     end
   end
 
-  @spec regenerate_photo(Photo.t(), keyword()) :: Photo.t()
-  def regenerate_photo(%Photo{} = photo, opts) do
+  @spec regenerate_photo(Photo.t()) :: Photo.t()
+  def regenerate_photo(%Photo{} = photo) do
     original_file = get_original_file(photo)
     raw_file = get_raw_file(photo)
     {:ok, original_media} = Storage.get_photo_file_media(original_file)
@@ -126,11 +135,7 @@ defmodule PenguinMemories.Actions do
     MapSet.difference(old_filenames, new_filenames)
     |> Enum.each(fn path ->
       {:ok, media} = Media.get_media(path)
-
-      if opts[:verbose] do
-        IO.puts("Deleting #{path}")
-      end
-
+      Logger.info("Deleting #{path}")
       :ok = Media.delete(media)
     end)
 
@@ -140,19 +145,17 @@ defmodule PenguinMemories.Actions do
       |> Ecto.Changeset.put_assoc(:files, files)
       |> Repo.update!()
 
-    if opts[:verbose] do
-      IO.puts("Regenerated #{Photo.to_string(photo)}")
+    Logger.info("Regenerated #{Photo.to_string(photo)}")
 
-      Enum.each(photo.files, fn file ->
-        IO.puts("--> #{File.to_string(file)}")
-      end)
-    end
+    Enum.each(photo.files, fn file ->
+      Logger.info("--> #{File.to_string(file)}")
+    end)
 
     photo
   end
 
-  @spec delete_photo(Photo.t(), keyword()) :: Photo.t()
-  def delete_photo(%Photo{} = photo, opts) do
+  @spec delete_photo(Photo.t()) :: Photo.t()
+  def delete_photo(%Photo{} = photo) do
     old_filenames =
       photo.files
       |> Enum.map(fn file -> {file.dir, file.filename} end)
@@ -162,25 +165,19 @@ defmodule PenguinMemories.Actions do
     old_filenames
     |> Enum.each(fn path ->
       {:ok, media} = Media.get_media(path)
-
-      if opts[:verbose] do
-        IO.puts("Deleting #{path}")
-      end
-
+      Logger.info("Deleting #{path}")
       :ok = Media.delete(media)
     end)
 
     Repo.delete!(photo)
 
-    if opts[:verbose] do
-      IO.puts("Deleted #{Photo.to_string(photo)}")
-    end
+    Logger.info("Deleted #{Photo.to_string(photo)}")
 
     photo
   end
 
-  @spec rotate_photo(Photo.t(), String.t(), keyword()) :: Photo.t()
-  def rotate_photo(%Photo{} = photo, rotate_amount, opts) do
+  @spec rotate_photo(Photo.t(), String.t()) :: Photo.t()
+  def rotate_photo(%Photo{} = photo, rotate_amount) do
     {:ok, temp_path} = Temp.path()
     original_file = get_original_file(photo)
     path = Storage.get_photo_file_path(original_file)
@@ -204,36 +201,34 @@ defmodule PenguinMemories.Actions do
       |> Ecto.Changeset.put_assoc(:files, files)
       |> Repo.update!()
 
-    if opts[:verbose] do
-      IO.puts("Rotated #{Photo.to_string(photo)}")
-    end
+    Logger.info("Rotated #{Photo.to_string(photo)}")
 
     photo
   end
 
   @spec process_photo(Photo.t(), keyword()) :: Photo.t()
-  def process_photo(photo, opts \\ [])
+  def process_photo(photo, _opts \\ [])
 
-  def process_photo(%Photo{action: "D"} = photo, opts) do
-    delete_photo(photo, opts)
+  def process_photo(%Photo{action: "D"} = photo, _opts) do
+    delete_photo(photo)
   end
 
-  def process_photo(%Photo{action: "R"} = photo, opts) do
-    regenerate_photo(photo, opts)
+  def process_photo(%Photo{action: "R"} = photo, _opts) do
+    regenerate_photo(photo)
   end
 
-  def process_photo(%Photo{action: rotate_amount} = photo, opts)
+  def process_photo(%Photo{action: rotate_amount} = photo, _opts)
       when rotate_amount in ["auto", "90", "180", "270"] do
-    rotate_photo(photo, rotate_amount, opts)
-    |> regenerate_photo(opts)
+    rotate_photo(photo, rotate_amount)
+    |> regenerate_photo()
   end
 
-  def process_photo(%Photo{} = photo, _) do
+  def process_photo(%Photo{} = photo, _opts) do
     photo
   end
 
-  @spec internal_process_pending(list(Photo.t()), integer, keyword()) :: list(Photo.t())
-  defp internal_process_pending(photos, start_id, opts) do
+  @spec internal_process_pending(list(Photo.t()), integer) :: list(Photo.t())
+  defp internal_process_pending(photos, start_id) do
     photo =
       Repo.one(
         from p in Photo,
@@ -248,13 +243,16 @@ defmodule PenguinMemories.Actions do
         photos
 
       photo ->
-        photos = [process_photo(photo, opts) | photos]
-        internal_process_pending(photos, photo.id + 1, opts)
+        photos = [process_photo(photo) | photos]
+        internal_process_pending(photos, photo.id + 1)
     end
   end
 
-  @spec process_pending(keyword()) :: list(Photo.t())
-  def process_pending(opts \\ []) do
-    internal_process_pending([], 0, opts)
+  @spec process_pending() :: list(Photo.t())
+  def process_pending do
+    Logger.info("Starting to process pending photos")
+    photos = internal_process_pending([], 0)
+    Logger.info("Finished processing #{length(photos)} pending photos")
+    photos
   end
 end

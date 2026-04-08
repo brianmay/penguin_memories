@@ -18,6 +18,8 @@ defmodule PenguinMemories.Upload do
   import File
 
   alias Ecto.Multi
+  alias Logger
+  require Logger
   alias PenguinMemories.Database.Conflicts
   alias PenguinMemories.Media
   alias PenguinMemories.Photos.Album
@@ -260,33 +262,31 @@ defmodule PenguinMemories.Upload do
   # Status printing
   # ---------------------------------------------------------------------------
 
-  @spec print_status(rc(), boolean(), String.t()) :: rc()
-  defp print_status({:ok, %Photo{} = photo} = rc, true, _) do
-    IO.puts("Done #{Photo.to_string(photo)}")
+  @spec print_status(rc(), String.t()) :: rc()
+  defp print_status({:ok, %Photo{} = photo} = rc, _path) do
+    Logger.info("Done #{Photo.to_string(photo)}")
 
     Enum.each(photo.files, fn file ->
-      IO.puts("     #{File.to_string(file)}")
+      Logger.info("     #{File.to_string(file)}")
     end)
 
     rc
   end
 
-  defp print_status({:skipped, %Photo{} = photo} = rc, true, _) do
-    IO.puts("Skipped #{Photo.to_string(photo)}")
+  defp print_status({:skipped, %Photo{} = photo} = rc, _path) do
+    Logger.info("Skipped #{Photo.to_string(photo)}")
 
     Enum.each(photo.files, fn file ->
-      IO.puts("     #{File.to_string(file)}")
+      Logger.info("     #{File.to_string(file)}")
     end)
 
     rc
   end
 
-  defp print_status({:error, reason} = rc, true, path) do
-    IO.puts("Error #{path}: #{reason}")
+  defp print_status({:error, reason} = rc, path) do
+    Logger.error("Error #{path}: #{reason}")
     rc
   end
-
-  defp print_status(rc, _, _), do: rc
 
   # ---------------------------------------------------------------------------
   # Public API: upload a single file
@@ -332,7 +332,7 @@ defmodule PenguinMemories.Upload do
         |> check_file_conflicts(media, size_key)
         |> do_save(album, media, size_key)
         |> add_raw_files(path)
-        |> print_status(opts[:verbose], path)
+        |> print_status(path)
 
       case rc do
         {:ok, %Photo{}} = rc -> rc
