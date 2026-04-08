@@ -38,7 +38,7 @@ defmodule PenguinMemories.Storage do
 
   @spec build_photo_dir(Date.t()) :: String.t()
   def build_photo_dir(date) do
-    Timex.format!(date, "{YYYY}/{0M}/{0D}")
+    Calendar.strftime(date, "%Y/%m/%d")
   end
 
   @spec build_file_dir(String.t(), String.t(), boolean()) :: String.t()

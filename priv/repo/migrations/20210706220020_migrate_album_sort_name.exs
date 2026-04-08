@@ -67,7 +67,7 @@ defmodule PenguinMemories.Repo.Migrations.MigrateAlbumSortName do
   end
 
   def up do
-    {:ok, _} = Application.ensure_all_started(:tzdata)
+    {:ok, _} = Application.ensure_all_started(:tz)
 
     from("pm_album", select: [:id, :name], order_by: :id)
     |> Repo.stream()

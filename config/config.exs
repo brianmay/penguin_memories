@@ -62,7 +62,7 @@ config :mime, :types, %{
 config :libcluster,
   topologies: []
 
-config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+config :elixir, :time_zone_database, Tz.TimeZoneDatabase
 
 config :plugoid,
   auth_cookie_store: Plug.Session.COOKIE,
@@ -76,7 +76,6 @@ config :plugoid,
   ]
 
 config :elixir, :time_zone_database, Tz.TimeZoneDatabase
-config :tzdata, :autoupdate, :disabled
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
