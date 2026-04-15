@@ -23,7 +23,7 @@
     "nprogress": "^0.2.0",
     "sass": "^1.93.2",
     "sass-loader": "^16.0.5",
-    "webpack": "5.106.1",
+    "webpack": "5.106.2",
     "webpack-cli": "^7.0.0"
   },
   "engines": {
