@@ -316,11 +316,13 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
         {:noreply, socket}
 
       true ->
-        # For album_parents_edit changes, we need to trigger validation carefully
-        # to update the changeset without causing page reloads
+        existing_params =
+          case socket.assigns.changeset do
+            %{params: params} when is_map(params) -> params
+            _ -> %{}
+          end
 
-        # IMPORTANT: Use the socket that already has the updated assoc
-        changeset = get_edit_changeset(socket, %{})
+        changeset = get_edit_changeset(socket, existing_params)
 
         {:noreply, assign(socket, changeset: changeset)}
     end
