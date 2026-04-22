@@ -101,26 +101,30 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
   end
 
   def handle_event("key", %{"key" => key}, %Socket{} = socket) do
-    case key do
-      "ArrowLeft" ->
-        icon = socket.assigns.prev_icon
+    if is_editing(socket.assigns) do
+      {:noreply, socket}
+    else
+      case key do
+        "ArrowLeft" ->
+          icon = socket.assigns.prev_icon
 
-        if icon != nil do
-          send(socket.parent_pid, {:select_object, icon.id})
-        end
+          if icon != nil do
+            send(socket.parent_pid, {:select_object, icon.id})
+          end
 
-      "ArrowRight" ->
-        icon = socket.assigns.next_icon
+        "ArrowRight" ->
+          icon = socket.assigns.next_icon
 
-        if icon != nil do
-          send(socket.parent_pid, {:select_object, icon.id})
-        end
+          if icon != nil do
+            send(socket.parent_pid, {:select_object, icon.id})
+          end
 
-      _ ->
-        nil
+        _ ->
+          nil
+      end
+
+      {:noreply, socket}
     end
-
-    {:noreply, socket}
   end
 
   def handle_event("create", _params, %Socket{} = socket) do
