@@ -603,14 +603,16 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   @spec validate_no_circular_references(album_id :: integer(), to_add :: list(map())) ::
           :ok | {:error, :circular_reference}
   defp validate_no_circular_references(album_id, to_add) do
-    # Check each parent we're trying to add for circular references
     circular_refs =
       Enum.filter(to_add, fn rel_data ->
         parent_id = rel_data.parent_id
         # Check if adding this parent would create a cycle:
         # 1. album_id == parent_id (self-reference)
-        # 2. parent_id is already an ancestor of album_id (would create redundant path or cycle)
-        album_id == parent_id or is_ancestor?(parent_id, album_id)
+        # 2. parent_id is already an ancestor of album_id
+        # 3. album_id is already an ancestor of parent_id (would create: album <- parent <- ... <- album)
+        album_id == parent_id or
+          is_ancestor?(parent_id, album_id) or
+          is_ancestor?(album_id, parent_id)
       end)
 
     if Enum.empty?(circular_refs) do

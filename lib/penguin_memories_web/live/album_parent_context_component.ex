@@ -17,11 +17,16 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
   @impl true
   def mount(socket) do
     assigns = [
+      # Form field references (set in update callback)
+      form: nil,
+      field: nil,
+      updates: nil,
+
       # Parent selection state
       parent_choices: [],
       parent_search_text: "",
       parent_search_error: nil,
-      parent_search_disabled: true,
+      parent_search_disabled: false,
 
       # Current parent relationships with context
       current_relationships: []
@@ -37,27 +42,26 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
     updates = params.updates
     search = Map.get(params, :search, %{})
 
-    # Get current album parents value from form - check changeset changes first, then original data
     raw_value =
-      case Changeset.fetch_change(form.source, field.id) do
-        {:ok, changed_value} ->
-          changed_value
-
-        :error ->
-          Changeset.get_field(form.source, field.id)
+      if form && field do
+        case Changeset.fetch_change(form.source, field.id) do
+          {:ok, changed_value} -> changed_value
+          :error -> Changeset.get_field(form.source, field.id)
+        end
+      else
+        []
       end
 
-    # Convert raw value to relationship data structures
     current_relationships = normalize_relationships(raw_value)
 
-    socket =
-      socket
-      |> assign(:form, form)
-      |> assign(:field, field)
-      |> assign(:updates, updates)
-      |> assign(:search, search)
-      |> assign(:current_relationships, current_relationships)
-      |> assign(:parent_search_disabled, false)
+    socket
+    |> assign(:form, form)
+    |> assign(:field, field)
+    |> assign(:updates, updates)
+    |> assign(:search, search)
+    |> assign(:current_relationships, current_relationships)
+    |> assign(:parent_search_disabled, false)
+    |> assign(:parent_search_error, nil)
 
     {:ok, socket}
   end
@@ -96,32 +100,46 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
   def handle_event("add_parent", %{"id" => parent_id_string}, socket) do
     parent_id = String.to_integer(parent_id_string)
 
-    # Find the parent info from choices
-    parent_choice = Enum.find(socket.assigns.parent_choices, &(&1.id == parent_id))
-
-    if parent_choice do
-      # Create new relationship with default context
-      new_relationship = %{
-        parent_id: parent_id,
-        parent_name: parent_choice.name,
-        context_name: nil,
-        context_sort_name: nil,
-        context_cover_photo_id: nil
-      }
-
-      # Add to current relationships
-      updated_relationships = [new_relationship | socket.assigns.current_relationships]
-
-      socket =
-        socket
-        |> assign(:current_relationships, updated_relationships)
-        |> assign(:parent_choices, [])
-        |> assign(:parent_search_text, "")
-        |> notify_parent_of_changes(updated_relationships)
-
-      {:noreply, socket}
+    # Check if already in current relationships first (before checking choices)
+    if Enum.any?(socket.assigns.current_relationships, &(&1.parent_id == parent_id)) do
+      {:noreply,
+       socket
+       |> assign(:parent_search_error, "Parent already added")
+       |> assign(:parent_choices, [])}
     else
-      {:noreply, socket}
+      # Only allow adding from visible choices - check if in parent_choices
+      parent_choice = Enum.find(socket.assigns.parent_choices, &(&1.id == parent_id))
+
+      if parent_choice do
+        new_relationship = %{
+          parent_id: parent_id,
+          parent_name: parent_choice.name,
+          context_name: nil,
+          context_sort_name: nil,
+          context_cover_photo_id: nil
+        }
+
+        updated_relationships = [new_relationship | socket.assigns.current_relationships]
+
+        socket =
+          socket
+          |> assign(:current_relationships, updated_relationships)
+          |> assign(:parent_choices, [])
+          |> assign(:parent_search_text, "")
+          |> assign(:parent_search_error, nil)
+
+        if socket.assigns.field do
+          {:noreply, notify_parent_of_changes(socket, updated_relationships)}
+        else
+          {:noreply, socket}
+        end
+      else
+        # Not in choices (might be from stale dropdown) - clear and show error
+        {:noreply,
+         socket
+         |> assign(:parent_search_error, "Please search again")
+         |> assign(:parent_choices, [])}
+      end
     end
   end
 
@@ -241,20 +259,23 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
   end
 
   defp notify_parent_of_changes(socket, relationships) do
-    # Convert relationships back to format expected by form
-    form_value =
-      Enum.map(relationships, fn rel ->
-        %{
-          parent_id: rel.parent_id,
-          parent_name: rel.parent_name,
-          context_name: rel.context_name,
-          context_sort_name: rel.context_sort_name,
-          context_cover_photo_id: rel.context_cover_photo_id
-        }
-      end)
+    # Only notify if we have valid field and updates references
+    if socket.assigns.field && socket.assigns.updates do
+      # Convert relationships back to format expected by form
+      form_value =
+        Enum.map(relationships, fn rel ->
+          %{
+            parent_id: rel.parent_id,
+            parent_name: rel.parent_name,
+            context_name: rel.context_name,
+            context_sort_name: rel.context_sort_name,
+            context_cover_photo_id: rel.context_cover_photo_id
+          }
+        end)
 
-    # Notify parent LiveView of the change
-    send(socket.assigns.updates, {:selected, socket.assigns.field.id, form_value})
+      # Notify parent LiveView of the change
+      send(socket.assigns.updates, {:selected, socket.assigns.field.id, form_value})
+    end
 
     socket
   end
@@ -301,5 +322,27 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
       |> notify_parent_of_changes(updated_relationships)
 
     {:noreply, socket}
+  end
+
+  defp has_errors?(assigns, field) do
+    case Map.fetch(assigns, :form) do
+      {:ok, form} when form != nil ->
+        Keyword.has_key?(form.errors, field)
+
+      _ ->
+        false
+    end
+  end
+
+  defp render_error_tag(assigns, field) do
+    case Map.fetch(assigns, :form) do
+      {:ok, form} when form != nil ->
+        Enum.map(Keyword.get_values(form.errors, field), fn {msg, _opts} ->
+          content_tag(:div, msg, class: "alert alert-danger mt-2")
+        end)
+
+      _ ->
+        []
+    end
   end
 end

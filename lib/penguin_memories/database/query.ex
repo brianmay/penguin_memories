@@ -1114,6 +1114,9 @@ defmodule PenguinMemories.Database.Query do
             {:ok, obj}
         end
 
+      {:error, {:album_parents, _id}, error, _} ->
+        {:error, changeset, "Album parents update failed: #{inspect(error)}"}
+
       {:error, {:update, _id}, changeset, _} ->
         {:error, changeset, "The update failed"}
 

@@ -1,6 +1,10 @@
 <div class="border rounded p-3" style="background-color: #f8f9fa;">
   <div class="form-group">
-    <label class="control-label">{@field.name}</label>
+    <%= if @field do %>
+      <label class="control-label">{@field.name}</label>
+    <% else %>
+      <label class="control-label">Album Parents</label>
+    <% end %>
     
 <!-- Parent Search Section -->
     <div class="mb-3 bg-white p-3 rounded border">
@@ -20,6 +24,12 @@
         <%= if @parent_search_error do %>
           <div class="alert alert-danger mt-2">
             {@parent_search_error}
+          </div>
+        <% end %>
+
+        <%= if has_errors?(assigns, :album_parents_edit) do %>
+          <div class="alert alert-danger mt-2">
+            {raw(render_error_tag(assigns, :album_parents_edit))}
           </div>
         <% end %>
 
@@ -134,8 +144,5 @@
         <% end %>
       <% end %>
     </div>
-    
-<!-- Hidden input to maintain form field -->
-    <input type="hidden" name={Phoenix.HTML.Form.input_name(@form, @field.id)} value="" />
   </div>
 </div>
