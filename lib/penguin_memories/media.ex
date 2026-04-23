@@ -389,6 +389,9 @@ defmodule PenguinMemories.Media do
   end
 
   @spec rotate(t(), String.t(), String.t()) :: {:ok, t()} | {:error, String.t()}
+  def rotate(%__MODULE__{type: type}, _new_path, _rotate_amount) when guard_is_video(type),
+    do: {:error, "rotation not supported for video"}
+
   def rotate(%__MODULE__{type: type, subtype: "jpeg"} = media, new_path, rotate_amount)
       when guard_is_image(type) do
     arg =

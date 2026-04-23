@@ -182,28 +182,37 @@ defmodule PenguinMemories.Actions do
     original_file = get_original_file(photo)
     path = Storage.get_photo_file_path(original_file)
     {:ok, original_media} = Storage.get_photo_file_media(original_file)
-    {:ok, media} = Media.rotate(original_media, temp_path, rotate_amount)
-    {:ok, media} = Media.copy(media, path)
-    size = Media.get_size(media)
 
-    files =
-      Enum.map(photo.files, fn
-        %File{size_key: "orig"} ->
-          Ecto.Changeset.change(original_file, width: size.width, height: size.height)
+    if Media.is_video(original_media) do
+      Logger.debug("Skipping rotation for video #{Photo.to_string(photo)}")
 
-        %File{} = file ->
-          file
-      end)
-
-    photo =
       photo
       |> Ecto.Changeset.change(action: "R")
-      |> Ecto.Changeset.put_assoc(:files, files)
       |> Repo.update!()
+    else
+      {:ok, media} = Media.rotate(original_media, temp_path, rotate_amount)
+      {:ok, media} = Media.copy(media, path)
+      size = Media.get_size(media)
 
-    Logger.info("Rotated #{Photo.to_string(photo)}")
+      files =
+        Enum.map(photo.files, fn
+          %File{size_key: "orig"} ->
+            Ecto.Changeset.change(original_file, width: size.width, height: size.height)
 
-    photo
+          %File{} = file ->
+            file
+        end)
+
+      photo =
+        photo
+        |> Ecto.Changeset.change(action: "R")
+        |> Ecto.Changeset.put_assoc(:files, files)
+        |> Repo.update!()
+
+      Logger.info("Rotated #{Photo.to_string(photo)}")
+
+      photo
+    end
   end
 
   @spec process_photo(Photo.t(), keyword()) :: Photo.t()
