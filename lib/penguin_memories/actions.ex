@@ -101,6 +101,8 @@ defmodule PenguinMemories.Actions do
 
   @spec regenerate_photo(Photo.t()) :: Photo.t()
   def regenerate_photo(%Photo{} = photo) do
+    Logger.info("Regnerating #{Photo.to_string(photo)}")
+
     original_file = get_original_file(photo)
     raw_file = get_raw_file(photo)
     {:ok, original_media} = Storage.get_photo_file_media(original_file)
