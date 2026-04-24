@@ -121,7 +121,9 @@ defmodule PenguinMemories.Media do
   def get_size(%__MODULE__{type: type, subtype: subtype} = media)
       when guard_is_raw(type, subtype) do
     new_media = dcraw_image(media)
-    get_size(new_media)
+    size = get_size(new_media)
+    File.rm(new_media.path)
+    size
   end
 
   def get_size(%__MODULE__{path: path, type: type}) when guard_is_image(type) do
@@ -193,7 +195,12 @@ defmodule PenguinMemories.Media do
       )
       when guard_is_raw(type, subtype) do
     new_media = dcraw_image(media)
-    resize(new_media, new_path, requirement)
+
+    result =
+      resize(new_media, new_path, requirement)
+
+    File.rm(new_media.path)
+    result
   end
 
   def resize(%__MODULE__{path: path} = media, new_path, %SizeRequirement{} = requirement) do

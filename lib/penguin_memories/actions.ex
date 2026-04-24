@@ -43,10 +43,23 @@ defmodule PenguinMemories.Actions do
 
       case Media.resize(original_media, temp_path, sr) do
         {:ok, thumb} ->
-          {:ok, file} = Storage.build_file_from_media(photo, thumb, size_key)
-          file
+          case Storage.build_file_from_media(photo, thumb, size_key) do
+            {:ok, file} ->
+              File.rm(temp_path)
+              file
+
+            {:error, reason} ->
+              File.rm(temp_path)
+
+              Logger.error(
+                "Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}"
+              )
+
+              nil
+          end
 
         {:error, reason} ->
+          File.rm(temp_path)
           Logger.error("Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}")
           nil
       end
