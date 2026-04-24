@@ -121,9 +121,12 @@ defmodule PenguinMemories.Media do
   def get_size(%__MODULE__{type: type, subtype: subtype} = media)
       when guard_is_raw(type, subtype) do
     new_media = dcraw_image(media)
-    size = get_size(new_media)
-    File.rm(new_media.path)
-    size
+
+    try do
+      get_size(new_media)
+    after
+      File.rm(new_media.path)
+    end
   end
 
   def get_size(%__MODULE__{path: path, type: type}) when guard_is_image(type) do
@@ -196,11 +199,11 @@ defmodule PenguinMemories.Media do
       when guard_is_raw(type, subtype) do
     new_media = dcraw_image(media)
 
-    result =
+    try do
       resize(new_media, new_path, requirement)
-
-    File.rm(new_media.path)
-    result
+    after
+      File.rm(new_media.path)
+    end
   end
 
   def resize(%__MODULE__{path: path} = media, new_path, %SizeRequirement{} = requirement) do
@@ -209,30 +212,36 @@ defmodule PenguinMemories.Media do
     [type, subtype] = String.split(requirement.format, "/")
 
     result =
-      case {type, subtype, is_video(media)} do
-        {"image", "gif", true} ->
-          Thumbnex.animated_gif_thumbnail(path, new_path,
-            width: new_size.width,
-            height: new_size.height
-          )
+      try do
+        case {type, subtype, is_video(media)} do
+          {"image", "gif", true} ->
+            Thumbnex.animated_gif_thumbnail(path, new_path,
+              width: new_size.width,
+              height: new_size.height
+            )
 
-        {"video", _, _} ->
-          resize_video(media, new_path, requirement)
+          {"video", _, _} ->
+            resize_video(media, new_path, requirement)
 
-        {"image", _, _} ->
-          extension =
-            requirement.format
-            |> MIME.extensions()
-            |> hd()
+          {"image", _, _} ->
+            extension =
+              requirement.format
+              |> MIME.extensions()
+              |> hd()
 
-          case Thumbnex.create_thumbnail(path, new_path,
-                 format: extension,
-                 width: new_size.width,
-                 height: new_size.height
-               ) do
-            :ok -> :ok
-            {:error, reason} -> {:error, "thumbnail creation failed: #{reason}"}
-          end
+            case Thumbnex.create_thumbnail(path, new_path,
+                   format: extension,
+                   width: new_size.width,
+                   height: new_size.height
+                 ) do
+              :ok -> :ok
+              {:error, reason} -> {:error, "thumbnail creation failed: #{reason}"}
+            end
+        end
+      rescue
+        e ->
+          File.rm(new_path)
+          reraise e, __STACKTRACE__
       end
 
     case result do
@@ -379,19 +388,22 @@ defmodule PenguinMemories.Media do
   def resize_video(%__MODULE__{type: type} = media, new_path, requirement)
       when guard_is_video(type) do
     temp_dir = Temp.mkdir!()
-    new_format = requirement.format
-    new_size = get_new_size(media, requirement)
-    commands = get_resize_video_commands(media, new_path, new_size, new_format, temp_dir)
 
-    case run_commands(commands) do
-      :ok ->
-        File.rm_rf(temp_dir)
-        :ok
+    try do
+      new_format = requirement.format
+      new_size = get_new_size(media, requirement)
+      commands = get_resize_video_commands(media, new_path, new_size, new_format, temp_dir)
 
-      {:error, _} = error ->
-        File.rm_rf(temp_dir)
+      case run_commands(commands) do
+        :ok -> :ok
+        {:error, _} = error -> error
+      end
+    rescue
+      e ->
         File.rm(new_path)
-        error
+        reraise e, __STACKTRACE__
+    after
+      File.rm_rf(temp_dir)
     end
   end
 
@@ -413,13 +425,18 @@ defmodule PenguinMemories.Media do
       ["exiftran", "-o", new_path, "-i", media.path, arg]
     ]
 
-    case run_commands(commands) do
-      :ok ->
-        get_media(new_path, get_format(media))
+    try do
+      case run_commands(commands) do
+        :ok ->
+          get_media(new_path, get_format(media))
 
-      {:error, _} = error ->
+        {:error, _} = error ->
+          error
+      end
+    rescue
+      e ->
         File.rm(new_path)
-        error
+        reraise e, __STACKTRACE__
     end
   end
 

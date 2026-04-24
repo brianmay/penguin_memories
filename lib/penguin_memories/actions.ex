@@ -41,27 +41,27 @@ defmodule PenguinMemories.Actions do
     else
       temp_path = Temp.path!()
 
-      case Media.resize(original_media, temp_path, sr) do
-        {:ok, thumb} ->
-          case Storage.build_file_from_media(photo, thumb, size_key) do
-            {:ok, file} ->
-              Elixir.File.rm(temp_path)
-              file
+      try do
+        case Media.resize(original_media, temp_path, sr) do
+          {:ok, thumb} ->
+            case Storage.build_file_from_media(photo, thumb, size_key) do
+              {:ok, file} ->
+                file
 
-            {:error, reason} ->
-              Elixir.File.rm(temp_path)
+              {:error, reason} ->
+                Logger.error(
+                  "Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}"
+                )
 
-              Logger.error(
-                "Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}"
-              )
+                nil
+            end
 
-              nil
-          end
-
-        {:error, reason} ->
-          Elixir.File.rm(temp_path)
-          Logger.error("Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}")
-          nil
+          {:error, reason} ->
+            Logger.error("Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}")
+            nil
+        end
+      after
+        Elixir.File.rm(temp_path)
       end
     end
   end
@@ -194,39 +194,44 @@ defmodule PenguinMemories.Actions do
   @spec rotate_photo(Photo.t(), String.t()) :: Photo.t()
   def rotate_photo(%Photo{} = photo, rotate_amount) do
     {:ok, temp_path} = Temp.path()
-    original_file = get_original_file(photo)
-    path = Storage.get_photo_file_path(original_file)
-    {:ok, original_media} = Storage.get_photo_file_media(original_file)
 
-    if Media.is_video(original_media) do
-      Logger.debug("Skipping rotation for video #{Photo.to_string(photo)}")
+    try do
+      original_file = get_original_file(photo)
+      path = Storage.get_photo_file_path(original_file)
+      {:ok, original_media} = Storage.get_photo_file_media(original_file)
 
-      photo
-      |> Ecto.Changeset.change(action: "R")
-      |> Repo.update!()
-    else
-      {:ok, media} = Media.rotate(original_media, temp_path, rotate_amount)
-      {:ok, media} = Media.copy(media, path)
-      size = Media.get_size(media)
+      if Media.is_video(original_media) do
+        Logger.debug("Skipping rotation for video #{Photo.to_string(photo)}")
 
-      files =
-        Enum.map(photo.files, fn
-          %File{size_key: "orig"} ->
-            Ecto.Changeset.change(original_file, width: size.width, height: size.height)
-
-          %File{} = file ->
-            file
-        end)
-
-      photo =
         photo
         |> Ecto.Changeset.change(action: "R")
-        |> Ecto.Changeset.put_assoc(:files, files)
         |> Repo.update!()
+      else
+        {:ok, media} = Media.rotate(original_media, temp_path, rotate_amount)
+        {:ok, media} = Media.copy(media, path)
+        size = Media.get_size(media)
 
-      Logger.info("Rotated #{Photo.to_string(photo)}")
+        files =
+          Enum.map(photo.files, fn
+            %File{size_key: "orig"} ->
+              Ecto.Changeset.change(original_file, width: size.width, height: size.height)
 
-      photo
+            %File{} = file ->
+              file
+          end)
+
+        photo =
+          photo
+          |> Ecto.Changeset.change(action: "R")
+          |> Ecto.Changeset.put_assoc(:files, files)
+          |> Repo.update!()
+
+        Logger.info("Rotated #{Photo.to_string(photo)}")
+
+        photo
+      end
+    after
+      Elixir.File.rm(temp_path)
     end
   end
 
