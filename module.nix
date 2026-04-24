@@ -86,7 +86,7 @@ in
 
     systemd.services.penguin_memories = {
       wantedBy = [ "multi-user.target" ];
-      wants = [ "postgresql.service" ];
+      requires = [ "postgresql.service" ];
       after = [
         "network.target"
         "postgresql.service"
