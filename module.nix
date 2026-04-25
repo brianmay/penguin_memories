@@ -91,6 +91,7 @@ in
         "network.target"
         "postgresql.service"
       ];
+      partOf = [ "postgresql.service" ];
       serviceConfig = {
         User = "penguin_memories";
         # Non-secret configuration is declared directly in the unit.
