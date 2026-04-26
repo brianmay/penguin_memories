@@ -11,6 +11,7 @@
     devenv = {
       url = "github:cachix/devenv";
     };
+    flockenzeit.url = "github:balsoft/flockenzeit";
   };
 
   outputs =
@@ -19,6 +20,7 @@
       nixpkgs,
       flake-utils,
       devenv,
+      flockenzeit,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -32,6 +34,11 @@
         src = ./.;
         version = "0.0.0";
         pname = "penguin_memories";
+
+        build_env = {
+          BUILD_DATE = with flockenzeit.lib.splitSecondsSinceEpoch { } self.lastModified; "${F}T${T}${Z}";
+          VCS_REF = "${self.shortRev or self.dirtyShortRev or "dirty"}";
+        };
 
         mixFodDeps = beamPackages.fetchMixDeps {
           TOP_SRC = src;
@@ -79,6 +86,9 @@
             src
             mixFodDeps
             ;
+
+          BUILD_DATE = build_env.BUILD_DATE;
+          VCS_REF = build_env.VCS_REF;
 
           postBuild = ''
             ln -sf ${mixFodDeps}/deps deps
