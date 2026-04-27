@@ -131,6 +131,10 @@ defmodule PenguinMemories.Upload do
   end
 
   @type rc :: {:ok, Photo.t()} | {:skipped, Photo.t()} | {:error, String.t()}
+  @type rc_with_media ::
+          {:ok, Photo.t(), Media.t(), binary(), integer()}
+          | {:skipped, Photo.t()}
+          | {:error, String.t()}
 
   @spec changeset_error_to_string(Ecto.Changeset.t()) :: String.t()
   defp changeset_error_to_string(%Ecto.Changeset{} = changeset) do
@@ -160,10 +164,19 @@ defmodule PenguinMemories.Upload do
   # Deduplication
   # ---------------------------------------------------------------------------
 
-  @spec check_file_conflicts(rc(), Media.t(), String.t()) :: rc()
-  defp check_file_conflicts({:ok, %Photo{}} = rc, media, size_key) do
+  @spec check_file_conflicts(
+          {:ok, Photo.t(), Media.t(), binary(), integer()},
+          Media.t(),
+          String.t()
+        ) ::
+          {:ok, Photo.t(), Media.t(), binary(), integer()} | {:skipped, Photo.t()}
+  defp check_file_conflicts(
+         {:ok, %Photo{} = photo, media, sha256_hash, num_bytes},
+         media,
+         size_key
+       ) do
     case Conflicts.get_file_hash_conflict(media, size_key) do
-      nil -> rc
+      nil -> {:ok, photo, media, sha256_hash, num_bytes}
       %Photo{} = photo -> {:skipped, photo}
     end
   end
@@ -176,9 +189,16 @@ defmodule PenguinMemories.Upload do
   # back the Photo insert. This prevents dangling DB rows that have no files.
   # ---------------------------------------------------------------------------
 
-  @spec build_photo_multi(Photo.t(), Album.t(), Media.t(), String.t()) ::
+  @spec build_photo_multi(Photo.t(), Album.t(), Media.t(), String.t(), binary(), integer()) ::
           {:ok, Photo.t()} | {:error, String.t()}
-  defp build_photo_multi(%Photo{} = photo, %Album{} = album, %Media{} = media, size_key) do
+  defp build_photo_multi(
+         %Photo{} = photo,
+         %Album{} = album,
+         %Media{} = media,
+         size_key,
+         sha256_hash,
+         num_bytes
+       ) do
     multi =
       Multi.new()
       |> Multi.insert(:photo, fn _ ->
@@ -188,42 +208,92 @@ defmodule PenguinMemories.Upload do
         |> Ecto.Changeset.put_assoc(:files, [])
         |> Ecto.Changeset.put_assoc(:photo_relations, [])
       end)
-      |> Multi.run(:file_metadata, fn _repo, %{photo: inserted_photo} ->
-        case Storage.build_file_metadata(media, inserted_photo, size_key, check_conflicts: true) do
-          {:ok, file, dest_path} -> {:ok, {file, dest_path}}
-          {:error, reason} -> {:error, reason}
-        end
+      |> Multi.run(:file, fn _repo, %{photo: inserted_photo} ->
+        build_file_record_with_constraint_check(
+          inserted_photo,
+          media,
+          size_key,
+          sha256_hash,
+          num_bytes
+        )
       end)
 
     case Repo.transaction(multi) do
-      {:ok, %{photo: inserted_photo, file_metadata: {file, dest_path}}} ->
-        copy_file_and_insert_record(inserted_photo, file, media, dest_path)
+      {:ok, %{photo: inserted_photo, file: inserted_file}} ->
+        copy_file_and_finalize(inserted_photo, inserted_file, media)
 
       {:error, :photo, %Ecto.Changeset{} = cs, _} ->
         {:error, changeset_error_to_string(cs)}
 
-      {:error, :file_metadata, {:error, reason}, _} ->
+      {:error, :file, {:error, reason}, _} ->
         {:error, reason}
+
+      {:error, :file, %Ecto.ConstraintError{} = e, _} ->
+        if e.constraint == "pm_photo_file_photo_id_size_key_mime_type_index" do
+          {:error, "file already exists"}
+        else
+          {:error, e.message}
+        end
 
       {:error, _op, _val, _acc} ->
         {:error, "transaction failed"}
     end
   end
 
-  @spec copy_file_and_insert_record(Photo.t(), File.t(), Media.t(), String.t()) ::
-          {:ok, Photo.t()} | {:error, String.t()}
-  defp copy_file_and_insert_record(
-         %Photo{} = inserted_photo,
-         %File{} = file,
+  @spec build_file_record_with_constraint_check(
+          Photo.t(),
+          Media.t(),
+          String.t(),
+          binary(),
+          integer()
+        ) ::
+          {:ok, File.t()} | {:error, String.t()}
+  defp build_file_record_with_constraint_check(
+         %Photo{} = photo,
          %Media{} = media,
-         dest_path
+         size_key,
+         sha256_hash,
+         num_bytes
        ) do
+    filename = Storage.build_new_filename(photo, media)
+    size = Media.get_size(media)
+    format = Media.get_format(media)
+    is_video = Media.is_video(media)
+    file_dir = Storage.build_file_dir(photo.dir, size_key, is_video)
+
+    case Storage.check_dir_filename_conflicts(file_dir, filename) do
+      :ok ->
+        file = %File{
+          size_key: size_key,
+          width: size.width,
+          height: size.height,
+          dir: file_dir,
+          filename: filename,
+          is_video: is_video,
+          mime_type: format,
+          sha256_hash: sha256_hash,
+          num_bytes: num_bytes,
+          photo_id: photo.id
+        }
+
+        {:ok, file}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  @spec copy_file_and_finalize(Photo.t(), File.t(), Media.t()) ::
+          {:ok, Photo.t()} | {:error, String.t()}
+  defp copy_file_and_finalize(%Photo{} = photo, %File{} = file, %Media{} = media) do
+    dest_path = Storage.build_path(file.dir, file.filename)
+
     with :ok <- Storage.copy_file(media, dest_path),
-         {:ok, _} <- insert_file_record(file, inserted_photo) do
-      {:ok, reload_photo_with_file(inserted_photo)}
+         {:ok, _} <- insert_file_record(file, photo) do
+      {:ok, reload_photo_with_file(photo)}
     else
       {:error, reason} ->
-        Repo.delete!(inserted_photo)
+        Repo.delete!(photo)
         Storage.delete_file(dest_path)
         {:error, reason}
     end
@@ -277,7 +347,7 @@ defmodule PenguinMemories.Upload do
     raw_file =
       raw_extensions()
       |> Enum.map(fn ext -> base <> ext end)
-      |> Enum.find(&exists?/1)
+      |> Enum.find(fn candidate -> candidate != path and exists?(candidate) end)
 
     if raw_file == nil do
       {:ok, photo}
@@ -343,7 +413,9 @@ defmodule PenguinMemories.Upload do
 
   @spec upload_file(String.t(), Album.t(), keyword()) :: rc
   def upload_file(path, album, opts \\ []) do
-    with {:ok, media} <- Media.get_media(path) do
+    with {:ok, media} <- Media.get_media(path),
+         {:ok, %{sha256_hash: sha256_hash, num_bytes: num_bytes}} <-
+           Media.compute_file_metadata(media) do
       default_date = DateTime.now!("Australia/Melbourne") |> DateTime.to_date()
       upload_date = Keyword.get(opts, :date, default_date)
       timezone = Keyword.get(opts, :timezone, "Australia/Melbourne")
@@ -377,7 +449,7 @@ defmodule PenguinMemories.Upload do
       photo = add_exif_to_photo(photo, media)
 
       rc =
-        {:ok, photo}
+        {:ok, photo, media, sha256_hash, num_bytes}
         |> check_file_conflicts(media, size_key)
         |> do_save(album, media, size_key)
         |> add_raw_files(path)
@@ -394,8 +466,13 @@ defmodule PenguinMemories.Upload do
   @spec do_save(rc(), Album.t(), Media.t(), String.t()) :: rc()
   defp do_save({:skipped, _} = rc, _album, _media, _size_key), do: rc
 
-  defp do_save({:ok, %Photo{} = photo}, %Album{} = album, %Media{} = media, size_key) do
-    build_photo_multi(photo, album, media, size_key)
+  defp do_save(
+         {:ok, %Photo{} = photo, media, sha256_hash, num_bytes},
+         %Album{} = album,
+         %Media{} = media,
+         size_key
+       ) do
+    build_photo_multi(photo, album, media, size_key, sha256_hash, num_bytes)
   end
 
   # ---------------------------------------------------------------------------

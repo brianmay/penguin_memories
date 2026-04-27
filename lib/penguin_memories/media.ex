@@ -494,6 +494,23 @@ defmodule PenguinMemories.Media do
     size
   end
 
+  @spec compute_file_metadata(t()) ::
+          {:ok, %{sha256_hash: binary(), num_bytes: integer()}} | {:error, String.t()}
+  def compute_file_metadata(media) do
+    try do
+      %{size: num_bytes} = File.stat!(media.path)
+
+      sha256_hash =
+        File.stream!(media.path, 2_048)
+        |> Enum.reduce(:crypto.hash_init(:sha256), &:crypto.hash_update(&2, &1))
+        |> :crypto.hash_final()
+
+      {:ok, %{sha256_hash: sha256_hash, num_bytes: num_bytes}}
+    rescue
+      e in File.Error -> {:error, "failed to compute file metadata: #{e.reason}"}
+    end
+  end
+
   @spec delete(t()) :: :ok | {:error, String.t()}
   def delete(%__MODULE__{} = media) do
     case File.rm(media.path) do

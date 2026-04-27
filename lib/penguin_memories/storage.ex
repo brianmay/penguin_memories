@@ -78,7 +78,7 @@ defmodule PenguinMemories.Storage do
   end
 
   @spec build_new_filename(Photo.t(), Media.t()) :: String.t()
-  defp build_new_filename(%Photo{} = photo, %Media{} = media) do
+  def build_new_filename(%Photo{} = photo, %Media{} = media) do
     extension = Media.get_extension(media)
 
     photo.id
@@ -91,6 +91,19 @@ defmodule PenguinMemories.Storage do
   defp check_conflicts(false, _, _), do: :ok
 
   defp check_conflicts(true, file_dir, filename) do
+    path = build_path(file_dir, filename)
+
+    with [] <- Conflicts.get_file_dir_conflicts(file_dir, filename),
+         {:error, _} <- stat(path) do
+      :ok
+    else
+      [_conflicts] -> {:error, "Path #{path} already exists in database"}
+      {:ok, _} -> {:error, "Path #{path} already exists on filesystem"}
+    end
+  end
+
+  @spec check_dir_filename_conflicts(String.t(), String.t()) :: :ok | {:error, String.t()}
+  def check_dir_filename_conflicts(file_dir, filename) do
     path = build_path(file_dir, filename)
 
     with [] <- Conflicts.get_file_dir_conflicts(file_dir, filename),
