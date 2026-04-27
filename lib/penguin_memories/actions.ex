@@ -162,9 +162,14 @@ defmodule PenguinMemories.Actions do
 
     MapSet.difference(old_filenames, new_filenames)
     |> Enum.each(fn path ->
-      {:ok, media} = Media.get_media(path)
-      Logger.info("Deleting #{path}")
-      :ok = Media.delete(media)
+      case Media.get_media(path) do
+        {:ok, media} ->
+          Logger.info("Deleting #{path}")
+          :ok = Media.delete(media)
+
+        {:error, _reason} ->
+          Logger.error("File not found, skipping delete: #{path}")
+      end
     end)
 
     photo =
@@ -192,9 +197,14 @@ defmodule PenguinMemories.Actions do
 
     old_filenames
     |> Enum.each(fn path ->
-      {:ok, media} = Media.get_media(path)
-      Logger.info("Deleting #{path}")
-      :ok = Media.delete(media)
+      case Media.get_media(path) do
+        {:ok, media} ->
+          Logger.info("Deleting #{path}")
+          :ok = Media.delete(media)
+
+        {:error, _reason} ->
+          Logger.error("File not found, skipping delete: #{path}")
+      end
     end)
 
     Repo.delete!(photo)
