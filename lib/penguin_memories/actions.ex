@@ -34,35 +34,48 @@ defmodule PenguinMemories.Actions do
          %Media.SizeRequirement{} = sr,
          size_key
        ) do
-    is_video? = Media.is_video(original_media)
-
-    if String.starts_with?(sr.format, "video") and not is_video? do
+    if not Media.is_video(original_media) and String.starts_with?(sr.format, "video") do
       nil
     else
       temp_path = Temp.path!()
 
       try do
-        case Media.resize(original_media, temp_path, sr) do
-          {:ok, thumb} ->
-            case Storage.build_file_from_media(photo, thumb, size_key) do
-              {:ok, file} ->
-                file
-
-              {:error, reason} ->
-                Logger.error(
-                  "Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}"
-                )
-
-                nil
-            end
-
-          {:error, reason} ->
-            Logger.error("Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}")
-            nil
-        end
+        create_file_inner(photo, original_media, sr, size_key, temp_path)
       after
         Elixir.File.rm(temp_path)
       end
+    end
+  end
+
+  @spec create_file_inner(Photo.t(), Media.t(), Media.SizeRequirement.t(), String.t(), String.t()) ::
+          File.t() | nil
+  defp create_file_inner(photo, original_media, sr, size_key, temp_path) do
+    case Media.resize(original_media, temp_path, sr) do
+      {:ok, thumb} ->
+        create_file_from_thumb(photo, thumb, size_key)
+
+      {:error, reason} ->
+        Logger.error("Failed to create #{size_key} for #{Photo.to_string(photo)}: #{reason}")
+        nil
+    end
+  end
+
+  @spec create_file_from_thumb(Photo.t(), Media.t(), String.t()) :: File.t() | nil
+  defp create_file_from_thumb(photo, thumb, size_key) do
+    case Storage.build_file_metadata(thumb, photo, size_key) do
+      {:ok, file, dest_path} ->
+        case Storage.copy_file(thumb, dest_path) do
+          :ok ->
+            file
+
+          {:error, reason} ->
+            Logger.error("Failed to copy #{size_key}: #{reason}")
+            nil
+        end
+
+      {:error, reason} ->
+        Logger.error("Failed to build metadata for #{size_key}: #{reason}")
+        nil
     end
   end
 

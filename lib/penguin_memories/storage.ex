@@ -102,9 +102,9 @@ defmodule PenguinMemories.Storage do
     end
   end
 
-  @spec build_file_from_media(Photo.t(), Media.t(), String.t(), keyword()) ::
-          {:ok, File.t()} | {:error, String.t()}
-  def build_file_from_media(%Photo{} = photo, %Media{} = media, size_key, opts \\ []) do
+  @spec build_file_metadata(Media.t(), Photo.t(), String.t(), keyword()) ::
+          {:ok, File.t(), String.t()} | {:error, String.t()}
+  def build_file_metadata(%Media{} = media, %Photo{} = photo, size_key, opts \\ []) do
     filename = build_new_filename(photo, media)
     size = Media.get_size(media)
     sha256_hash = Media.get_sha256_hash(media)
@@ -117,8 +117,7 @@ defmodule PenguinMemories.Storage do
 
     check_conflicts = Keyword.get(opts, :check_conflicts, false)
 
-    with :ok <- check_conflicts(check_conflicts, file_dir, filename),
-         {:ok, _} <- Media.copy(media, dest_path) do
+    with :ok <- check_conflicts(check_conflicts, file_dir, filename) do
       file = %File{
         size_key: size_key,
         width: size.width,
@@ -132,10 +131,32 @@ defmodule PenguinMemories.Storage do
         photo_id: photo.id
       }
 
+      {:ok, file, dest_path}
+    end
+  end
+
+  @spec copy_file(Media.t(), String.t()) :: :ok | {:error, String.t()}
+  def copy_file(%Media{} = media, dest_path) do
+    case Media.copy(media, dest_path) do
+      {:ok, _} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  @spec build_file_from_media(Photo.t(), Media.t(), String.t(), keyword()) ::
+          {:ok, File.t()} | {:error, String.t()}
+  def build_file_from_media(%Photo{} = photo, %Media{} = media, size_key, opts \\ []) do
+    with {:ok, file, dest_path} <- build_file_metadata(media, photo, size_key, opts),
+         :ok <- copy_file(media, dest_path) do
       {:ok, file}
-    else
-      {:error, reason} ->
-        {:error, reason}
+    end
+  end
+
+  @spec delete_file(String.t()) :: :ok | {:error, String.t()}
+  def delete_file(path) do
+    case :file.delete(path) do
+      :ok -> :ok
+      {:error, reason} -> {:error, "failed to delete file #{path}: #{inspect(reason)}"}
     end
   end
 end

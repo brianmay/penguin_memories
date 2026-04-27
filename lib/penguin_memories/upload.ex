@@ -188,28 +188,76 @@ defmodule PenguinMemories.Upload do
         |> Ecto.Changeset.put_assoc(:files, [])
         |> Ecto.Changeset.put_assoc(:photo_relations, [])
       end)
-      |> Multi.run(:file, fn _repo, %{photo: inserted_photo} ->
-        Storage.build_file_from_media(inserted_photo, media, size_key, check_conflicts: true)
-      end)
-      |> Multi.update(:photo_with_file, fn %{photo: inserted_photo, file: file} ->
-        inserted_photo
-        |> Ecto.Changeset.change()
-        |> Ecto.Changeset.put_assoc(:files, [file])
+      |> Multi.run(:file_metadata, fn _repo, %{photo: inserted_photo} ->
+        case Storage.build_file_metadata(media, inserted_photo, size_key, check_conflicts: true) do
+          {:ok, file, dest_path} -> {:ok, {file, dest_path}}
+          {:error, reason} -> {:error, reason}
+        end
       end)
 
     case Repo.transaction(multi) do
-      {:ok, %{photo_with_file: final_photo}} ->
-        {:ok, final_photo}
+      {:ok, %{photo: inserted_photo, file_metadata: {file, dest_path}}} ->
+        copy_file_and_insert_record(inserted_photo, file, media, dest_path)
 
       {:error, :photo, %Ecto.Changeset{} = cs, _} ->
         {:error, changeset_error_to_string(cs)}
 
-      {:error, :file, reason, _} ->
+      {:error, :file_metadata, {:error, reason}, _} ->
         {:error, reason}
 
-      {:error, :photo_with_file, %Ecto.Changeset{} = cs, _} ->
-        {:error, changeset_error_to_string(cs)}
+      {:error, _op, _val, _acc} ->
+        {:error, "transaction failed"}
     end
+  end
+
+  @spec copy_file_and_insert_record(Photo.t(), File.t(), Media.t(), String.t()) ::
+          {:ok, Photo.t()} | {:error, String.t()}
+  defp copy_file_and_insert_record(
+         %Photo{} = inserted_photo,
+         %File{} = file,
+         %Media{} = media,
+         dest_path
+       ) do
+    with :ok <- Storage.copy_file(media, dest_path),
+         {:ok, _} <- insert_file_record(file, inserted_photo) do
+      {:ok, reload_photo_with_file(inserted_photo)}
+    else
+      {:error, reason} ->
+        Repo.delete!(inserted_photo)
+        Storage.delete_file(dest_path)
+        {:error, reason}
+    end
+  end
+
+  @spec insert_file_record(File.t(), Photo.t()) :: {:ok, File.t()} | {:error, String.t()}
+  defp insert_file_record(%File{} = file, %Photo{} = photo) do
+    file =
+      %File{
+        size_key: file.size_key,
+        width: file.width,
+        height: file.height,
+        dir: file.dir,
+        filename: file.filename,
+        is_video: file.is_video,
+        mime_type: file.mime_type,
+        sha256_hash: file.sha256_hash,
+        num_bytes: file.num_bytes,
+        photo_id: photo.id
+      }
+      |> Ecto.Changeset.change()
+
+    case Repo.insert(file) do
+      {:ok, inserted_file} -> {:ok, inserted_file}
+      {:error, cs} -> {:error, changeset_error_to_string(cs)}
+    end
+  end
+
+  @spec reload_photo_with_file(Photo.t()) :: Photo.t()
+  defp reload_photo_with_file(%Photo{} = photo) do
+    Photo
+    |> where(id: ^photo.id)
+    |> preload([:albums, :files, :photo_relations])
+    |> Repo.one!()
   end
 
   # ---------------------------------------------------------------------------
@@ -243,18 +291,19 @@ defmodule PenguinMemories.Upload do
 
   @spec attach_raw_file({:ok, Photo.t()}, Media.t()) :: rc()
   defp attach_raw_file({:ok, %Photo{} = photo}, %Media{} = media) do
-    case Storage.build_file_from_media(photo, media, "raw", check_conflicts: true) do
-      {:ok, %File{} = file} ->
-        photo =
-          photo
-          |> Ecto.Changeset.change()
-          |> Ecto.Changeset.put_assoc(:files, photo.files ++ [file])
-          |> Repo.update!()
+    with {:ok, file, dest_path} <-
+           Storage.build_file_metadata(media, photo, "raw", check_conflicts: true),
+         :ok <- Storage.copy_file(media, dest_path) do
+      photo =
+        photo
+        |> Ecto.Changeset.change()
+        |> Ecto.Changeset.put_assoc(:files, photo.files ++ [file])
+        |> Repo.update!()
 
-        {:ok, photo}
-
-      {:error, _} = rc ->
-        rc
+      {:ok, photo}
+    else
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
