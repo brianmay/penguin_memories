@@ -623,16 +623,21 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   @spec validate_no_circular_references(album_id :: integer(), to_add :: list(map())) ::
           :ok | {:error, :circular_reference}
   defp validate_no_circular_references(album_id, to_add) do
+    # Get current direct parents to skip already-existing relationships
+    current_parent_ids = get_current_parent_ids(album_id) |> MapSet.new()
+
     circular_refs =
       Enum.filter(to_add, fn rel_data ->
         parent_id = rel_data.parent_id
+        # Skip parents that are already direct parents of this album
         # Check if adding this parent would create a cycle:
         # 1. album_id == parent_id (self-reference)
         # 2. parent_id is already an ancestor of album_id
         # 3. album_id is already an ancestor of parent_id (would create: album <- parent <- ... <- album)
-        album_id == parent_id or
-          is_ancestor?(parent_id, album_id) or
-          is_ancestor?(album_id, parent_id)
+        not MapSet.member?(current_parent_ids, parent_id) and
+          (album_id == parent_id or
+             is_ancestor?(parent_id, album_id) or
+             is_ancestor?(album_id, parent_id))
       end)
 
     if Enum.empty?(circular_refs) do

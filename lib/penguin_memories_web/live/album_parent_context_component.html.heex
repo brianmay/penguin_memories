@@ -29,7 +29,7 @@
 
         <%= if has_errors?(assigns, :album_parents_edit) do %>
           <div class="alert alert-danger mt-2">
-            {raw(render_error_tag(assigns, :album_parents_edit))}
+            {render_error_tag(assigns, :album_parents_edit)}
           </div>
         <% end %>
 
