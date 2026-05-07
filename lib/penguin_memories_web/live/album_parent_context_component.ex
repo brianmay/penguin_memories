@@ -54,14 +54,15 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
 
     current_relationships = normalize_relationships(raw_value)
 
-    socket
-    |> assign(:form, form)
-    |> assign(:field, field)
-    |> assign(:updates, updates)
-    |> assign(:search, search)
-    |> assign(:current_relationships, current_relationships)
-    |> assign(:parent_search_disabled, false)
-    |> assign(:parent_search_error, nil)
+    socket =
+      socket
+      |> assign(:form, form)
+      |> assign(:field, field)
+      |> assign(:updates, updates)
+      |> assign(:search, search)
+      |> assign(:current_relationships, current_relationships)
+      |> assign(:parent_search_disabled, false)
+      |> assign(:parent_search_error, nil)
 
     {:ok, socket}
   end

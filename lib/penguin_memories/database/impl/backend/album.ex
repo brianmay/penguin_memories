@@ -375,6 +375,26 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
         }
       end)
 
+    # Also include the legacy parent_id (if set) when it's not already in album_parents
+    parent_relationships =
+      if preloaded_object.parent_id &&
+           not Enum.any?(parent_relationships, &(&1.parent_id == preloaded_object.parent_id)) &&
+           Ecto.assoc_loaded?(preloaded_object.parent) &&
+           preloaded_object.parent do
+        [
+          %{
+            parent_id: preloaded_object.parent_id,
+            parent_name: preloaded_object.parent.name,
+            context_name: nil,
+            context_sort_name: nil,
+            context_cover_photo_id: nil
+          }
+          | parent_relationships
+        ]
+      else
+        parent_relationships
+      end
+
     # Put the relationship data (with context) in the album_parents_edit field for the form
     # Keep the original album_parents for display
     object_with_ui_parents = %{preloaded_object | album_parents_edit: parent_relationships}
