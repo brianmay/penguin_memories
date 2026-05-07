@@ -62,8 +62,12 @@
         </div>
       <% else %>
         <%= for relationship <- @current_relationships do %>
-          <div class="card mb-2 shadow-sm" style="transition: all 0.2s ease;">
+          <% has_error = MapSet.member?(@error_parent_ids, relationship.parent_id) %>
+          <div class={"card mb-2 shadow-sm#{if has_error, do: " border-danger"}"} style={"transition: all 0.2s ease;#{if has_error, do: " border-width: 2px;"}"}>
             <div class="card-body">
+              <%= if has_error do %>
+                <div class="text-danger small mb-2"><strong>⚠ Circular reference</strong></div>
+              <% end %>
               <div class="d-flex justify-content-between align-items-start">
                 <div class="relationship-info flex-grow-1">
                   <h6 class="card-title mb-3">

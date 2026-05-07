@@ -492,12 +492,14 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
             updated_changeset
           end
 
-        {:error, :circular_reference} ->
-          Ecto.Changeset.add_error(
-            changeset,
+        {:error, :circular_reference, error_ids} ->
+          changeset
+          |> Ecto.Changeset.add_error(
             :album_parents_edit,
-            "Cannot add parent relationships that would create circular references"
+            "Cannot add parent relationships that would create circular references",
+            error_ids: error_ids
           )
+          |> Ecto.Changeset.put_change(:album_parents_edit, new_album_parents)
       end
     end
   end
@@ -621,7 +623,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
   end
 
   @spec validate_no_circular_references(album_id :: integer(), to_add :: list(map())) ::
-          :ok | {:error, :circular_reference}
+          :ok | {:error, :circular_reference, list(integer())}
   defp validate_no_circular_references(album_id, to_add) do
     # Get current direct parents to skip already-existing relationships
     current_parent_ids = get_current_parent_ids(album_id) |> MapSet.new()
@@ -643,7 +645,7 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
     if Enum.empty?(circular_refs) do
       :ok
     else
-      {:error, :circular_reference}
+      {:error, :circular_reference, Enum.map(circular_refs, & &1.parent_id)}
     end
   end
 

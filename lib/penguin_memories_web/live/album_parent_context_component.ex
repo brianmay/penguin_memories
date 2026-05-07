@@ -29,7 +29,9 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
       parent_search_disabled: false,
 
       # Current parent relationships with context
-      current_relationships: []
+      current_relationships: [],
+      # Parent IDs that have validation errors (e.g. circular references)
+      error_parent_ids: %MapSet{}
     ]
 
     {:ok, assign(socket, assigns)}
@@ -54,6 +56,8 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
 
     current_relationships = normalize_relationships(raw_value)
 
+    error_parent_ids = extract_error_parent_ids(form)
+
     socket =
       socket
       |> assign(:form, form)
@@ -61,6 +65,7 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
       |> assign(:updates, updates)
       |> assign(:search, search)
       |> assign(:current_relationships, current_relationships)
+      |> assign(:error_parent_ids, error_parent_ids)
       |> assign(:parent_search_disabled, false)
       |> assign(:parent_search_error, nil)
 
@@ -69,6 +74,9 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
 
   @impl true
   def handle_event("search_parent", %{"value" => text}, socket) do
+    # Always clear search error on new input
+    socket = assign(socket, parent_search_error: nil)
+
     if String.length(text) >= 3 do
       search_for_parents(socket, text)
     else
@@ -345,5 +353,17 @@ defmodule PenguinMemoriesWeb.AlbumParentContextComponent do
       _ ->
         []
     end
+  end
+
+  @spec extract_error_parent_ids(map() | nil) :: MapSet.t()
+  defp extract_error_parent_ids(nil), do: MapSet.new()
+
+  defp extract_error_parent_ids(form) do
+    form.errors
+    |> Keyword.get_values(:album_parents_edit)
+    |> Enum.flat_map(fn {_msg, opts} ->
+      Keyword.get(opts, :error_ids, [])
+    end)
+    |> MapSet.new()
   end
 end
