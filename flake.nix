@@ -141,6 +141,7 @@
                   ffmpeg-headless
                   libraw
                   pkgs.prefetch-npm-deps
+                  pkgs.osv-scanner
                 ]
                 ++ optional stdenv.isLinux inotify-tools
                 ++ optional stdenv.isDarwin terminal-notifier
