@@ -8,7 +8,7 @@ on:
 jobs:
   test:
     name: Setup, Build, Test
-    uses: brianmay/workflows/.github/workflows/elixir.yaml@main
+    uses: brianmay/workflows/.github/workflows/elixir.yaml@b751c43c6ad3df6d5ef91a3ff5a263344169e332 # main
     with:
       plts_cache_postfix: "-5"
       apt_packages: "graphicsmagick-imagemagick-compat libimage-exiftool-perl ffmpeg exiftran libraw-bin"
