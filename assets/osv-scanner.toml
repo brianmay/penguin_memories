@@ -1,0 +1,15 @@
+[[IgnoredVulns]]
+id = "GHSA-2g4f-4pwh-qvx6"
+reason = "ajv is a dev-only transitive webpack dependency"
+
+[[IgnoredVulns]]
+id = "GHSA-f886-m6hf-6m8v"
+reason = "brace-expansion is a dev-only transitive webpack dependency"
+
+[[IgnoredVulns]]
+id = "GHSA-5g2h-9x5v-5h3x"
+reason = "phoenix_html is a local file dependency from Elixir deps, not a real npm package"
+
+[[IgnoredVulns]]
+id = "GHSA-qj8w-gfj5-8c6v"
+reason = "serialize-javascript is a dev-only transitive webpack dependency"
