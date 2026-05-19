@@ -2,5 +2,17 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  /*
+   * Avoid churn
+   */
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  /*
+   * Make failures obvious instead of retrying forever
+   */
+  "rebaseWhen": "conflicted",
+  "gitIgnoredAuthors": [
+    "renovate[bot]@users.noreply.github.com"
   ]
 }
