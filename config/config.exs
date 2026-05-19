@@ -56,7 +56,8 @@ config :mime, :types, %{
   "image/cr2" => ["cr2"],
   "image/cr3" => ["cr3"],
   "image/x-adobe-dng" => ["dng"],
-  "image/x-portable-pixmap" => ["ppm"]
+  "image/x-portable-pixmap" => ["ppm"],
+  "video/x-matroska" => ["mkv"]
 }
 
 config :libcluster,
