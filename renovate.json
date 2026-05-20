@@ -11,8 +11,5 @@
   /*
    * Make failures obvious instead of retrying forever
    */
-  "rebaseWhen": "conflicted",
-  "gitIgnoredAuthors": [
-    "renovate[bot]@users.noreply.github.com"
-  ]
+  "rebaseWhen": "conflicted"
 }
