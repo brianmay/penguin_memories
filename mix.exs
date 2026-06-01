@@ -71,7 +71,8 @@ defmodule PenguinMemories.MixProject do
       {:plugoid, "~> 0.6.0"},
       {:replug, "~> 0.1.0"},
       {:tz, "~> 0.28.1"},
-      {:hackney, "~> 1.18"}
+      {:hackney, "~> 1.18"},
+      {:x509, "~> 0.9.0", override: true}
     ]
   end
 

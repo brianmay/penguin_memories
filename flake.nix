@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs = {
-      url = "github:NixOS/nixpkgs/nixos-25.11";
+      url = "github:NixOS/nixpkgs/nixos-26.05";
     };
     flake-utils = {
       url = "github:numtide/flake-utils";
@@ -28,8 +28,8 @@
         inherit (pkgs.lib) optional optionals;
         pkgs = nixpkgs.legacyPackages.${system};
 
-        elixir = pkgs.beam.packages.erlang_26.elixir_1_18;
-        beamPackages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_26;
+        elixir = pkgs.beam.packages.erlang_28.elixir_1_18;
+        beamPackages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_28;
 
         src = ./.;
         version = "0.0.0";
@@ -44,8 +44,8 @@
           TOP_SRC = src;
           pname = "${pname}-mix-deps";
           inherit src version;
-          hash = "sha256-yYArBSFQw6wBBoZC7qhbM04BqCKYqF8dry7tMPLGmfQ=";
-          # hash = pkgs.lib.fakeHash;
+          # hash = "sha256-QT2MG4YK3yOsrnJL4y4rafsP1dWyxOtNhhfyrol1Y8Y=";
+          hash = pkgs.lib.fakeHash;
         };
 
         nodejs = pkgs.nodejs;
@@ -133,7 +133,6 @@
                   elixir
                   elixir-ls
                   glibcLocales
-                  node2nix
                   nodejs
                   exiftool
                   fbida
