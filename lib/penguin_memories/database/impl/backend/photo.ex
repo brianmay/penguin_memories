@@ -199,7 +199,8 @@ defmodule PenguinMemories.Database.Impl.Backend.Photo do
       )
       |> Repo.all()
 
-    o = %Photo{result.o | related: related}
+    %Photo{} = photo = result.o
+    o = %Photo{photo | related: related}
     cursor = Paginator.cursor_for_record(result, get_cursor_fields())
 
     %Query.Details{

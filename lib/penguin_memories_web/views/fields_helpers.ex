@@ -183,8 +183,6 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   end
 
   @spec output_field_value(obj :: struct(), value :: any(), field :: Field.t()) :: any()
-  defp output_field_value(_, nil, _field), do: "N/A"
-
   defp output_field_value(_, value, %Field{type: {:single, type}}) do
     Query.query_icon_by_id(value.id, type, "thumb")
     |> display_icon()
@@ -302,7 +300,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
     related_icons =
       Enum.map(related, fn result ->
-        icon = Map.get(icons, result.pr.photo_id)
+        %Query.Icon{} = icon = Map.get(icons, result.pr.photo_id)
         icon = %Query.Icon{icon | name: result.pr.name, subtitle: nil, action: nil}
         Map.put(result, :icon, icon)
       end)

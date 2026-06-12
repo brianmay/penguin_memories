@@ -3,7 +3,7 @@ defmodule PenguinMemoriesWeb.Auth do
   Helper functions for authorization
   """
 
-  @spec current_user(Plug.Conn.t()) :: map()
+  @spec current_user(Plug.Conn.t()) :: map() | nil
   def current_user(conn) do
     Plug.Conn.get_session(conn, :claims)
   end

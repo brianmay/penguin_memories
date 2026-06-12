@@ -132,13 +132,8 @@ defmodule PenguinMemories.Actions do
       |> List.flatten()
       |> Enum.reject(fn file -> is_nil(file) end)
 
-    files =
-      if original_file != nil do
-        original_file = update_entry(original_file, photo.files)
-        [original_file | files]
-      else
-        files
-      end
+    original_file = update_entry(original_file, photo.files)
+    files = [original_file | files]
 
     files =
       if raw_file != nil do

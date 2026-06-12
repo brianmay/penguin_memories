@@ -376,7 +376,7 @@ defmodule PenguinMemoriesWeb.MainLive do
         end
 
       {_, value} ->
-        with [type_name, id] <- String.split(value, "/", max_parts: 2),
+        with [type_name, id] <- String.split(value, "/", parts: 2),
              {:ok, type} <- Types.get_type_for_name(type_name),
              {id, ""} <- Integer.parse(id) do
           {:ok, {type, id}}

@@ -152,7 +152,7 @@
             phx-click="upload"
             phx-disable-with="Uploading…"
             class="btn btn-primary"
-            disabled={Enum.empty?(@uploads.photos.entries) or @status == :processing}
+            disabled={Enum.empty?(@uploads.photos.entries)}
           >
             Upload
           </button>

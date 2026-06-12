@@ -176,8 +176,10 @@ defmodule PenguinMemories.Database.Impl.Backend.Album do
     raw = Query.get_raw_from_result(result, Album)
     cursor = Paginator.cursor_for_record(result, get_cursor_fields())
 
+    %Album{} = album = result.o
+
     obj = %Album{
-      result.o
+      album
       | photo_count: result.photo_count || 0,
         child_count: result.child_count || 0
     }
