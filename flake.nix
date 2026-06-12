@@ -28,8 +28,16 @@
         inherit (pkgs.lib) optional optionals;
         pkgs = nixpkgs.legacyPackages.${system};
 
-        elixir = pkgs.beam.packages.erlang_28.elixir_1_18;
-        beamPackages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_28;
+        elixir = pkgs.beam.packages.erlang_29.elixir_1_20;
+        beamPackages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_29;
+
+        # rebar3 3.27 fails to compile under OTP 29 (new compiler warnings
+        # are treated as errors in its build). Escripts built with OTP 28
+        # run fine on OTP 29, so borrow them from the erlang_28 package set.
+        rebarOverrides = {
+          rebar = pkgs.beam.packages.erlang_28.rebar;
+          rebar3 = pkgs.beam.packages.erlang_28.rebar3;
+        };
 
         src = ./.;
         version = "0.0.0";
@@ -40,7 +48,7 @@
           VCS_REF = "${self.shortRev or self.dirtyShortRev or "dirty"}";
         };
 
-        mixFodDeps = beamPackages.fetchMixDeps {
+        mixFodDeps = (beamPackages.fetchMixDeps.override rebarOverrides) {
           TOP_SRC = src;
           pname = "${pname}-mix-deps";
           inherit src version;
@@ -77,7 +85,7 @@
           '';
         };
 
-        pkg = beamPackages.mixRelease {
+        pkg = (beamPackages.mixRelease.override rebarOverrides) {
           TOP_SRC = src;
           inherit
             pname

@@ -72,7 +72,6 @@ defmodule PenguinMemories.Upload do
 
   defp flash_used(mode) do
     cond do
-      is_nil(mode) -> nil
       (mode &&& 1) != 0 -> true
       true -> false
     end
@@ -85,7 +84,6 @@ defmodule PenguinMemories.Upload do
     cond do
       number == "inf" -> nil
       number == "undef" -> nil
-      is_nil(number) -> nil
       is_integer(number) -> number * 1.0
       is_float(number) -> number
     end

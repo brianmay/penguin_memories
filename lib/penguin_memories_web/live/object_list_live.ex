@@ -448,7 +448,8 @@ defmodule PenguinMemoriesWeb.ObjectListLive do
   @spec get_request(assigns :: map()) :: Request.t()
   def get_request(assigns) do
     filter = get_filter(assigns)
-    %Request{assigns.request | filter: filter}
+    %Request{} = request = assigns.request
+    %Request{request | filter: filter}
   end
 
   @spec toggle_range(

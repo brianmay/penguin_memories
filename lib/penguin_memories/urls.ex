@@ -3,7 +3,7 @@ defmodule PenguinMemories.Urls do
   URL helper functions
   """
   @spec url_merge(URI.t(), %{required(String.t()) => String.t()}, list(String.t())) :: URI.t()
-  def url_merge(url, merge, delete) do
+  def url_merge(%URI{} = url, merge, delete) do
     query =
       case url.query do
         nil -> %{}

@@ -29,7 +29,7 @@
     <% end %>
 
     <div class="buttons">
-      <%= if is_nil(@changeset) and Auth.can_edit(@common.current_user) and @type != Photos.Photo do %>
+      <%= if is_nil(@changeset) do %>
         <div class="btn btn-secondary" phx-click="create">Create</div>
       <% end %>
     </div>

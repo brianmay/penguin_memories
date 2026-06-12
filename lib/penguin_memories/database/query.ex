@@ -438,8 +438,6 @@ defmodule PenguinMemories.Database.Query do
   end
 
   @spec get_photo_parents(albums :: list(struct())) :: list({integer(), list(Icon.t())})
-  defp get_photo_parents([]), do: []
-
   defp get_photo_parents([album]) do
     album_icon = query_icon_by_id(album.id, PenguinMemories.Photos.Album, "thumb")
 

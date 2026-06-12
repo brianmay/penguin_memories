@@ -493,7 +493,10 @@ defmodule PenguinMemoriesWeb.ObjectDetailsLive do
 
   @spec get_edit_changeset(socket :: Socket.t(), params :: map()) :: Changeset.t()
   defp get_edit_changeset(%Socket{} = socket, params) do
-    changeset = Query.get_edit_changeset(socket.assigns.edit_object, params, socket.assigns.assoc)
+    %Changeset{} =
+      changeset =
+      Query.get_edit_changeset(socket.assigns.edit_object, params, socket.assigns.assoc)
+
     %Changeset{changeset | action: socket.assigns.action}
   end
 

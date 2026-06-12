@@ -134,7 +134,7 @@ defmodule PenguinMemories.Media do
     [cmd | args] = cmdline
     {text, 0} = System.cmd(cmd, args, stderr_to_stdout: false)
     [size_text | _] = String.split(text, ":")
-    [width, height] = String.split(size_text, "x", max_parts: 2)
+    [width, height] = String.split(size_text, "x", parts: 2)
     {width, ""} = Integer.parse(width)
     {height, ""} = Integer.parse(height)
     %Size{width: width, height: height}
