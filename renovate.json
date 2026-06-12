@@ -17,6 +17,6 @@
    * cannot install release candidates, so use the closest final release.
    */
   "constraints": {
-    "elixir": "1.20.0"
+    "elixir": "1.20.1"
   }
 }
