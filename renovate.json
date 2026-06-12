@@ -11,5 +11,13 @@
   /*
    * Make failures obvious instead of retrying forever
    */
-  "rebaseWhen": "conflicted"
+  "rebaseWhen": "conflicted",
+  /*
+   * Pin Elixir version so Renovate can install it via containerbase.
+   * Elixir 1.20+ dropped elixir-otp-26.zip; containerbase's elixir.sh
+   * defaults to that file for >=1.19 and fails to download it.
+   */
+  "constraints": {
+    "elixir": "1.18.4"
+  }
 }
