@@ -41,7 +41,7 @@ jobs:
       BUILD_WITHOUT_QUIC: true
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install system dependancies
         run: |
           sudo apt-get update --yes
@@ -96,7 +96,7 @@ jobs:
       BUILD_WITHOUT_QUIC: true
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Setup elixir
         uses: erlef/setup-elixir@v1.24
         with:
