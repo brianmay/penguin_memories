@@ -36,7 +36,7 @@ defmodule PenguinMemoriesWeb.AuthController do
           {:ok, {Token.t(), map() | nil}} | {:error, any()},
           String.t() | nil
         ) :: Plug.Conn.t()
-  defp handle_result(conn, {:ok, {%Token{id: %Token.Id{claims: id_claims}}, _userinfo}}, state) do
+  defp handle_result(conn, {:ok, {%{id: %{claims: id_claims}}, _userinfo}}, state) do
     claims = Map.take(id_claims, ["groups", "name", "sub"])
     sub = claims["sub"]
 
