@@ -42,14 +42,6 @@ config :penguin_memories, PenguinMemories.Accounts.Guardian,
   issuer: "penguin_memories",
   secret_key: System.get_env("GUARDIAN_SECRET")
 
-config :plugoid,
-  auth_cookie_store_opts: [
-    signing_salt: System.get_env("SIGNING_SALT")
-  ],
-  state_cookie_store_opts: [
-    signing_salt: System.get_env("SIGNING_SALT")
-  ]
-
 config :os_mon,
   start_disksup: false
 
@@ -93,13 +85,5 @@ if config_env() == :test do
     secret_key_base: "oOWDT+7p6JENufDeyMQFLqDMsj1bkVfQT4Navmr5qYem9crHED4jAMr0Stf4aRNt",
     live_view: [
       signing_salt: "6JsXtIwI2Wo64YdWdWIl1UY8fb1i1ggw"
-    ]
-
-  config :plugoid,
-    auth_cookie_store_opts: [
-      signing_salt: "/EeCfa85oE1mkAPMo2kPsT5zkCFPveHk"
-    ],
-    state_cookie_store_opts: [
-      signing_salt: "/EeCfa85oE1mkAPMo2kPsT5zkCFPveHk"
     ]
 end

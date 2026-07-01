@@ -43,4 +43,15 @@ defmodule PenguinMemoriesWeb.ConnCase do
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
+
+  @doc """
+  Seed the session with logged-in user claims.
+  """
+  @spec log_in_user(Plug.Conn.t(), map()) :: Plug.Conn.t()
+  def log_in_user(conn, claims \\ %{"sub" => "user", "name" => "User", "groups" => []}) do
+    conn
+    |> Plug.Test.init_test_session(%{})
+    |> Plug.Conn.put_session(:claims, claims)
+    |> Plug.Conn.put_session(:live_socket_id, "users_socket:#{claims["sub"]}")
+  end
 end

@@ -42,3 +42,4 @@ npm-debug.log
 /local/
 /result
 /prod.sh
+/secrets.sh

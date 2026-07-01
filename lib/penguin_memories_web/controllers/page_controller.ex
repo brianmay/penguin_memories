@@ -18,8 +18,8 @@ defmodule PenguinMemoriesWeb.PageController do
       end
 
     conn
-    |> Plugoid.logout()
-    |> put_session(:claims, nil)
+    |> delete_session(:claims)
+    |> delete_session(:live_socket_id)
     |> put_flash(:danger, "You are now logged out.")
     |> redirect(to: next)
   end
