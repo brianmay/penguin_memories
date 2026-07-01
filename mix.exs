@@ -10,16 +10,7 @@ defmodule PenguinMemories.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      elixirc_options: [
-        warnings_as_errors: true,
-        no_warn_undefined: [
-          :oidcc,
-          :oidcc_plug,
-          Oidcc.Plug.Authorize,
-          Oidcc.Plug.AuthorizationCallback,
-          Oidcc.Token
-        ]
-      ],
+      elixirc_options: [warnings_as_errors: true],
       dialyzer: dialyzer(),
       compilers: [:phoenix_live_view, :yecc, :leex] ++ Mix.compilers(),
       licenses: ["AGPL-3.0"],
