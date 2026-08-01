@@ -54,7 +54,7 @@ defmodule PenguinMemories.MixProject do
       {:geocalc, "~> 0.8"},
       {:floki, ">= 0.0.0", only: :test},
       {:lazy_html, ">= 0.1.0", only: :test},
-      {:phoenix_live_reload, "~> 1.6.0", only: :dev},
+      {:phoenix_live_reload, "~> 1.7.0", only: :dev},
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
