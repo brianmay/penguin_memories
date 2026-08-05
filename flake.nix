@@ -52,7 +52,7 @@
           TOP_SRC = src;
           pname = "${pname}-mix-deps";
           inherit src version;
-          hash = "sha256-O1Nv9eawdQBuYG4o7mLyOXE7xjYupiMV0ZdO8atfPoU=";
+          hash = "sha256-WHtYLGvNnwZFEB3cnrJEIFSvlGdivxeBOd9eyx66bmo=";
           # hash = pkgs.lib.fakeHash;
         };
 
@@ -106,8 +106,7 @@
 
             # for external task you need a workaround for the no deps check flag
             # https://github.com/phoenixframework/phoenix/issues/2690
-            mix do deps.loadpaths --no-deps-check, phx.digest
-            mix phx.digest --no-deps-check
+            mix do deps.loadpaths --no-deps-check + phx.digest
           '';
 
           postInstall = ''

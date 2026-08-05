@@ -69,7 +69,7 @@ defmodule PenguinMemories.MixProject do
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:assertions, "~> 0.10", only: [:dev, :test], runtime: false},
       {:oidcc, "~> 3.7"},
-      {:oidcc_plug, "~> 0.4"},
+      {:oidcc_plug, "~> 0.5"},
       {:tz, "~> 0.28.1"}
     ]
   end
