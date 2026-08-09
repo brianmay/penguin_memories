@@ -3,9 +3,10 @@ defmodule PenguinMemories.Export do
   Export photos from an album to a directory on the filesystem.
 
   Copies the original file (and optionally the raw sidecar) for each photo in
-  the specified album to the destination directory. Uses `photo.filename` as
-  the output filename. When multiple photos in the same album share the same
-  filename, the photo ID is appended to disambiguate.
+  the specified album to the destination directory. Output filenames are based
+  on the photo ID zero-padded to 6 digits (e.g. `042658.jpg`), so exported
+  filenames never collide. A `index.csv` file is also written containing basic
+  metadata for each exported photo.
 
   ## Usage (from IEx)
 
@@ -16,6 +17,7 @@ defmodule PenguinMemories.Export do
       {:ok, %{copied: 150, skipped: 0, errors: 0}}
   """
 
+  alias PenguinMemories.Format
   alias PenguinMemories.Photos.Album
   alias PenguinMemories.Photos.Photo
   alias PenguinMemories.Photos.PhotoAlbum
@@ -27,6 +29,10 @@ defmodule PenguinMemories.Export do
 
   require Logger
 
+  @export_padding 6
+
+  @index_headers [:id, :exported, :filename, :time, :description, :albums, :people]
+
   @type export_result :: %{
           copied: non_neg_integer(),
           skipped: non_neg_integer(),
@@ -37,9 +43,11 @@ defmodule PenguinMemories.Export do
   Export all photos from an album to a destination directory.
 
   Creates `dest_dir` if it doesn't exist. Copies the "orig" file for every
-  photo in the album, using `photo.filename` as the output name. When two or
-  more photos share the same filename, each conflicting name is disambiguated
-  by inserting `_<photo_id>` before the extension.
+  photo in the album, using a zero-padded photo ID as the output name (e.g.
+  `042658.jpg` for photo ID 42658). Raw sidecar files (CR2/CR3) use their own
+  extension (e.g. `042658.CR2`). A `index.csv` file is written listing each
+  exported photo with its ID, exported filename, database filename, time,
+  description, albums and people.
 
   ## Options
 
@@ -90,7 +98,7 @@ defmodule PenguinMemories.Export do
         join: pa in PhotoAlbum,
         on: pa.photo_id == p.id,
         where: pa.album_id == ^album_id,
-        preload: [files: ^file_query]
+        preload: [:albums, :persons, files: ^file_query]
 
     photo_list = Repo.all(photos)
 
@@ -106,31 +114,28 @@ defmodule PenguinMemories.Export do
     export_names = build_export_names(photos)
     initial = %{copied: 0, skipped: 0, errors: 0}
 
-    Enum.reduce(photos, initial, fn photo, acc ->
-      base_name = Map.fetch!(export_names, photo.id)
+    result =
+      Enum.reduce(photos, initial, fn photo, acc ->
+        base_name = Map.fetch!(export_names, photo.id)
 
-      Enum.reduce(photo.files, acc, fn %PenguinMemories.Photos.File{} = file, acc ->
-        export_file(photo, file, base_name, dest_dir, acc)
+        Enum.reduce(photo.files, acc, fn %PenguinMemories.Photos.File{} = file, acc ->
+          export_file(photo, file, base_name, dest_dir, acc)
+        end)
       end)
-    end)
+
+    write_index_csv(photos, export_names, dest_dir, result)
   end
 
   @spec build_export_names(list(Photo.t())) :: %{integer() => String.t()}
   defp build_export_names(photos) do
-    photos
-    |> Enum.group_by(fn p -> p.filename end)
-    |> Enum.flat_map(fn {filename, group} ->
-      if length(group) == 1 do
-        [{hd(group).id, filename}]
-      else
-        Enum.map(group, fn p ->
-          ext = Path.extname(p.filename)
-          base = Path.basename(p.filename, ext)
-          {p.id, "#{base}_#{p.id}#{ext}"}
-        end)
-      end
-    end)
-    |> Map.new()
+    Map.new(photos, fn photo -> {photo.id, build_export_name(photo)} end)
+  end
+
+  @spec build_export_name(Photo.t()) :: String.t()
+  defp build_export_name(%Photo{filename: filename} = photo) do
+    extension = Path.extname(filename)
+    base = photo.id |> Integer.to_string() |> String.pad_leading(@export_padding, "0")
+    base <> extension
   end
 
   @spec export_file(
@@ -163,5 +168,48 @@ defmodule PenguinMemories.Export do
         Logger.error("Failed to copy #{source_path}: #{inspect(reason)}")
         %{acc | errors: acc.errors + 1}
     end
+  end
+
+  @spec write_index_csv(list(Photo.t()), %{integer() => String.t()}, String.t(), export_result()) ::
+          export_result()
+  defp write_index_csv(photos, export_names, dest_dir, acc) do
+    rows = Enum.map(photos, &index_row(&1, export_names))
+
+    lines =
+      rows
+      |> CSV.encode(headers: @index_headers, delimiter: "\n", escape_formulas: true)
+      |> Enum.to_list()
+
+    index_path = Path.join(dest_dir, "index.csv")
+
+    case File.write(index_path, lines) do
+      :ok ->
+        Logger.info("Wrote #{index_path}")
+        acc
+
+      {:error, reason} ->
+        Logger.error("Failed to write #{index_path}: #{inspect(reason)}")
+        %{acc | errors: acc.errors + 1}
+    end
+  end
+
+  @spec index_row(Photo.t(), %{integer() => String.t()}) :: map()
+  defp index_row(photo, export_names) do
+    %{
+      id: photo.id,
+      exported: Map.fetch!(export_names, photo.id),
+      filename: photo.filename,
+      time: Format.display_datetime_offset(photo.datetime, photo.utc_offset),
+      description: photo.description,
+      albums: join_names(photo.albums),
+      people: join_names(photo.persons)
+    }
+  end
+
+  @spec join_names(Ecto.Association.NotLoaded.t() | list(map())) :: String.t()
+  defp join_names(%Ecto.Association.NotLoaded{}), do: ""
+
+  defp join_names(names) when is_list(names) do
+    Enum.map_join(names, ";", & &1.name)
   end
 end

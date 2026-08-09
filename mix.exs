@@ -60,6 +60,7 @@ defmodule PenguinMemories.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:mox, "~> 1.2.0", only: :test},
       {:paginator, "~> 1.2.0"},
+      {:csv, "~> 3.2"},
       {:earmark, "~> 1.4.10"},
       {:mogrify, "~> 0.9.3"},
       {:thumbnex, "~> 0.5.0"},
