@@ -42,7 +42,7 @@ defmodule PenguinMemories.MixProject do
       {:phoenix_html, "~> 4.3.0"},
       {:phoenix_html_helpers, "~> 1.0"},
       {:phoenix_live_view, "~> 1.2.0"},
-      {:phoenix_live_dashboard, "~> 0.8.2"},
+      {:phoenix_live_dashboard, "~> 0.9.0"},
       {:phoenix_view, "~> 2.0"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.3.0"},
