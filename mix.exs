@@ -58,7 +58,7 @@ defmodule PenguinMemories.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:mox, "~> 1.2.0", only: :test},
+      {:mox, "~> 1.3.0", only: :test},
       {:paginator, "~> 1.2.0"},
       {:csv, "~> 3.2"},
       {:earmark, "~> 1.4.10"},
