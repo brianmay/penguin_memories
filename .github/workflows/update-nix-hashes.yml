@@ -143,16 +143,16 @@ jobs:
     name: Commit updated hashes
     needs: compute
     # Repairing automatically means pushing into the pull request's branch, so
-    # it stays limited to Renovate's own pull requests from branches in this
-    # repository, where nobody else can steer that branch. The actor check also
-    # keeps the updater from running on the commit it pushes itself: that push
-    # uses a token of its own, so the resulting synchronize event no longer has
-    # Renovate as its actor.
+    # it stays limited to Renovate's and Dependabot's own pull requests from
+    # branches in this repository, where nobody else can steer that branch. The
+    # actor check also keeps the updater from running on the commit it pushes
+    # itself: that push uses a token of its own, so the resulting synchronize
+    # event no longer has the bot as its actor.
     if: >-
       needs.compute.outputs.changed == 'true' &&
-      github.actor == 'renovate[bot]' &&
-      github.event.pull_request.user.login == 'renovate[bot]' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor == github.event.pull_request.user.login &&
+      (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]')
 
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -162,7 +162,7 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout the Renovate commit
+      - name: Checkout the bot commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -256,7 +256,7 @@ jobs:
             commit -m "build(deps): update Nix hashes"
       # The only step that sees a write token, in a workspace that never ran
       # repository code.
-      - name: Push to the Renovate branch
+      - name: Push to the bot branch
         shell: bash
         env:
           PUSH_TOKEN: ${{ secrets.GH_TOKEN_FOR_UPDATES }}
@@ -264,9 +264,9 @@ jobs:
         run: |
           set -euo pipefail
 
-          : "${PUSH_TOKEN:?is empty. Runs triggered by Renovate cannot read Actions secrets, so this has to be stored as a repository secret}"
+          : "${PUSH_TOKEN:?is empty. Runs triggered by Renovate or Dependabot cannot read Actions secrets, so this has to be stored as a repository secret}"
 
-          # No force: if Renovate rebased the branch in the meantime, the
+          # No force: if the bot rebased the branch in the meantime, the
           # patch was computed against a commit that is no longer there and the
           # push has to fail rather than overwrite it.
           # The single quotes are load-bearing: git expands ${PUSH_TOKEN} from
