@@ -36,8 +36,8 @@ jobs:
     with:
       # Example of specifying custom arguments
       scan-args: |-
+        --include-git-root
         -r
-        --skip-git
         ./
   scan-pr:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'merge_group' }}
@@ -45,6 +45,6 @@ jobs:
     with:
       # Example of specifying custom arguments
       scan-args: |-
+        --include-git-root
         -r
-        --skip-git
         ./
