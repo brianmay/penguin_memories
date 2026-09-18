@@ -37,7 +37,7 @@ jobs:
   # Pushing that change back is left to the commit job below.
   compute:
     name: Compute updated hashes
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 45
 
     permissions:
@@ -118,7 +118,7 @@ jobs:
     name: Verify the pinned hashes
     needs: compute
 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
 
     permissions:
@@ -154,7 +154,7 @@ jobs:
       github.actor == github.event.pull_request.user.login &&
       (github.actor == 'renovate[bot]' || github.actor == 'dependabot[bot]')
 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
 
     # The push uses its own token, so the workflow token stays read-only.
