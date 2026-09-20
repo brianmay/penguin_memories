@@ -58,16 +58,14 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   @spec escape_markdown_attributes({String.t(), term(), term(), term()}) ::
           {String.t(), term(), term(), term()}
   defp escape_markdown_attributes({tag, atts, content, meta}) do
-    escaped_atts = escape_markdown_attribute_list(atts)
-    escaped_content = escape_markdown_content(content)
+    {escaped_atts, escaped_content} = escape_markdown_parts(atts, content)
     {tag, escaped_atts, escaped_content, meta}
   end
 
   @spec escape_markdown_attributes({String.t(), term(), term()}) ::
           {String.t(), term(), term()}
   defp escape_markdown_attributes({tag, atts, content}) do
-    escaped_atts = escape_markdown_attribute_list(atts)
-    escaped_content = escape_markdown_content(content)
+    {escaped_atts, escaped_content} = escape_markdown_parts(atts, content)
     {tag, escaped_atts, escaped_content}
   end
 
@@ -78,6 +76,11 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   @spec escape_markdown_attribute({String.t(), term()}) :: {String.t(), term()}
   defp escape_markdown_attribute({name, value}), do: {name, value}
+
+  @spec escape_markdown_parts(term(), term()) :: {term(), term()}
+  defp escape_markdown_parts(atts, content) do
+    {escape_markdown_attribute_list(atts), escape_markdown_content(content)}
+  end
 
   @spec escape_markdown_attribute_list(term()) :: term()
   defp escape_markdown_attribute_list(atts) when is_list(atts) do
