@@ -57,13 +57,13 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   @spec escape_markdown_attributes(tuple()) :: tuple()
   defp escape_markdown_attributes({tag, atts, content, meta}) do
-    escaped_atts = Enum.map(atts, &escape_markdown_attribute/1)
+    escaped_atts = escape_markdown_attribute_list(atts)
     escaped_content = escape_markdown_content(content)
     {tag, escaped_atts, escaped_content, meta}
   end
 
   defp escape_markdown_attributes({tag, atts, content}) do
-    escaped_atts = Enum.map(atts, &escape_markdown_attribute/1)
+    escaped_atts = escape_markdown_attribute_list(atts)
     escaped_content = escape_markdown_content(content)
     {tag, escaped_atts, escaped_content}
   end
@@ -75,12 +75,19 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   defp escape_markdown_attribute({name, value}), do: {name, value}
 
-  @spec escape_markdown_content(list() | nil) :: list() | nil
-  defp escape_markdown_content(nil), do: nil
+  @spec escape_markdown_attribute_list(term()) :: term()
+  defp escape_markdown_attribute_list(atts) when is_list(atts) do
+    Enum.map(atts, &escape_markdown_attribute/1)
+  end
 
-  defp escape_markdown_content(content) do
+  defp escape_markdown_attribute_list(atts), do: atts
+
+  @spec escape_markdown_content(term()) :: term()
+  defp escape_markdown_content(content) when is_list(content) do
     Enum.map(content, &escape_markdown_node/1)
   end
+
+  defp escape_markdown_content(content), do: content
 
   @spec escape_markdown_node(String.t() | tuple()) :: String.t() | tuple()
   defp escape_markdown_node({_, _, _, _} = node), do: escape_markdown_attributes(node)
@@ -89,7 +96,9 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   @spec escape_markdown_attribute_value(String.t()) :: String.t()
   defp escape_markdown_attribute_value(value) do
-    String.replace(value, "\"", "&quot;")
+    value
+    |> Phoenix.HTML.html_escape()
+    |> Phoenix.HTML.safe_to_string()
   end
 
   @spec display_album_parents_table(album_parents :: list(AlbumParent.t())) :: any()
