@@ -55,13 +55,16 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     end
   end
 
-  @spec escape_markdown_attributes(tuple()) :: tuple()
+  @spec escape_markdown_attributes({String.t(), term(), term(), term()}) ::
+          {String.t(), term(), term(), term()}
   defp escape_markdown_attributes({tag, atts, content, meta}) do
     escaped_atts = escape_markdown_attribute_list(atts)
     escaped_content = escape_markdown_content(content)
     {tag, escaped_atts, escaped_content, meta}
   end
 
+  @spec escape_markdown_attributes({String.t(), term(), term()}) ::
+          {String.t(), term(), term()}
   defp escape_markdown_attributes({tag, atts, content}) do
     escaped_atts = escape_markdown_attribute_list(atts)
     escaped_content = escape_markdown_content(content)
