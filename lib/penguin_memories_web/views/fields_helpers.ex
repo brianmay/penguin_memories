@@ -36,21 +36,12 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   defp display_markdown(nil), do: []
 
   defp display_markdown(value) do
-    case Earmark.as_html(value) do
-      {:ok, html_doc, _} ->
-        Phoenix.HTML.raw(html_doc)
-
-      {:error, _, errors} ->
-        result = ["</ul>"]
-
-        result =
-          Enum.reduce(errors, result, fn {_, _, text}, acc ->
-            ["<li>", text, "</li>" | acc]
-          end)
-
-        result = ["<ul class='alert alert-danger'>" | result]
-        Phoenix.HTML.raw(result)
-    end
+    html_doc = Md.generate(value)
+    Phoenix.HTML.raw(html_doc)
+  rescue
+    error ->
+      ~s(<ul class="alert alert-danger"><li>#{inspect(error)}</li></ul>)
+      |> Phoenix.HTML.raw()
   end
 
   @spec display_album_parents_table(album_parents :: list(AlbumParent.t())) :: any()

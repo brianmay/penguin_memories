@@ -25,7 +25,7 @@ defmodule PenguinMemories.MixProject do
   def application do
     [
       mod: {PenguinMemories.Application, []},
-      extra_applications: [:logger, :runtime_tools, :os_mon]
+      extra_applications: [:logger, :runtime_tools, :os_mon, :md]
     ]
   end
 
@@ -52,7 +52,7 @@ defmodule PenguinMemories.MixProject do
       {:postgrex, ">= 0.0.0"},
       {:geo_postgis, "~> 3.7"},
       {:geocalc, "~> 0.8"},
-      {:floki, ">= 0.0.0", only: :test},
+      {:floki, ">= 0.0.0"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_reload, "~> 1.7.0", only: :dev},
       {:gettext, "~> 1.0"},
@@ -61,7 +61,7 @@ defmodule PenguinMemories.MixProject do
       {:mox, "~> 1.3.0", only: :test},
       {:paginator, "~> 1.2.0"},
       {:csv, "~> 3.2"},
-      {:earmark, "~> 1.4.10"},
+      {:md, "~> 0.13.1"},
       {:mogrify, "~> 0.9.3"},
       {:thumbnex, "~> 0.5.0"},
       {:temp, "~> 0.4"},

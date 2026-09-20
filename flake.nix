@@ -52,7 +52,7 @@
           TOP_SRC = src;
           pname = "${pname}-mix-deps";
           inherit src version;
-          hash = "sha256-ajY+O7vcfmR7se/n1/oEvtfv6ujYzZEcYF3y2djwRG0=";
+          hash = "sha256-unRZyEm0pdgTSV3A5FzHKQsB2NA6QHF3rgVMZulhaRE=";
           # hash = pkgs.lib.fakeHash;
         };
 
@@ -64,12 +64,16 @@
         # substituted for them here. Every other dependency is fetched from the
         # integrity hashes in package-lock.json, which is why this needs no
         # aggregate hash of its own.
+        # morphdom is a dev dependency of phoenix_live_view that was switched from npm
+        # to a GitHub fork, but import-npm-lock cannot handle GitHub URLs in the lock file.
+        # It's not needed at runtime since morphdom is pre-bundled in phoenix_live_view.
         npmSources = pkgs.importNpmLock {
           npmRoot = ./assets;
           packageSourceOverrides = {
             "node_modules/phoenix" = "${mixFodDeps}/phoenix";
             "node_modules/phoenix_html" = "${mixFodDeps}/phoenix_html";
             "node_modules/phoenix_live_view" = "${mixFodDeps}/phoenix_live_view";
+            "node_modules/morphdom" = pkgs.emptyFile;
           };
         };
 
