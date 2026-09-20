@@ -36,7 +36,9 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   defp display_markdown(nil), do: []
 
   defp display_markdown(value) do
-    case Earmark.as_html(value) do
+    options = [registered_processors: [&escape_markdown_attributes/1]]
+
+    case Earmark.as_html(value, options) do
       {:ok, html_doc, _} ->
         Phoenix.HTML.raw(html_doc)
 
@@ -51,6 +53,24 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
         result = ["<ul class='alert alert-danger'>" | result]
         Phoenix.HTML.raw(result)
     end
+  end
+
+  @spec escape_markdown_attributes(tuple()) :: tuple()
+  defp escape_markdown_attributes({tag, atts, content, meta}) do
+    escaped_atts = Enum.map(atts, &escape_markdown_attribute/1)
+    {tag, escaped_atts, content, meta}
+  end
+
+  @spec escape_markdown_attribute({String.t(), term()}) :: {String.t(), term()}
+  defp escape_markdown_attribute({name, value}) when is_binary(value) do
+    {name, escape_markdown_attribute_value(value)}
+  end
+
+  defp escape_markdown_attribute({name, value}), do: {name, value}
+
+  @spec escape_markdown_attribute_value(String.t()) :: String.t()
+  defp escape_markdown_attribute_value(value) do
+    String.replace(value, "\"", "&quot;")
   end
 
   @spec display_album_parents_table(album_parents :: list(AlbumParent.t())) :: any()

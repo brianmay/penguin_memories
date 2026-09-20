@@ -1,6 +1,18 @@
 [[IgnoredVulns]]
+id = "EEF-CVE-2026-43966"
+reason = "App uses Phoenix/Plug via Cowboy and does not call low-level cowlib response/header APIs directly"
+
+[[IgnoredVulns]]
+id = "EEF-CVE-2026-43971"
+reason = "App does not emit custom Link headers or use cowlib Link helpers affected by this advisory"
+
+[[IgnoredVulns]]
 id = "EEF-CVE-2026-43969"
 reason = "App makes no outbound HTTP requests with user-controlled cookies"
+
+[[IgnoredVulns]]
+id = "EEF-CVE-2026-48591"
+reason = "Markdown rendering now escapes generated link attribute quotes before Earmark HTML is returned to templates"
 
 [[IgnoredVulns]]
 id = "EEF-CVE-2026-32686"
