@@ -62,6 +62,12 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     {tag, escaped_atts, escaped_content, meta}
   end
 
+  defp escape_markdown_attributes({tag, atts, content}) do
+    escaped_atts = Enum.map(atts, &escape_markdown_attribute/1)
+    escaped_content = escape_markdown_content(content)
+    {tag, escaped_atts, escaped_content}
+  end
+
   @spec escape_markdown_attribute({String.t(), term()}) :: {String.t(), term()}
   defp escape_markdown_attribute({name, value}) when is_binary(value) do
     {name, escape_markdown_attribute_value(value)}
@@ -78,6 +84,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   @spec escape_markdown_node(String.t() | tuple()) :: String.t() | tuple()
   defp escape_markdown_node({_, _, _, _} = node), do: escape_markdown_attributes(node)
+  defp escape_markdown_node({_, _, _} = node), do: escape_markdown_attributes(node)
   defp escape_markdown_node(node), do: node
 
   @spec escape_markdown_attribute_value(String.t()) :: String.t()
