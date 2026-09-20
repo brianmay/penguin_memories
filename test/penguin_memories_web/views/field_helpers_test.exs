@@ -35,5 +35,12 @@ defmodule PenguinMemoriesWeb.FieldHelpersTest do
       assert rendered =~ ~S|href="http://example.com/?a=x&quot; onerror=&quot;alert(1)"|
       refute rendered =~ ~S| onerror="alert(1)"|
     end
+
+    test "escapes quotes in three-tuple ast nodes" do
+      node = {"a", [{"href", ~S|http://example.com/?a=x" onerror="alert(1)|}], ["click"]}
+
+      assert {"a", [{"href", escaped_href}], ["click"]} = FieldHelpers.sanitize_markdown_ast(node)
+      assert escaped_href == ~S|http://example.com/?a=x&quot; onerror=&quot;alert(1)|
+    end
   end
 end

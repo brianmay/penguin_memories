@@ -36,7 +36,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   defp display_markdown(nil), do: []
 
   defp display_markdown(value) do
-    options = [registered_processors: [&escape_markdown_attributes/1]]
+    options = [registered_processors: [&sanitize_markdown_ast/1]]
 
     case Earmark.as_html(value, options) do
       {:ok, html_doc, _} ->
@@ -54,6 +54,16 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
         Phoenix.HTML.raw(result)
     end
   end
+
+  @doc false
+  @spec sanitize_markdown_ast(String.t() | tuple()) :: String.t() | tuple()
+  def sanitize_markdown_ast({_, _, _, _} = node), do: escape_markdown_attributes(node)
+
+  @spec sanitize_markdown_ast(String.t() | tuple()) :: String.t() | tuple()
+  def sanitize_markdown_ast({_, _, _} = node), do: escape_markdown_attributes(node)
+
+  @spec sanitize_markdown_ast(String.t() | tuple()) :: String.t() | tuple()
+  def sanitize_markdown_ast(node), do: node
 
   @spec escape_markdown_attributes({String.t(), term(), term(), term()}) ::
           {String.t(), term(), term(), term()}
@@ -92,20 +102,11 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   @spec escape_markdown_content(term()) :: term()
   defp escape_markdown_content(content) when is_list(content) do
-    Enum.map(content, &escape_markdown_node/1)
+    Enum.map(content, &sanitize_markdown_ast/1)
   end
 
   @spec escape_markdown_content(term()) :: term()
   defp escape_markdown_content(content), do: content
-
-  @spec escape_markdown_node(String.t() | tuple()) :: String.t() | tuple()
-  defp escape_markdown_node({_, _, _, _} = node), do: escape_markdown_attributes(node)
-
-  @spec escape_markdown_node(String.t() | tuple()) :: String.t() | tuple()
-  defp escape_markdown_node({_, _, _} = node), do: escape_markdown_attributes(node)
-
-  @spec escape_markdown_node(String.t() | tuple()) :: String.t() | tuple()
-  defp escape_markdown_node(node), do: node
 
   @spec escape_markdown_attribute_value(String.t()) :: String.t()
   defp escape_markdown_attribute_value(value) do
