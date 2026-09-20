@@ -56,5 +56,12 @@ defmodule PenguinMemoriesWeb.FieldHelpersTest do
 
       assert escaped_href == ~S|http://example.com/?a=x&quot; onerror=&quot;alert(1)|
     end
+
+    test "leaves unrelated attributes unchanged" do
+      node = {"span", [{"class", ~S|note "quoted"|}], ["text"]}
+
+      assert {"span", [{"class", ~S|note "quoted"|}], ["text"]} =
+               FieldHelpers.sanitize_markdown_ast(node)
+    end
   end
 end
