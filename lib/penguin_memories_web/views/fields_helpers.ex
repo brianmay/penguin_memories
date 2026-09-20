@@ -76,6 +76,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     {name, escape_markdown_attribute_value(value)}
   end
 
+  @spec escape_markdown_attribute({String.t(), term()}) :: {String.t(), term()}
   defp escape_markdown_attribute({name, value}), do: {name, value}
 
   @spec escape_markdown_attribute_list(term()) :: term()
@@ -83,6 +84,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     Enum.map(atts, &escape_markdown_attribute/1)
   end
 
+  @spec escape_markdown_attribute_list(term()) :: term()
   defp escape_markdown_attribute_list(atts), do: atts
 
   @spec escape_markdown_content(term()) :: term()
@@ -90,11 +92,16 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
     Enum.map(content, &escape_markdown_node/1)
   end
 
+  @spec escape_markdown_content(term()) :: term()
   defp escape_markdown_content(content), do: content
 
   @spec escape_markdown_node(String.t() | tuple()) :: String.t() | tuple()
   defp escape_markdown_node({_, _, _, _} = node), do: escape_markdown_attributes(node)
+
+  @spec escape_markdown_node(String.t() | tuple()) :: String.t() | tuple()
   defp escape_markdown_node({_, _, _} = node), do: escape_markdown_attributes(node)
+
+  @spec escape_markdown_node(String.t() | tuple()) :: String.t() | tuple()
   defp escape_markdown_node(node), do: node
 
   @spec escape_markdown_attribute_value(String.t()) :: String.t()
