@@ -27,7 +27,7 @@
     "webpack-cli": "^7.0.0"
   },
   "engines": {
-    "node": ">=14.x"
+    "node": ">=20"
   },
   "overrides": {
     "brace-expansion": "5.0.9",
