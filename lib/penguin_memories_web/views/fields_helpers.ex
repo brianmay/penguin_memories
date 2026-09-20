@@ -59,10 +59,12 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   @spec sanitize_markdown_ast({String.t(), term(), term(), term()}) ::
           {String.t(), term(), term(), term()}
   @spec sanitize_markdown_ast({String.t(), term(), term()}) :: {String.t(), term(), term()}
+  @spec sanitize_markdown_ast(list()) :: list()
   @spec sanitize_markdown_ast(String.t()) :: String.t()
   def sanitize_markdown_ast({_, _, _, _} = node), do: escape_markdown_attributes(node)
 
   def sanitize_markdown_ast({_, _, _} = node), do: escape_markdown_attributes(node)
+  def sanitize_markdown_ast(nodes) when is_list(nodes), do: Enum.map(nodes, &sanitize_markdown_ast/1)
   def sanitize_markdown_ast(node), do: node
 
   @spec escape_markdown_attributes({String.t(), term(), term(), term()}) ::
