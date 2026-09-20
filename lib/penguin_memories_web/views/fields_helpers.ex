@@ -56,13 +56,13 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   end
 
   @doc false
-  @spec sanitize_markdown_ast(String.t() | tuple()) :: String.t() | tuple()
+  @spec sanitize_markdown_ast({String.t(), term(), term(), term()}) ::
+          {String.t(), term(), term(), term()}
+  @spec sanitize_markdown_ast({String.t(), term(), term()}) :: {String.t(), term(), term()}
+  @spec sanitize_markdown_ast(String.t()) :: String.t()
   def sanitize_markdown_ast({_, _, _, _} = node), do: escape_markdown_attributes(node)
 
-  @spec sanitize_markdown_ast(String.t() | tuple()) :: String.t() | tuple()
   def sanitize_markdown_ast({_, _, _} = node), do: escape_markdown_attributes(node)
-
-  @spec sanitize_markdown_ast(String.t() | tuple()) :: String.t() | tuple()
   def sanitize_markdown_ast(node), do: node
 
   @spec escape_markdown_attributes({String.t(), term(), term(), term()}) ::
