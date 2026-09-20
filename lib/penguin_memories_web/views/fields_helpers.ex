@@ -113,9 +113,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
 
   @spec escape_markdown_attribute_value(String.t()) :: String.t()
   defp escape_markdown_attribute_value(value) do
-    value
-    |> Phoenix.HTML.html_escape()
-    |> Phoenix.HTML.safe_to_string()
+    String.replace(value, "\"", "&quot;")
   end
 
   @spec display_album_parents_table(album_parents :: list(AlbumParent.t())) :: any()

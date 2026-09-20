@@ -72,5 +72,12 @@ defmodule PenguinMemoriesWeb.FieldHelpersTest do
       assert {"span", [{"class", ~S|note "quoted"|}], ["text"]} =
                FieldHelpers.sanitize_markdown_ast(node)
     end
+
+    test "preserves ampersands in escaped href values" do
+      node = {"a", [{"href", ~S|http://example.com/?a=1&b=2" onerror="alert(1)|}], ["click"]}
+
+      assert {"a", [{"href", escaped_href}], ["click"]} = FieldHelpers.sanitize_markdown_ast(node)
+      assert escaped_href == ~S|http://example.com/?a=1&b=2&quot; onerror=&quot;alert(1)|
+    end
   end
 end
