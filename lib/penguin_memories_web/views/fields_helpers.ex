@@ -59,10 +59,7 @@ defmodule PenguinMemoriesWeb.FieldHelpers do
   @spec sanitize_markdown_ast(String.t() | tuple()) :: String.t() | tuple()
   def sanitize_markdown_ast({_, _, _, _} = node), do: escape_markdown_attributes(node)
 
-  @spec sanitize_markdown_ast(String.t() | tuple()) :: String.t() | tuple()
   def sanitize_markdown_ast({_, _, _} = node), do: escape_markdown_attributes(node)
-
-  @spec sanitize_markdown_ast(String.t() | tuple()) :: String.t() | tuple()
   def sanitize_markdown_ast(node), do: node
 
   @spec escape_markdown_attributes({String.t(), term(), term(), term()}) ::
