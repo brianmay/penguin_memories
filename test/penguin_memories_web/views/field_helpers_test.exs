@@ -19,5 +19,21 @@ defmodule PenguinMemoriesWeb.FieldHelpersTest do
       assert rendered =~ ~S|href="http://example.com/?a=x&quot; onerror=&quot;alert(1)"|
       refute rendered =~ ~S| onerror="alert(1)"|
     end
+
+    test "escapes injected quotes inside nested markdown link attributes" do
+      field = %Field{id: :description, name: "Description", type: :markdown}
+
+      rendered =
+        FieldHelpers.output_field(
+          nil,
+          %{description: ~S|*prefix [click](http://example.com/?a=x" onerror="alert(1))*|},
+          field
+        )
+        |> Phoenix.HTML.safe_to_string()
+
+      assert rendered =~ "<em>"
+      assert rendered =~ ~S|href="http://example.com/?a=x&quot; onerror=&quot;alert(1)"|
+      refute rendered =~ ~S| onerror="alert(1)"|
+    end
   end
 end
