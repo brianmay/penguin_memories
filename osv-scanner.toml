@@ -5,3 +5,7 @@ reason = "App makes no outbound HTTP requests with user-controlled cookies"
 [[IgnoredVulns]]
 id = "EEF-CVE-2026-32686"
 reason = "App does not use the Decimal library"
+
+[[IgnoredVulns]]
+id = "EEF-CVE-2026-43966"
+reason = "No fix available yet - cowlib HTTP Response Splitting via non-VCHAR bytes"
