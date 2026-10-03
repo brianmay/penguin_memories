@@ -1,3 +1,0 @@
-[[IgnoredVulns]]
-id = "GHSA-5g2h-9x5v-5h3x"
-reason = "phoenix_html is a local file dependency from Elixir deps, not a real npm package"
