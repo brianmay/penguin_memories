@@ -1,3 +1,7 @@
 [[IgnoredVulns]]
+id = "GHSA-5g2h-9x5v-5h3x"
+reason = "False positive: the local file:../deps/phoenix_html package reports npm metadata version 0.0.1; the application uses phoenix_html 4.3.0 from Hex"
+
+[[IgnoredVulns]]
 id = "GHSA-vfj7-8cjw-p6xm"
 reason = "No fixed braces version is available; it is an optional development dependency via micromatch"
