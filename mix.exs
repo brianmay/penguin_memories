@@ -47,6 +47,7 @@ defmodule PenguinMemories.MixProject do
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.3.0"},
       {:phoenix_ecto, "~> 4.1"},
+      {:decimal, "~> 3.1", override: true},
       {:ecto_sql, "~> 3.4"},
       {:ecto_psql_extras, "~> 0.2"},
       {:postgrex, ">= 0.0.0"},
