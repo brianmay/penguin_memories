@@ -1,3 +1,0 @@
-[[IgnoredVulns]]
-id = "GHSA-vfj7-8cjw-p6xm"
-reason = "No fixed braces version is available; it is an optional development dependency via micromatch"
