@@ -62,7 +62,7 @@ defmodule PenguinMemories.MixProject do
       {:mox, "~> 1.3.0", only: :test},
       {:paginator, "~> 1.2.0"},
       {:csv, "~> 3.2"},
-      {:md, "~> 0.15.0"},
+      {:md, "~> 0.13.0"},
       {:mogrify, "~> 0.9.3"},
       {:thumbnex, "~> 0.5.0"},
       {:temp, "~> 0.4"},
