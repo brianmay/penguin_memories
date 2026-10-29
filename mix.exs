@@ -49,6 +49,7 @@ defmodule PenguinMemories.MixProject do
       {:phoenix_ecto, "~> 4.1"},
       {:decimal, "~> 3.1", override: true},
       {:ecto_sql, "~> 3.4"},
+      {:plug_crypto, "~> 2.2", override: true},
       {:ecto_psql_extras, "~> 0.2"},
       {:postgrex, ">= 0.0.0"},
       {:geo_postgis, "~> 3.7"},
