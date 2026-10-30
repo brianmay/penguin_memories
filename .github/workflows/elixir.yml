@@ -45,7 +45,7 @@ jobs:
       - name: Install system dependancies
         run: |
           sudo apt-get update --yes
-          sudo apt-get install --yes graphicsmagick-imagemagick-compat libimage-exiftool-perl ffmpeg exiftran libraw-bin
+          sudo apt-get install --yes imagemagick libimage-exiftool-perl ffmpeg exiftran libraw-bin
       - name: Setup elixir
         uses: erlef/setup-elixir@v1.24
         with:
