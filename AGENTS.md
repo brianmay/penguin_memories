@@ -76,7 +76,7 @@ goes to `priv/static/`. The `assets/` directory is excluded from Prettier
 
 ## System Dependencies (required at runtime)
 
-- `graphicsmagick-imagemagick-compat` — image resizing/conversion
+- `imagemagick` — image resizing/conversion
 - `libimage-exiftool-perl` — EXIF metadata extraction
 - `ffmpeg` — video transcoding
 - `exiftran` — lossless JPEG rotation
