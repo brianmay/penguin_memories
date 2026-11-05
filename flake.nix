@@ -52,7 +52,7 @@
           TOP_SRC = src;
           pname = "${pname}-mix-deps";
           inherit src version;
-          hash = "sha256-0oL4B5w6KFRqeqPH1uMTihb1FA76O/6BgcV6HRUozSE=";
+          hash = "sha256-fc6RvoOyN5aH4jPuT5MYJGoGR4GHLo6v2mMuo9t1FJo=";
           # hash = pkgs.lib.fakeHash;
         };
 
