@@ -1,3 +1,11 @@
 [[IgnoredVulns]]
 id = "EEF-CVE-2026-43966"
 reason = "No fix available yet - cowlib HTTP Response Splitting via non-VCHAR bytes"
+
+[[IgnoredVulns]]
+id = "EEF-CVE-2026-115701"
+reason = "No fix available yet - OSV reports no fixed version for cowboy 2.20.0"
+
+[[IgnoredVulns]]
+id = "EEF-CVE-2026-113431"
+reason = "No fix available yet - OSV reports no fixed version for cowlib 2.21.0"
